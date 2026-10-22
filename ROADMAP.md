@@ -1,5 +1,9 @@
 # Guardrr Roadmap
 
+## Next up (priority — do this before item 4)
+
+- [ ] **Research colorguard toss technique, then generalize toss counts.** Feedback from Niv (2026-10-22): "toss counts can be on any count ideally." Before coding, do web research on colorguard toss technique and counting conventions (how tosses are named/counted — singles, doubles, triples, quads, "5 count", etc.; where release happens relative to count 1 and "and" counts; how air time maps to the catch count; typical toss lengths; prep patterns like "5 6, 5 6 7 8"). Write findings to `docs/colorguard-research.md` with sources, infer the right model without asking Niv, and record the decisions in CHANGELOG. Then update the engine so toss counts aren't artificially limited (any count the phrase allows; resolves the "1"-count question below) and adjust tests.
+
 - [x] 1. Scaffold Expo TS app, README with the premise, ROADMAP.md, CHANGELOG.md, Jest + ESLint + Prettier configured, CI workflow (`.github/workflows/ci.yml` running typecheck + tests).
 - [x] 2. Engine: count/phrase model (bpm → ms per count, phrase position, count 1 detection) + tests.
 - [x] 3. Engine: announcement scheduling (lead counts before release) + random toss-count picker (range, no-repeat option, seedable) + tests.
