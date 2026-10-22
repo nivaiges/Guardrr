@@ -2,7 +2,7 @@
 
 - [x] 1. Scaffold Expo TS app, README with the premise, ROADMAP.md, CHANGELOG.md, Jest + ESLint + Prettier configured, CI workflow (`.github/workflows/ci.yml` running typecheck + tests).
 - [x] 2. Engine: count/phrase model (bpm → ms per count, phrase position, count 1 detection) + tests.
-- [ ] 3. Engine: announcement scheduling (lead counts before release) + random toss-count picker (range, no-repeat option, seedable) + tests.
+- [x] 3. Engine: announcement scheduling (lead counts before release) + random toss-count picker (range, no-repeat option, seedable) + tests.
 - [ ] 4. Drift-correcting scheduler/clock + tests with fake timers.
 - [ ] 5. Metronome audio playback with accent on count 1; start/stop button.
 - [ ] 6. TTS announcement of the called count wired to the engine.
@@ -15,5 +15,7 @@
 
 ## Discovered along the way
 
-- [ ] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
+- [x] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
+- [ ] Settings UI should warn when the call for the next phrase is spoken before the current toss is caught (call count > phraseLength − leadCounts).
+- [ ] Confirm "1"-count semantics with Niv (currently: released and caught on count 1).
