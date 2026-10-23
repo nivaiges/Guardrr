@@ -7,9 +7,12 @@
  * - From phrase 1 on, every count 1 is a release. The call for phrase p is
  *   spoken `leadCounts` counts before that release, i.e. on count
  *   (phraseLength - leadCounts + 1) of phrase p - 1.
- * - The performer catches on count `call` of phrase p (a "5" is caught on 5).
+ * - The performer catches on count `call` of phrase p (a "5" is caught on 5,
+ *   a "2.5" on the "and" after 2, a "1" pop toss on the "and" of 1; see
+ *   calls.ts). Any call whose catch lands inside the phrase is allowed.
  */
 
+import { catchCountOf, catchPositionOf, catchesOnAnd } from './calls';
 import { Rng, normalizeTossCounts, pickTossCount } from './random';
 import { PhrasePosition, assertValidPhraseLength, phrasePosition } from './timing';
 
@@ -44,13 +47,20 @@ export function assertValidLeadCounts(leadCounts: number, phraseLength: number):
   }
 }
 
+/** Largest whole call that can be caught inside a phrase (its last count). */
+export function maxTossCount(phraseLength: number): number {
+  assertValidPhraseLength(phraseLength);
+  return phraseLength;
+}
+
 /**
  * Restrict the allowed toss counts to ones that can be caught inside the
- * phrase (catch count <= phraseLength). Throws if nothing fits.
+ * phrase (catch at or before its last count — an "and" after the last count
+ * would collide with the next release). Throws if nothing fits.
  */
 export function tossCountsThatFit(allowed: readonly number[], phraseLength: number): number[] {
   assertValidPhraseLength(phraseLength);
-  const fitting = normalizeTossCounts(allowed).filter((n) => n <= phraseLength);
+  const fitting = normalizeTossCounts(allowed).filter((n) => catchPositionOf(n) <= phraseLength);
   if (fitting.length === 0) {
     throw new RangeError(`no allowed toss count fits in a ${phraseLength}-count phrase`);
   }
@@ -146,8 +156,10 @@ export interface CountEvents {
   announce: { phrase: number; call: number } | null;
   /** True on count 1 of a toss phrase. */
   release: boolean;
-  /** True on the catch count of a toss phrase. */
+  /** True when the catch lands on this count. */
   catch: boolean;
+  /** True when the catch lands on the "and" right after this count. */
+  catchOnAnd: boolean;
   /** The call in effect for the current phrase (null in the lead-in). */
   currentCall: number | null;
 }
@@ -170,7 +182,11 @@ export function eventsAtCount(
         ? { phrase: announcedPhrase, call: calls.callFor(announcedPhrase) }
         : null,
     release: isTossPhrase && position.isDownbeat,
-    catch: currentCall !== null && position.count === currentCall,
+    catch: currentCall !== null && !catchesOnAnd(currentCall) && position.count === currentCall,
+    catchOnAnd:
+      currentCall !== null &&
+      catchesOnAnd(currentCall) &&
+      position.count === catchCountOf(currentCall),
     currentCall,
   };
 }

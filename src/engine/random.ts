@@ -3,6 +3,8 @@
  * Pure and framework-free: no Math.random unless you ask for it.
  */
 
+import { assertValidCall } from './calls';
+
 /** A function returning a float in [0, 1), like Math.random. */
 export type Rng = () => number;
 
@@ -29,23 +31,32 @@ export function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 32);
 }
 
-/** Inclusive integer range, e.g. tossCountsInRange(1, 7) → [1..7]. */
-export function tossCountsInRange(min: number, max: number): number[] {
+export interface RangeOptions {
+  /** Also include the "and" calls between whole counts (2.5, 3.5, ...). */
+  andCounts?: boolean;
+}
+
+/**
+ * Inclusive range of calls, e.g. tossCountsInRange(1, 7) → [1..7];
+ * with { andCounts: true }, tossCountsInRange(2, 3) → [2, 2.5, 3].
+ */
+export function tossCountsInRange(
+  min: number,
+  max: number,
+  { andCounts = false }: RangeOptions = {},
+): number[] {
   if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max < min) {
     throw new RangeError(`toss range must be integers with 1 <= min <= max, got ${min}..${max}`);
   }
+  const step = andCounts ? 0.5 : 1;
   const out: number[] = [];
-  for (let n = min; n <= max; n++) out.push(n);
+  for (let n = min; n <= max; n += step) out.push(n);
   return out;
 }
 
 /** De-duplicate and sort a user-provided toss-count set, rejecting bad values. */
 export function normalizeTossCounts(counts: readonly number[]): number[] {
-  for (const n of counts) {
-    if (!Number.isInteger(n) || n < 1) {
-      throw new RangeError(`toss counts must be positive integers, got ${n}`);
-    }
-  }
+  for (const n of counts) assertValidCall(n);
   const unique = Array.from(new Set(counts)).sort((a, b) => a - b);
   if (unique.length === 0) {
     throw new RangeError('at least one toss count is required');

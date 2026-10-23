@@ -5,6 +5,7 @@ import {
   announceCountInPhrase,
   announcementCountIndex,
   eventsAtCount,
+  maxTossCount,
   phraseAnnouncedAt,
   tossCountsThatFit,
   validateTossSettings,
@@ -63,6 +64,13 @@ describe('toss settings validation', () => {
     expect(() =>
       validateTossSettings(settings({ phraseLength: 4, allowedTossCounts: [5] })),
     ).toThrow(RangeError);
+  });
+
+  it('allows any count up to the phrase length, including "and" calls', () => {
+    expect(maxTossCount(16)).toBe(16);
+    expect(tossCountsThatFit([1, 8, 12, 16, 17], 16)).toEqual([1, 8, 12, 16]);
+    expect(tossCountsThatFit([7.5, 8, 8.5], 8)).toEqual([7.5, 8]);
+    expect(tossCountsThatFit([31.5, 32], 32)).toEqual([31.5, 32]);
   });
 
   it('accepts the defaults', () => {
@@ -165,11 +173,31 @@ describe('eventsAtCount', () => {
     expect(e8.announce).toEqual({ phrase: 2, call: 3 });
   });
 
-  it('flags release and catch together for a 1-count call', () => {
+  it('catches a 1-count pop toss on the "and" of the release count', () => {
     const s = settings({ phraseLength: 8, leadCounts: 4, allowedTossCounts: [1] });
     const seq = new CallSequence(s, createRng(1));
     const e = eventsAtCount(8, s, seq);
     expect(e.release).toBe(true);
+    expect(e.catch).toBe(false);
+    expect(e.catchOnAnd).toBe(true);
+    expect(eventsAtCount(9, s, seq).catchOnAnd).toBe(false);
+  });
+
+  it('catches an "and" call on the and after its count, never on a count', () => {
+    const s = settings({ phraseLength: 8, leadCounts: 2, allowedTossCounts: [2.5] });
+    const seq = new CallSequence(s, createRng(1));
+    const phrase1 = Array.from({ length: 8 }, (_, i) => eventsAtCount(8 + i, s, seq));
+    expect(phrase1.filter((e) => e.catch)).toHaveLength(0);
+    const ands = phrase1.filter((e) => e.catchOnAnd).map((e) => e.position.count);
+    expect(ands).toEqual([2]);
+    expect(eventsAtCount(6, s, seq).announce).toEqual({ phrase: 1, call: 2.5 });
+  });
+
+  it('allows calls on any count of the phrase, up to its last count', () => {
+    const s = settings({ phraseLength: 16, allowedTossCounts: [16] });
+    const seq = new CallSequence(s, createRng(1));
+    const e = eventsAtCount(16 + 15, s, seq);
+    expect(e.position.isLastCount).toBe(true);
     expect(e.catch).toBe(true);
   });
 });

@@ -45,7 +45,13 @@ describe('normalizeTossCounts', () => {
   it('rejects empty sets and bad values', () => {
     expect(() => normalizeTossCounts([])).toThrow(RangeError);
     expect(() => normalizeTossCounts([0, 2])).toThrow(RangeError);
-    expect(() => normalizeTossCounts([2.5])).toThrow(RangeError);
+    expect(() => normalizeTossCounts([2.25])).toThrow(RangeError);
+    expect(() => normalizeTossCounts([0.5])).toThrow(RangeError);
+    expect(() => normalizeTossCounts([NaN])).toThrow(RangeError);
+  });
+
+  it('accepts "and" calls in half-count steps', () => {
+    expect(normalizeTossCounts([3, 2.5, 2, 2.5])).toEqual([2, 2.5, 3]);
   });
 });
 
