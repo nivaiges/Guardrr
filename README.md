@@ -10,6 +10,11 @@ Shortly before the release, Guardrr **speaks a random toss count** (1–7 by def
 on 1, **catch on the called count** (a "5" is caught on count 5, a "6" on count 6), keep marking
 time until the phrase ends, and the cycle repeats with a new random call.
 
+Calls can be on any count the phrase allows (up to 16 in a 16-count phrase), and optionally on
+"and" counts — a "2 and" is caught on the "and" after 2. A "1" is a pop toss, caught on the "and"
+of the release. See [docs/colorguard-research.md](docs/colorguard-research.md) for the counting
+conventions this is based on.
+
 Configurable (planned): BPM, phrase length (8 / 16 / 32…), how many counts before the release the
 call is announced, the allowed toss counts, whether consecutive repeats are allowed, a spoken or
 visual count display, and an accent on count 1.
