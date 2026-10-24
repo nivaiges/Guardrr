@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-10-24
+
+### Added
+
+- **The app is playable** (roadmap #5 and #6): Start/Stop, a metronome with an accented count 1, and the toss call spoken on count 13 of each phrase. The screen shows the current count, "Lead-in" / "Toss: 5" / "Release!" / "Catch!", the next call once it has been spoken, and a BPM −/+ stepper (5 BPM steps, changes tempo live without a jump).
+- `src/engine/practice.ts` — `cueForTick`: per-tick click kind (accent / count / optional quiet "and"), spoken text, release/catch (including "and" catches on the "and" tick), current and next call. `speechTextForCall` spells calls out ("five", "two and"); `displayLabelForCall` gives "2&".
+- `src/audio/` — `createClickPlayer` (expo-audio, round-robin pools of preloaded players per click), `configurePracticeAudio` (plays in silent mode, mixes with music), `createVoice` (expo-speech, cuts off a previous call).
+- `scripts/generate-clicks.js` — synthesizes the three 50 ms WAV clicks deterministically, so there are no third-party sound licenses to worry about.
+- `src/practice/` — `createPracticeSession` (scheduler at 2 ticks per count → cues → clicks/voice/UI) and the `usePracticeSession` hook.
+- Dependencies: `expo-audio` ~58.0.9, `expo-speech` ~58.0.3 (both included in Expo Go); `globals` as an explicit dev dependency for linting the Node script.
+- 24 new tests (91 total), including a fake-timer session test that the first call is spoken exactly 6 s in at 120 BPM.
+
+### Decisions
+
+- Clicks use expo-audio players (seek to 0 + play) driven by the JS drift-correcting scheduler, as planned. Player start latency/jitter can't be measured headless; if it's audible, the next step is react-native-audio-api with lookahead (roadmap item added).
+- The scheduler always runs at 2 ticks per count so "and" catches get a cue; the "and" click itself is off by default.
+- Calls are spoken as words, at rate 1.1, and a new call cuts off any unfinished one.
+- No `expo-audio` config plugin in `app.json`: it is only needed for recording/background audio, and adding it would request microphone permission.
+- The Expo docs site couldn't be fetched from this unattended run, so the expo-audio / expo-speech APIs were taken from the installed SDK 58 type definitions. `npx expo install` couldn't reach the Expo API either; versions are pinned from `expo/bundledNativeModules.json`. Verified the Android bundle builds with `npx expo export`.
+
+### To test on your phone
+
+- `npm install && npm start`, open in Expo Go, press **Start**. Check: clicks are steady and count 1 sounds higher; after 16 counts of lead-in, a number is spoken on count 13; the screen flashes "Release!" on 1 and "Catch!" on the called count.
+- Listen for timing: are the clicks even at 120 and at 180+ BPM? Does the spoken call land early enough to react to (it may need latency compensation)?
+- Try with the ringer switch on silent (should still play) and with music playing (should mix, not pause it).
+- None of the audio or speech could be heard in this headless environment.
+
 ## 2026-10-23
 
 ### Added

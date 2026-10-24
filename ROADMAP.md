@@ -8,8 +8,8 @@
 - [x] 2. Engine: count/phrase model (bpm → ms per count, phrase position, count 1 detection) + tests.
 - [x] 3. Engine: announcement scheduling (lead counts before release) + random toss-count picker (range, no-repeat option, seedable) + tests.
 - [x] 4. Drift-correcting scheduler/clock + tests with fake timers.
-- [ ] 5. Metronome audio playback with accent on count 1; start/stop button.
-- [ ] 6. TTS announcement of the called count wired to the engine.
+- [x] 5. Metronome audio playback with accent on count 1; start/stop button.
+- [x] 6. TTS announcement of the called count wired to the engine.
 - [ ] 7. Settings UI: BPM (slider + tap tempo), phrase length, lead counts, toss range.
 - [ ] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
 - [ ] 9. Persist settings (AsyncStorage).
@@ -24,5 +24,7 @@
 - [x] Engine support for settings warnings (`settingsWarnings`): call spoken before the current toss is caught, calls dropped for not fitting, no-repeat with one call. Settings UI (#7) must display them.
 - [x] "1"-count semantics: decided from research — a "1" is a pop toss caught on the "and" of 1 (see `docs/colorguard-research.md`).
 - [ ] Settings UI: toggle for "and" calls and a toss range up to the phrase length (engine supports both).
-- [ ] Audio (#5) should tick with `ticksPerCount: 2` so "and" catches get a cue; consider an optional quieter "and" click.
+- [x] Audio (#5) should tick with `ticksPerCount: 2` so "and" catches get a cue; consider an optional quieter "and" click. (Engine/audio support `andClicks`; needs a toggle in #7.)
+- [ ] Settings UI: toggles for the count-1 accent and the quiet "and" click (`CueOptions`).
+- [ ] Measure click latency on device; if expo-audio player start jitter is audible, move clicks to react-native-audio-api with lookahead scheduling (the scheduler already supports `lookaheadMs`).
 - [ ] Optional preset mapping rotation names (single/double/triple/quad) to count calls.
