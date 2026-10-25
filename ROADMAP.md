@@ -10,7 +10,7 @@
 - [x] 4. Drift-correcting scheduler/clock + tests with fake timers.
 - [x] 5. Metronome audio playback with accent on count 1; start/stop button.
 - [x] 6. TTS announcement of the called count wired to the engine.
-- [ ] 7. Settings UI: BPM (slider + tap tempo), phrase length, lead counts, toss range.
+- [x] 7. Settings UI: BPM (stepper + tap tempo), phrase length, lead counts, toss range.
 - [ ] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
 - [ ] 9. Persist settings (AsyncStorage).
 - [ ] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
@@ -23,8 +23,12 @@
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
 - [x] Engine support for settings warnings (`settingsWarnings`): call spoken before the current toss is caught, calls dropped for not fitting, no-repeat with one call. Settings UI (#7) must display them.
 - [x] "1"-count semantics: decided from research — a "1" is a pop toss caught on the "and" of 1 (see `docs/colorguard-research.md`).
-- [ ] Settings UI: toggle for "and" calls and a toss range up to the phrase length (engine supports both).
+- [x] Settings UI: toggle for "and" calls and a toss range up to the phrase length (engine supports both).
 - [x] Audio (#5) should tick with `ticksPerCount: 2` so "and" catches get a cue; consider an optional quieter "and" click. (Engine/audio support `andClicks`; needs a toggle in #7.)
-- [ ] Settings UI: toggles for the count-1 accent and the quiet "and" click (`CueOptions`).
+- [x] Settings UI: toggles for the count-1 accent and the quiet "and" click (`CueOptions`).
 - [ ] Measure click latency on device; if expo-audio player start jitter is audible, move clicks to react-native-audio-api with lookahead scheduling (the scheduler already supports `lookaheadMs`).
 - [ ] Optional preset mapping rotation names (single/double/triple/quad) to count calls.
+- [ ] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7); the engine supports any set, the UI only edits a range.
+- [ ] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start.
+- [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
+- [ ] UI component tests (needs `@testing-library/react-native`); today only the pure logic behind the UI is tested.

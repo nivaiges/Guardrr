@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-10-25
+
+### Added
+
+- **Settings screen** (roadmap #7), below the display (the screen now scrolls):
+  - Tempo: BPM stepper with ±1 / ±5 buttons and a **Tap tempo** button. Both change the tempo live while practicing.
+  - Phrase: counts per phrase (4 / 8 / 12 / 16 / 24 / 32) and lead counts, labelled with the count the call lands on ("Call 4 before release (on count 13)").
+  - Calls: shortest / longest toss (up to the phrase length), "and" calls toggle, repeats toggle.
+  - Sound: accent on count 1, quiet click on the "and"s.
+  - Settings warnings shown in plain English under the settings.
+- `src/engine/tapTempo.ts` — `addTap` / `tapTempoBpm`: median of the recent tap intervals (one hesitant tap doesn't skew it), resets after a 2 s pause, keeps the last 8 taps, clamped to 20–400 BPM.
+- `src/engine/editSettings.ts` — `withPhraseLength`, `withLeadCounts`, `withTossRange`, `withAllowRepeats`, `tossRangeOf`, `tossCountsForRange`, `clampBpm`, `PHRASE_LENGTH_OPTIONS`. Every edit returns valid settings (shortening the phrase pulls lead counts and the call range in), checked by a 500-step random-edit test.
+- `describeWarning` in `src/engine/warnings.ts`.
+- `src/components/controls.tsx` (Stepper, Toggle, Segmented — core React Native only, with accessibility roles/labels) and `src/components/SettingsPanel.tsx`.
+- 21 new tests (112 total).
+
+### Decisions
+
+- **No slider for BPM yet**: core React Native has none, and `@react-native-community/slider` is a native module. A ±1/±5 stepper plus tap tempo covers it; a slider is on the roadmap if wanted.
+- Only the tempo can change while practicing. Phrase, call and sound settings are disabled while running and apply on the next Start, since the call sequence is built at start (applying them at the next phrase boundary is on the roadmap).
+- The UI edits calls as a contiguous range (shortest..longest). With "and" calls on, "1 and" is left out when "1" is in range, because a pop toss is already caught on the "and" of 1. Hand-picking a set like 3/5/7 is on the roadmap.
+- A longer phrase leaves the call range alone (calls 1–7 stay 1–7 in a 32-count phrase) rather than stretching it.
+- No UI component tests yet (would need `@testing-library/react-native`); the logic behind the UI is pure and tested. Verified the Android bundle builds with `npx expo export`.
+
+### To test on your phone
+
+- Tap tempo: tap 4–8 times along with a song or another metronome — does the BPM match? Does it feel responsive while practicing?
+- Try an 8-count phrase: the call range should shrink to fit, and the warning about the next call being spoken before 5/6/7 are caught should appear.
+- Turn on "and" calls and listen for "two and" style calls; turn on the quiet "and" click.
+- Check the settings fit on a small screen and the switches/buttons are easy to hit. Settings aren't saved yet (roadmap #9) — they reset when the app restarts.
+
 ## 2026-10-24
 
 ### Added
