@@ -5,7 +5,7 @@
  */
 
 import { TossSettings, announceCountInPhrase, tossCountsThatFit } from './announce';
-import { catchPositionOf } from './calls';
+import { callLabel, catchPositionOf } from './calls';
 import { normalizeTossCounts } from './random';
 
 export type SettingsWarning =
@@ -43,4 +43,24 @@ export function settingsWarnings(settings: TossSettings): SettingsWarning[] {
     warnings.push({ code: 'no-repeat-ignored' });
   }
   return warnings;
+}
+
+function listCalls(calls: readonly number[]): string {
+  const labels = calls.map(callLabel);
+  if (labels.length <= 1) return labels.join('');
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+}
+
+/** A short, human-readable sentence for a warning, for the settings screen. */
+export function describeWarning(warning: SettingsWarning): string {
+  switch (warning.code) {
+    case 'call-before-catch': {
+      const plural = warning.calls.length > 1;
+      return `${plural ? 'Calls' : 'Call'} ${listCalls(warning.calls)} ${plural ? 'are' : 'is'} caught on or after count ${warning.announceCount}, when the next call is spoken. Use fewer lead counts or a longer phrase if that's too busy.`;
+    }
+    case 'calls-dropped':
+      return `${listCalls(warning.calls)} can't be caught inside the phrase and won't be called.`;
+    case 'no-repeat-ignored':
+      return 'Only one call is allowed, so it will repeat even with repeats turned off.';
+  }
 }

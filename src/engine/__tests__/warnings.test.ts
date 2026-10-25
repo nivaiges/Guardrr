@@ -1,5 +1,5 @@
 import { DEFAULT_TOSS_SETTINGS, TossSettings } from '../announce';
-import { settingsWarnings } from '../warnings';
+import { describeWarning, settingsWarnings } from '../warnings';
 
 const settings = (overrides: Partial<TossSettings> = {}): TossSettings => ({
   ...DEFAULT_TOSS_SETTINGS,
@@ -41,5 +41,29 @@ describe('settingsWarnings', () => {
     expect(() => settingsWarnings(settings({ phraseLength: 4, allowedTossCounts: [5] }))).toThrow(
       RangeError,
     );
+  });
+});
+
+describe('describeWarning', () => {
+  it('describes overlapping calls', () => {
+    expect(describeWarning({ code: 'call-before-catch', calls: [5, 6, 7], announceCount: 5 })).toBe(
+      "Calls 5, 6 and 7 are caught on or after count 5, when the next call is spoken. Use fewer lead counts or a longer phrase if that's too busy.",
+    );
+    expect(describeWarning({ code: 'call-before-catch', calls: [7.5], announceCount: 5 })).toMatch(
+      /^Call 7 and is caught/,
+    );
+  });
+
+  it('describes dropped calls and ignored no-repeat', () => {
+    expect(describeWarning({ code: 'calls-dropped', calls: [6] })).toBe(
+      "6 can't be caught inside the phrase and won't be called.",
+    );
+    expect(describeWarning({ code: 'no-repeat-ignored' })).toMatch(/Only one call/);
+  });
+
+  it('has a sentence for every warning the defaults-adjacent settings produce', () => {
+    for (const w of settingsWarnings(settings({ phraseLength: 8, allowRepeats: false }))) {
+      expect(describeWarning(w).length).toBeGreaterThan(10);
+    }
   });
 });
