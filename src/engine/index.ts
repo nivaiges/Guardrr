@@ -5,3 +5,4 @@ export * from './calls';
 export * from './scheduler';
 export * from './warnings';
 export * from './practice';
+export * from './tapTempo';
