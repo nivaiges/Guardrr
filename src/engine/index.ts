@@ -6,3 +6,4 @@ export * from './scheduler';
 export * from './warnings';
 export * from './practice';
 export * from './tapTempo';
+export * from './editSettings';
