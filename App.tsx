@@ -1,27 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
+import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { SettingsPanel } from './src/components/SettingsPanel';
-import {
-  CueOptions,
-  DEFAULT_TOSS_SETTINGS,
-  PracticeCue,
-  TossSettings,
-  displayLabelForCall,
-} from './src/engine';
+import { CueOptions, DEFAULT_TOSS_SETTINGS, TossSettings, practiceDisplay } from './src/engine';
 import { usePracticeSession } from './src/practice';
 
 const DEFAULT_BPM = 120;
 const DEFAULT_CUE_OPTIONS: CueOptions = { accentDownbeat: true, andClicks: false };
-
-function cueText(cue: PracticeCue | null): string {
-  if (!cue) return 'Ready';
-  if (cue.release) return 'Release!';
-  if (cue.catch) return 'Catch!';
-  if (cue.currentCall === null) return 'Lead-in';
-  return `Toss: ${displayLabelForCall(cue.currentCall)}`;
-}
 
 export default function App() {
   const [bpm, setBpm] = useState(DEFAULT_BPM);
@@ -29,7 +16,7 @@ export default function App() {
   const [cueOptions, setCueOptions] = useState<CueOptions>(DEFAULT_CUE_OPTIONS);
   const { running, cue, start, stop } = usePracticeSession(bpm, settings, cueOptions);
 
-  const highlight = cue?.release || cue?.catch;
+  const display = practiceDisplay(cue, settings);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -39,17 +26,7 @@ export default function App() {
         {settings.phraseLength - settings.leadCounts + 1}
       </Text>
 
-      <View style={[styles.display, highlight && styles.displayHighlight]}>
-        <Text style={styles.count} accessibilityLabel="Current count">
-          {cue ? cue.count : '–'}
-        </Text>
-        <Text style={styles.cue} accessibilityLiveRegion="polite">
-          {cueText(cue)}
-        </Text>
-        <Text style={styles.next}>
-          {cue?.nextCall != null ? `Next: ${displayLabelForCall(cue.nextCall)}` : ' '}
-        </Text>
-      </View>
+      <PracticeDisplay model={display} />
 
       <Pressable
         style={[styles.startButton, running && styles.stopButton]}
@@ -84,21 +61,8 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 36, fontWeight: '700' },
   subtitle: { fontSize: 15, marginTop: 4, color: '#555', textAlign: 'center' },
-  display: {
-    marginTop: 32,
-    width: '100%',
-    maxWidth: 360,
-    alignItems: 'center',
-    paddingVertical: 24,
-    borderRadius: 16,
-    backgroundColor: '#f1f3f6',
-  },
-  displayHighlight: { backgroundColor: '#ffe7a3' },
-  count: { fontSize: 120, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  cue: { fontSize: 28, fontWeight: '600' },
-  next: { fontSize: 18, marginTop: 8, color: '#555' },
   startButton: {
-    marginTop: 32,
+    marginTop: 24,
     paddingVertical: 18,
     paddingHorizontal: 64,
     borderRadius: 32,
