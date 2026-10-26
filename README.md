@@ -15,7 +15,11 @@ Calls can be on any count the phrase allows (up to 16 in a 16-count phrase), and
 of the release. See [docs/colorguard-research.md](docs/colorguard-research.md) for the counting
 conventions this is based on.
 
-Today you can press **Start** and practice. Below the display you can set:
+Today you can press **Start** and practice. The display shows the current count, the toss being
+thrown and the next call once it's spoken, flashes **Release!** and **Catch!**, counts down to the
+catch, and has a dot per count of the phrase marking the release, the call and the catch.
+
+Below the display you can set:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32) and how many counts before the release
@@ -26,7 +30,8 @@ Today you can press **Start** and practice. Below the display you can set:
 
 Phrase, call and sound settings apply on the next Start. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
-settings. Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (the "5" of the last
+settings. Settings are saved on the phone and come back the next time you open the app.
+Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (the "5" of the last
 "5 6 7 8").
 
 ## Tech
@@ -36,7 +41,7 @@ settings. Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (th
   `scripts/generate-clicks.js` into `assets/sounds/`)
 - Pure, framework-free timing/sequence logic in [`src/engine/`](src/engine) with Jest tests;
   audio in [`src/audio/`](src/audio), the practice session/hook in [`src/practice/`](src/practice),
-  UI components in [`src/components/`](src/components)
+  saved settings (AsyncStorage) in [`src/storage/`](src/storage), UI components in [`src/components/`](src/components)
 - ESLint (`eslint-config-expo`) + Prettier; GitHub Actions CI runs typecheck, lint, format check and tests
 
 ## Development

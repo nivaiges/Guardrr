@@ -11,8 +11,8 @@
 - [x] 5. Metronome audio playback with accent on count 1; start/stop button.
 - [x] 6. TTS announcement of the called count wired to the engine.
 - [x] 7. Settings UI: BPM (stepper + tap tempo), phrase length, lead counts, toss range.
-- [ ] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
-- [ ] 9. Persist settings (AsyncStorage).
+- [x] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
+- [x] 9. Persist settings (AsyncStorage).
 - [ ] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
 - [ ] 11. Polish: haptics on count 1, keep-awake during practice, dark theme, app icon/splash, accessibility.
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
@@ -32,3 +32,6 @@
 - [ ] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start.
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
 - [ ] UI component tests (needs `@testing-library/react-native`); today only the pure logic behind the UI is tested.
+- [ ] Display: optional full-screen "practice mode" (hide settings, larger count) for propping the phone up across the floor.
+- [ ] Display: flash/animate on "and" ticks too (today the screen only re-renders on counts and on "and" catches).
+- [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).

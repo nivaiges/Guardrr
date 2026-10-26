@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-10-26
+
+### Added
+
+- **Big practice display** (roadmap #8), `src/components/PracticeDisplay.tsx`:
+  - Current toss and next call ("Toss 5 · Next 3"), the count in large type, and a headline:
+    "Lead-in", "Release!", "5 count" while the flag is in the air, "Catch!", "Mark time".
+  - Background color per phase (yellow on release, blue in the air, green on the catch).
+  - "3 to catch" countdown in the air (or 'catch on the "and"'), "Release in 4 counts" once the
+    next call has been spoken.
+  - A strip with one dot per count of the phrase: played counts fill in, the current one is
+    larger, and the release (yellow), call (blue) and catch (green) counts are marked; an "and"
+    catch gets a small extra dot.
+- `src/engine/display.ts` — `practiceDisplay(cue, settings)`: the pure view model behind it
+  (phase, headline, detail, countdowns, phrase strip).
+- **Settings are saved** (roadmap #9): BPM, phrase, calls and sound options persist across app
+  restarts.
+  - `src/engine/storedSettings.ts` — versioned `serializeSettings` / `parseStoredSettings`. Parsing
+    never throws: corrupt JSON gives defaults, each missing/invalid field falls back to its
+    default, BPM is clamped, calls that no longer fit are dropped.
+  - `src/storage/` — `createSettingsStore` (debounced 500 ms writes, skips unchanged writes,
+    reports storage errors instead of throwing) and the `usePersistedSettings` hook (loads on
+    launch, flushes when the app goes to the background).
+  - Dependency: `@react-native-async-storage/async-storage` 2.2.0 (included in Expo Go).
+- 29 new tests (141 total).
+
+### Decisions
+
+- The display is driven by the same per-tick cues as audio and speech, so what you see can't
+  disagree with what you hear. It re-renders on counts and on "and" catches only, to keep React
+  work off the "and" ticks.
+- On count 1 of a pop toss ("1") the strip marks the catch rather than the release, since both
+  land on count 1.
+- AsyncStorage over expo-sqlite's key-value store: it's the roadmap's choice, tiny, and in Expo Go.
+  `npx expo install` couldn't reach the Expo API from this unattended run, so the version is
+  pinned from `expo/bundledNativeModules.json` (as before). Verified the Android bundle builds with
+  `npx expo export`.
+- If the saved settings are still loading when you change something, your change wins.
+
+### To test on your phone
+
+- Press Start and watch a few phrases: does the color flip to yellow on "Release!" and green on
+  "Catch!" exactly with the click? Is the count readable from across the floor?
+- Check the dot strip on an 8-count and a 32-count phrase (32 dots wrap onto two rows).
+- Change BPM, phrase length and the call range, force-quit the app and reopen it — the settings
+  should be the same.
+- Audio, speech and the visual timing on a device couldn't be checked in this headless environment.
+
 ## 2026-10-25
 
 ### Added
