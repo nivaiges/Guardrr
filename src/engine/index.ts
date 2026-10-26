@@ -8,3 +8,4 @@ export * from './practice';
 export * from './tapTempo';
 export * from './editSettings';
 export * from './display';
+export * from './storedSettings';
