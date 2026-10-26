@@ -1,19 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { SettingsPanel } from './src/components/SettingsPanel';
-import { CueOptions, DEFAULT_TOSS_SETTINGS, TossSettings, practiceDisplay } from './src/engine';
+import { CueOptions, TossSettings, practiceDisplay } from './src/engine';
 import { usePracticeSession } from './src/practice';
-
-const DEFAULT_BPM = 120;
-const DEFAULT_CUE_OPTIONS: CueOptions = { accentDownbeat: true, andClicks: false };
+import { usePersistedSettings } from './src/storage';
 
 export default function App() {
-  const [bpm, setBpm] = useState(DEFAULT_BPM);
-  const [settings, setSettings] = useState<TossSettings>(DEFAULT_TOSS_SETTINGS);
-  const [cueOptions, setCueOptions] = useState<CueOptions>(DEFAULT_CUE_OPTIONS);
+  const { settings: saved, setSettings: update } = usePersistedSettings();
+  const { bpm, toss: settings, cue: cueOptions } = saved;
+  const setBpm = (next: number) => update((s) => ({ ...s, bpm: next }));
+  const setSettings = (toss: TossSettings) => update((s) => ({ ...s, toss }));
+  const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
   const { running, cue, start, stop } = usePracticeSession(bpm, settings, cueOptions);
 
   const display = practiceDisplay(cue, settings);
