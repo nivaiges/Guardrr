@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-10-27
+
+### Added
+
+- **Practice presets** (roadmap #10), `src/engine/presets.ts` + `src/components/PresetPicker.tsx`:
+  - _Standard 16_ (120 BPM, calls 1–7 on the "5" of 5-6-7-8 — same as the defaults), _Quick 8_
+    (120 BPM, 8-count phrase, calls 2–5), _Singles & doubles_ (112 BPM, 8 counts, 2–4 with "and"
+    calls, no repeats), _Big tosses_ (108 BPM, calls 5–8 spoken 8 counts early, no repeats),
+    _Slow 32_ (96 BPM, 32-count phrase, calls 1–7).
+  - `applyPreset` sets tempo, phrase, lead counts, calls and repeats; `matchingPreset` highlights
+    the preset the settings still match.
+- **Session stats** (roadmap #10), `src/engine/stats.ts` + `src/components/SessionStatsCard.tsx`:
+  tosses called, elapsed time, the most called count(s), a bar per call and the latest calls.
+  `recordCue` folds the same per-tick cues that drive the click, voice and display; history keeps
+  the last 50 tosses, the tally covers the whole session.
+- `usePracticeSession` now also returns `stats` (reset on Start, kept after Stop).
+- 28 new tests (169 total).
+
+### Decisions
+
+- Presets set the tempo too, but leave the sound options (accent, "and" clicks) alone — those are
+  personal, not part of a drill.
+- A preset stays highlighted when only the BPM changes (tap tempo shouldn't "lose" the preset);
+  changing phrase, lead counts, calls or repeats switches the label to "Custom settings".
+- Every preset is built only from what the settings editor can show (a contiguous range), checked
+  by a test, so applying one never shows something the editor can't represent. The first draft of
+  _Singles & doubles_ (2, 2&, 3, 3&) failed that test and became 2–4.
+- Presets are locked while practicing, like the other phrase/call settings.
+- A toss counts as soon as it's released on count 1, even if you press Stop before the catch.
+  "Called most" lists ties together.
+- Stats live only in memory for now; saving past sessions is on the roadmap. No "drop" tracking
+  yet — the app can't know whether you caught it (roadmap idea: a Drop button).
+- Verified the Android bundle builds with `npx expo export`.
+
+### To test on your phone
+
+- Tap each preset and check the settings below change to match (and the BPM). Then nudge the BPM —
+  the preset should stay highlighted; change the phrase length — it should switch to "Custom".
+- Practice a few phrases and watch the stats card: the toss count should go up exactly on each
+  "Release!", the bars should match the calls you heard, and the card should still be there after
+  Stop.
+- Audio, speech and on-device timing couldn't be checked in this headless environment.
+
 ## 2026-10-26
 
 ### Added

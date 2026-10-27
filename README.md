@@ -19,7 +19,14 @@ Today you can press **Start** and practice. The display shows the current count,
 thrown and the next call once it's spoken, flashes **Release!** and **Catch!**, counts down to the
 catch, and has a dot per count of the phrase marking the release, the call and the catch.
 
-Below the display you can set:
+Under the Start button a **session stats** card shows how many tosses were called, how long
+you've practiced, which call came up most, a bar per call and the latest calls (it stays visible
+after Stop until the next Start).
+
+**Presets** set up a whole drill in one tap: _Standard 16_, _Quick 8_, _Singles & doubles_
+(short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_.
+
+Below that you can fine-tune:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32) and how many counts before the release

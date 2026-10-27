@@ -13,7 +13,7 @@
 - [x] 7. Settings UI: BPM (stepper + tap tempo), phrase length, lead counts, toss range.
 - [x] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
 - [x] 9. Persist settings (AsyncStorage).
-- [ ] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
+- [x] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
 - [ ] 11. Polish: haptics on count 1, keep-awake during practice, dark theme, app icon/splash, accessibility.
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
 
@@ -35,3 +35,6 @@
 - [ ] Display: optional full-screen "practice mode" (hide settings, larger count) for propping the phone up across the floor.
 - [ ] Display: flash/animate on "and" ticks too (today the screen only re-renders on counts and on "and" catches).
 - [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).
+- [ ] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list.
+- [ ] User-saved custom presets ("save current settings as…").
+- [ ] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
