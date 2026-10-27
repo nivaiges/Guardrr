@@ -2,8 +2,16 @@ import { StatusBar } from 'expo-status-bar';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { PracticeDisplay } from './src/components/PracticeDisplay';
+import { PresetPicker } from './src/components/PresetPicker';
+import { SessionStatsCard } from './src/components/SessionStatsCard';
 import { SettingsPanel } from './src/components/SettingsPanel';
-import { CueOptions, TossSettings, practiceDisplay } from './src/engine';
+import {
+  CueOptions,
+  PracticePreset,
+  TossSettings,
+  applyPreset,
+  practiceDisplay,
+} from './src/engine';
 import { usePracticeSession } from './src/practice';
 import { usePersistedSettings } from './src/storage';
 
@@ -13,7 +21,8 @@ export default function App() {
   const setBpm = (next: number) => update((s) => ({ ...s, bpm: next }));
   const setSettings = (toss: TossSettings) => update((s) => ({ ...s, toss }));
   const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
-  const { running, cue, start, stop } = usePracticeSession(bpm, settings, cueOptions);
+  const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
+  const { running, cue, stats, start, stop } = usePracticeSession(bpm, settings, cueOptions);
 
   const display = practiceDisplay(cue, settings);
 
@@ -34,6 +43,10 @@ export default function App() {
       >
         <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
       </Pressable>
+
+      <SessionStatsCard stats={stats} running={running} />
+
+      <PresetPicker settings={saved} onApply={applyPresetToSettings} disabled={running} />
 
       <SettingsPanel
         bpm={bpm}
