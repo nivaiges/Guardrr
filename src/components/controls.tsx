@@ -3,7 +3,10 @@
 import { ReactNode } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { Theme, themed, useTheme } from '../theme';
+
 export function Row({ label, children }: { label: string; children: ReactNode }) {
+  const styles = getStyles(useTheme());
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -23,6 +26,7 @@ function StepButton({
   disabled: boolean;
   accessibilityLabel: string;
 }) {
+  const styles = getStyles(useTheme());
   return (
     <Pressable
       style={[styles.stepButton, disabled && styles.disabled]}
@@ -60,6 +64,7 @@ export function Stepper({
   format = String,
   disabled = false,
 }: StepperProps) {
+  const styles = getStyles(useTheme());
   const set = (v: number) => onChange(Math.min(max, Math.max(min, v)));
   return (
     <Row label={label}>
@@ -138,6 +143,7 @@ export function Segmented({
   onChange: (value: number) => void;
   disabled?: boolean;
 }) {
+  const styles = getStyles(useTheme());
   return (
     <View style={styles.segmentedBlock}>
       <Text style={styles.label}>{label}</Text>
@@ -169,45 +175,48 @@ export function Segmented({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    gap: 12,
-  },
-  label: { fontSize: 16, color: '#222', flexShrink: 1 },
-  control: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  stepButton: {
-    minWidth: 40,
-    height: 40,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    backgroundColor: '#e2e6ec',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepText: { fontSize: 18, fontWeight: '600' },
-  value: {
-    fontSize: 18,
-    fontWeight: '600',
-    minWidth: 56,
-    textAlign: 'center',
-    fontVariant: ['tabular-nums'],
-  },
-  disabled: { opacity: 0.4 },
-  segmentedBlock: { paddingVertical: 8, gap: 8 },
-  segmented: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  segment: {
-    minWidth: 48,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    backgroundColor: '#e2e6ec',
-    alignItems: 'center',
-  },
-  segmentSelected: { backgroundColor: '#1f6feb' },
-  segmentText: { fontSize: 16, fontWeight: '600', color: '#222' },
-  segmentTextSelected: { color: '#fff' },
-});
+const getStyles = themed((t: Theme) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+      gap: 12,
+    },
+    label: { fontSize: 16, color: t.text, flexShrink: 1 },
+    control: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    stepButton: {
+      minWidth: 40,
+      height: 40,
+      paddingHorizontal: 8,
+      borderRadius: 20,
+      backgroundColor: t.control,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    stepText: { fontSize: 18, fontWeight: '600', color: t.text },
+    value: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: t.text,
+      minWidth: 56,
+      textAlign: 'center',
+      fontVariant: ['tabular-nums'],
+    },
+    disabled: { opacity: 0.4 },
+    segmentedBlock: { paddingVertical: 8, gap: 8 },
+    segmented: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    segment: {
+      minWidth: 48,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 18,
+      backgroundColor: t.control,
+      alignItems: 'center',
+    },
+    segmentSelected: { backgroundColor: t.primary },
+    segmentText: { fontSize: 16, fontWeight: '600', color: t.text },
+    segmentTextSelected: { color: t.onPrimary },
+  }),
+);

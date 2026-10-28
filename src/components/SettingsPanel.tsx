@@ -18,6 +18,7 @@ import {
   withPhraseLength,
   withTossRange,
 } from '../engine';
+import { Theme, themed, useTheme } from '../theme';
 import { Segmented, Stepper, Toggle } from './controls';
 
 export interface SettingsPanelProps {
@@ -32,6 +33,7 @@ export interface SettingsPanelProps {
 }
 
 function TapTempoButton({ onBpm }: { onBpm: (bpm: number) => void }) {
+  const styles = getStyles(useTheme());
   const taps = useRef<number[]>([]);
   const [count, setCount] = useState(0);
   const onPress = () => {
@@ -63,6 +65,7 @@ export function SettingsPanel({
   onCueOptionsChange,
   running,
 }: SettingsPanelProps) {
+  const styles = getStyles(useTheme());
   const range = tossRangeOf(settings);
   const announceCount = announceCountInPhrase(settings.phraseLength, settings.leadCounts);
   const warnings = settingsWarnings(settings);
@@ -162,34 +165,36 @@ export function SettingsPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  panel: { width: '100%', maxWidth: 480, marginTop: 24 },
-  heading: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: '#666',
-    marginTop: 20,
-    marginBottom: 4,
-  },
-  note: { fontSize: 14, color: '#888', marginBottom: 4 },
-  tap: {
-    marginTop: 4,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#e2e6ec',
-    alignItems: 'center',
-  },
-  tapPressed: { backgroundColor: '#c9d1dc' },
-  tapText: { fontSize: 18, fontWeight: '700' },
-  tapHint: { fontSize: 13, color: '#666', marginTop: 2 },
-  warnings: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: '#fff4d6',
-    gap: 8,
-  },
-  warning: { fontSize: 14, color: '#5c4400' },
-});
+const getStyles = themed((t: Theme) =>
+  StyleSheet.create({
+    panel: { width: '100%', maxWidth: 480, marginTop: 24 },
+    heading: {
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: t.textMuted,
+      marginTop: 20,
+      marginBottom: 4,
+    },
+    note: { fontSize: 14, color: t.textMuted, marginBottom: 4 },
+    tap: {
+      marginTop: 4,
+      paddingVertical: 14,
+      borderRadius: 12,
+      backgroundColor: t.control,
+      alignItems: 'center',
+    },
+    tapPressed: { backgroundColor: t.controlPressed },
+    tapText: { fontSize: 18, fontWeight: '700', color: t.text },
+    tapHint: { fontSize: 13, color: t.textMuted, marginTop: 2 },
+    warnings: {
+      marginTop: 16,
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: t.warningBackground,
+      gap: 8,
+    },
+    warning: { fontSize: 14, color: t.warningText },
+  }),
+);

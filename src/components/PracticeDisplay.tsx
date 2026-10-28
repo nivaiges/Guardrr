@@ -1,24 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { DisplayPhase, PhraseBeat, PracticeDisplay as DisplayModel } from '../engine';
-
-const PHASE_COLORS: Record<DisplayPhase, string> = {
-  ready: '#f1f3f6',
-  'lead-in': '#f1f3f6',
-  release: '#ffd76a',
-  'in-air': '#dbe9ff',
-  catch: '#9be7a8',
-  marking: '#f1f3f6',
-};
-
-const MARKER_COLORS = {
-  release: '#e0a400',
-  catch: '#1a8f3c',
-  call: '#1f6feb',
-} as const;
+import { PhraseBeat, PracticeDisplay as DisplayModel } from '../engine';
+import { Theme, themed, useTheme } from '../theme';
 
 function Beat({ beat }: { beat: PhraseBeat }) {
-  const color = beat.marker ? MARKER_COLORS[beat.marker] : '#c4c9d1';
+  const theme = useTheme();
+  const styles = getStyles(theme);
+  const color = theme.marker[beat.marker ?? 'idle'];
   return (
     <View
       style={[
@@ -41,9 +29,11 @@ function countdownText(model: DisplayModel): string {
 
 /** The big count/cue display with a strip showing where you are in the phrase. */
 export function PracticeDisplay({ model }: { model: DisplayModel }) {
+  const theme = useTheme();
+  const styles = getStyles(theme);
   const highlight = model.phase === 'release' || model.phase === 'catch';
   return (
-    <View style={[styles.display, { backgroundColor: PHASE_COLORS[model.phase] }]}>
+    <View style={[styles.display, { backgroundColor: theme.phase[model.phase] }]}>
       <View style={styles.callRow}>
         <Text style={styles.callLabel}>Toss</Text>
         <Text style={styles.callValue} accessibilityLabel="Current toss">
@@ -80,50 +70,66 @@ export function PracticeDisplay({ model }: { model: DisplayModel }) {
           <Beat key={beat.count} beat={beat} />
         ))}
       </View>
-      <View style={styles.legend}>
-        <Text style={[styles.legendItem, { color: MARKER_COLORS.release }]}>● release</Text>
-        <Text style={[styles.legendItem, { color: MARKER_COLORS.catch }]}>● catch</Text>
-        <Text style={[styles.legendItem, { color: MARKER_COLORS.call }]}>● call</Text>
+      <View style={styles.legend} importantForAccessibility="no-hide-descendants">
+        {(['release', 'catch', 'call'] as const).map((marker) => (
+          <Text key={marker} style={styles.legendItem}>
+            <Text style={{ color: theme.marker[marker] }}>●</Text> {marker}
+          </Text>
+        ))}
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  display: {
-    marginTop: 24,
-    width: '100%',
-    maxWidth: 360,
-    alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-  },
-  callRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  callLabel: { fontSize: 14, color: '#555', textTransform: 'uppercase', letterSpacing: 1 },
-  callValue: { fontSize: 24, fontWeight: '700', minWidth: 40, fontVariant: ['tabular-nums'] },
-  count: { fontSize: 120, lineHeight: 132, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  headline: { fontSize: 30, fontWeight: '700' },
-  headlineHighlight: { fontSize: 36 },
-  detail: { fontSize: 18, marginTop: 6, color: '#333' },
-  countdown: { fontSize: 16, marginTop: 4, color: '#555', fontVariant: ['tabular-nums'] },
-  strip: {
-    marginTop: 16,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  beat: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  beatCurrent: { transform: [{ scale: 1.4 }] },
-  andDot: { position: 'absolute', right: -6, width: 5, height: 5, borderRadius: 3 },
-  legend: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  legendItem: { fontSize: 12 },
-});
+const getStyles = themed((t: Theme) =>
+  StyleSheet.create({
+    display: {
+      marginTop: 24,
+      width: '100%',
+      maxWidth: 360,
+      alignItems: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 16,
+      borderRadius: 16,
+    },
+    callRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+    callLabel: { fontSize: 14, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
+    callValue: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: t.text,
+      minWidth: 40,
+      fontVariant: ['tabular-nums'],
+    },
+    count: {
+      fontSize: 120,
+      lineHeight: 132,
+      fontWeight: '800',
+      color: t.text,
+      fontVariant: ['tabular-nums'],
+    },
+    headline: { fontSize: 30, fontWeight: '700', color: t.text },
+    headlineHighlight: { fontSize: 36 },
+    detail: { fontSize: 18, marginTop: 6, color: t.text },
+    countdown: { fontSize: 16, marginTop: 4, color: t.textMuted, fontVariant: ['tabular-nums'] },
+    strip: {
+      marginTop: 16,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    beat: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    beatCurrent: { transform: [{ scale: 1.4 }] },
+    andDot: { position: 'absolute', right: -6, width: 5, height: 5, borderRadius: 3 },
+    legend: { flexDirection: 'row', gap: 12, marginTop: 10 },
+    legendItem: { fontSize: 12, color: t.textMuted },
+  }),
+);

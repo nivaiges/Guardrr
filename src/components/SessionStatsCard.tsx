@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { Theme, themed, useTheme } from '../theme';
 import { SessionStats, callLabel, summarizeStats } from '../engine';
 
 export interface SessionStatsCardProps {
@@ -8,6 +9,7 @@ export interface SessionStatsCardProps {
 }
 
 function Figure({ value, label }: { value: string; label: string }) {
+  const styles = getStyles(useTheme());
   return (
     <View style={styles.figure} accessible accessibilityLabel={`${label}: ${value}`}>
       <Text style={styles.figureValue}>{value}</Text>
@@ -18,6 +20,7 @@ function Figure({ value, label }: { value: string; label: string }) {
 
 /** Tosses called, time, which calls came up and the latest ones. */
 export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
+  const styles = getStyles(useTheme());
   const summary = summarizeStats(stats);
   if (!running && stats.countsPlayed === 0) return null;
   const top = Math.max(1, ...summary.tally.map((t) => t.times));
@@ -69,32 +72,34 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    width: '100%',
-    maxWidth: 480,
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#f1f3f6',
-  },
-  heading: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: '#666',
-  },
-  figures: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  figure: { alignItems: 'center', flex: 1 },
-  figureValue: { fontSize: 26, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  figureLabel: { fontSize: 13, color: '#666' },
-  tally: { marginTop: 12, gap: 4 },
-  tallyRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  tallyLabel: { width: 48, fontSize: 14, fontWeight: '600', textAlign: 'right' },
-  barTrack: { flex: 1, height: 10, borderRadius: 5, backgroundColor: '#dde1e7' },
-  bar: { height: 10, borderRadius: 5, backgroundColor: '#1f6feb' },
-  tallyTimes: { width: 32, fontSize: 14, fontVariant: ['tabular-nums'] },
-  note: { fontSize: 14, color: '#666', marginTop: 12 },
-  latest: { fontSize: 14, color: '#444', marginTop: 12 },
-});
+const getStyles = themed((t: Theme) =>
+  StyleSheet.create({
+    card: {
+      width: '100%',
+      maxWidth: 480,
+      marginTop: 24,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: t.surface,
+    },
+    heading: {
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: t.textMuted,
+    },
+    figures: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+    figure: { alignItems: 'center', flex: 1 },
+    figureValue: { fontSize: 26, fontWeight: '700', color: t.text, fontVariant: ['tabular-nums'] },
+    figureLabel: { fontSize: 13, color: t.textMuted },
+    tally: { marginTop: 12, gap: 4 },
+    tallyRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    tallyLabel: { width: 48, fontSize: 14, fontWeight: '600', textAlign: 'right', color: t.text },
+    barTrack: { flex: 1, height: 10, borderRadius: 5, backgroundColor: t.track },
+    bar: { height: 10, borderRadius: 5, backgroundColor: t.primary },
+    tallyTimes: { width: 32, fontSize: 14, color: t.text, fontVariant: ['tabular-nums'] },
+    note: { fontSize: 14, color: t.textMuted, marginTop: 12 },
+    latest: { fontSize: 14, color: t.textMuted, marginTop: 12 },
+  }),
+);

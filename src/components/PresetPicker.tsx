@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Theme, themed, useTheme } from '../theme';
 import { PRACTICE_PRESETS, PracticePreset, PracticeSettings, matchingPreset } from '../engine';
 
 export interface PresetPickerProps {
@@ -11,6 +12,7 @@ export interface PresetPickerProps {
 
 /** One-tap practice setups. The preset the settings still match is highlighted. */
 export function PresetPicker({ settings, onApply, disabled = false }: PresetPickerProps) {
+  const styles = getStyles(useTheme());
   const current = matchingPreset(settings);
   return (
     <View style={styles.block}>
@@ -45,26 +47,28 @@ export function PresetPicker({ settings, onApply, disabled = false }: PresetPick
   );
 }
 
-const styles = StyleSheet.create({
-  block: { width: '100%', maxWidth: 480, marginTop: 24 },
-  heading: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: '#666',
-    marginBottom: 8,
-  },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#e2e6ec',
-  },
-  chipSelected: { backgroundColor: '#1f6feb' },
-  chipText: { fontSize: 15, fontWeight: '600', color: '#222' },
-  chipTextSelected: { color: '#fff' },
-  disabled: { opacity: 0.4 },
-  description: { fontSize: 14, color: '#555', marginTop: 8 },
-});
+const getStyles = themed((t: Theme) =>
+  StyleSheet.create({
+    block: { width: '100%', maxWidth: 480, marginTop: 24 },
+    heading: {
+      fontSize: 13,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      color: t.textMuted,
+      marginBottom: 8,
+    },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      backgroundColor: t.control,
+    },
+    chipSelected: { backgroundColor: t.primary },
+    chipText: { fontSize: 15, fontWeight: '600', color: t.text },
+    chipTextSelected: { color: t.onPrimary },
+    disabled: { opacity: 0.4 },
+    description: { fontSize: 14, color: t.textMuted, marginTop: 8 },
+  }),
+);
