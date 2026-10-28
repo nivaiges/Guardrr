@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-10-28
+
+### Added
+
+- **Haptics on the release** (roadmap #11): the engine marks `haptic: 'release'` on every count 1
+  once tosses start (never in the lead-in); the practice session plays a heavy impact through
+  `expo-haptics` (`src/feedback/haptics.ts`). New **"Vibrate on the release (count 1)"** toggle
+  under Sound, saved with the other sound options (default on; older saved settings pick up the
+  default).
+- **Keep-awake while practicing** (roadmap #11): `expo-keep-awake` is activated on Start and
+  released on Stop/unmount (`src/feedback/keepAwake.ts`).
+- **Dark theme** (roadmap #11): every color now comes from light/dark palettes in `src/theme/`,
+  picked from the system appearance (`useColorScheme`); `app.json` uses
+  `userInterfaceStyle: "automatic"`, and `expo-system-ui` sets the root background so there's no
+  white flash in dark mode. The status bar follows the theme.
+- `src/theme/contrast.ts` (WCAG contrast ratio) and tests that check both palettes: 4.5:1 for
+  text on every background it sits on (each display phase included) and 3:1 for the phrase-strip
+  dots and stats bars.
+- 20 new tests (189 total).
+
+### Changed
+
+- A few light-theme colors moved to pass the contrast tests: the "catch" display background is a
+  lighter green, the idle phrase-strip dot is darker, and the legend under the strip is now muted
+  text with a colored bullet (the yellow "release" label was hard to read).
+
+### Decisions
+
+- Only the release buzzes, not the catch or every count: one strong, predictable pulse is easier to
+  feel through a pocket or the floor; a lighter catch buzz is a roadmap idea.
+- Haptics are on by default (they cost nothing on phones without a haptic engine — errors are
+  swallowed) and, like the other sound options, change on the next Start.
+- Followed the system appearance rather than adding an in-app theme switch for now.
+- App icon/splash and the accessibility pass are still open under #11.
+- Verified the Android bundle builds with `npx expo export`. Haptics, keep-awake and the dark
+  theme can't be seen or felt headless.
+
+### To test on your phone
+
+- `npm install` first (new native modules: `expo-haptics`, `expo-keep-awake`, `expo-system-ui`;
+  all are in Expo Go).
+- Start practice: the phone should buzz on each release (count 1 of every phrase after the
+  lead-in). Turn "Vibrate on the release" off and Start again — no buzz.
+- Leave the phone untouched past its auto-lock time while practicing — the screen should stay on;
+  after Stop it should lock normally.
+- Switch the phone to dark mode: the app should turn dark (including the release/in-air/catch
+  colors on the big display) without restarting.
+
 ## 2026-10-27
 
 ### Added

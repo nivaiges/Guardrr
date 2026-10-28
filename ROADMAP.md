@@ -15,6 +15,11 @@
 - [x] 9. Persist settings (AsyncStorage).
 - [x] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
 - [ ] 11. Polish: haptics on count 1, keep-awake during practice, dark theme, app icon/splash, accessibility.
+  - [x] Haptics on every release (count 1), toggle in Settings → Sound.
+  - [x] Keep the screen awake while practicing.
+  - [x] Dark theme following the system appearance (WCAG AA contrast tested).
+  - [ ] App icon and splash screen (Guardrr artwork instead of the Expo template icon).
+  - [ ] Accessibility pass: screen-reader announcement of calls/cues (VoiceOver talking over the TTS call?), larger-text layout, reduce-motion.
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
 
 ## Discovered along the way
@@ -37,4 +42,6 @@
 - [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).
 - [ ] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list.
 - [ ] User-saved custom presets ("save current settings as…").
+- [ ] Optional light haptic on the catch count (and/or on the call) — today only the release buzzes.
+- [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
 - [ ] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
