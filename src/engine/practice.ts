@@ -17,7 +17,12 @@ export interface CueOptions {
   accentDownbeat?: boolean;
   /** Play a quieter click on "and" ticks (needs ticksPerCount = 2). Default false. */
   andClicks?: boolean;
+  /** Buzz the phone on every release (count 1) once tosses start. Default true. */
+  haptics?: boolean;
 }
+
+/** Vibration to play on a tick: a firm tap on the release. */
+export type HapticKind = 'release';
 
 export interface PracticeCue {
   tick: number;
@@ -41,6 +46,8 @@ export interface PracticeCue {
   release: boolean;
   /** Catch happens on this tick. */
   catch: boolean;
+  /** Vibration to play, or null. */
+  haptic: HapticKind | null;
 }
 
 const NUMBER_WORDS = [
@@ -119,6 +126,7 @@ export function cueForTick(
   // The next call is known (spoken) from the announcement count onwards.
   const announceIndex = nextPhrase * settings.phraseLength - settings.leadCounts;
   const nextCall = tick.countIndex >= announceIndex ? calls.callFor(nextPhrase) : null;
+  const release = onCount && events.release;
   return {
     tick: tick.tick,
     countIndex: tick.countIndex,
@@ -130,7 +138,8 @@ export function cueForTick(
     count: events.position.count,
     phrase: events.position.phrase,
     currentCall: events.currentCall,
-    release: onCount && events.release,
+    release,
     catch: onCount ? events.catch : events.catchOnAnd && tick.subdivision === 1,
+    haptic: release && (options.haptics ?? true) ? 'release' : null,
   };
 }

@@ -14,7 +14,7 @@ const custom: PracticeSettings = {
     max: 6,
     andCounts: true,
   }),
-  cue: { accentDownbeat: false, andClicks: true },
+  cue: { accentDownbeat: false, andClicks: true, haptics: false },
 };
 
 describe('stored settings', () => {
@@ -44,7 +44,15 @@ describe('stored settings', () => {
     expect(parseStoredSettings(JSON.stringify({ cue: { andClicks: true } })).cue).toEqual({
       accentDownbeat: true,
       andClicks: true,
+      haptics: true,
     });
+  });
+
+  it('keeps a saved haptics choice and repairs a bad one', () => {
+    expect(parseStoredSettings(JSON.stringify({ cue: { haptics: false } })).cue.haptics).toBe(
+      false,
+    );
+    expect(parseStoredSettings(JSON.stringify({ cue: { haptics: 'yes' } })).cue.haptics).toBe(true);
   });
 
   it('clamps or replaces a bad BPM', () => {

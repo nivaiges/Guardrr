@@ -20,6 +20,7 @@ export const DEFAULT_BPM = 120;
 export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   accentDownbeat: true,
   andClicks: false,
+  haptics: true,
 };
 
 export interface PracticeSettings {
@@ -89,6 +90,7 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     cue: {
       accentDownbeat: bool(cue.accentDownbeat, DEFAULT_CUE_OPTIONS.accentDownbeat),
       andClicks: bool(cue.andClicks, DEFAULT_CUE_OPTIONS.andClicks),
+      haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
     },
   };
 }

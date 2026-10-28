@@ -116,6 +116,20 @@ describe('cueForTick', () => {
     expect(cues.filter((c) => c.release).map((c) => c.countIndex)).toEqual([16, 32]);
   });
 
+  it('buzzes on every release by default, and never in the lead-in', () => {
+    const { cues } = walk(settings, 48);
+    const buzzes = cues.filter((c) => c.haptic !== null);
+    expect(buzzes.map((c) => [c.countIndex, c.subdivision, c.haptic])).toEqual([
+      [16, 0, 'release'],
+      [32, 0, 'release'],
+    ]);
+    expect(buzzes.every((c) => c.release)).toBe(true);
+  });
+
+  it('can turn haptics off', () => {
+    expect(walk(settings, 48, { haptics: false }).cues.some((c) => c.haptic !== null)).toBe(false);
+  });
+
   it('catches on the called count', () => {
     const fives: TossSettings = { ...settings, allowedTossCounts: [5] };
     const { cues } = walk(fives, 48);

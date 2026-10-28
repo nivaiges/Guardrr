@@ -19,6 +19,7 @@ import {
   randomSeed,
 } from '../engine';
 import type { ClickPlayer, Voice } from '../audio';
+import type { HapticPlayer } from '../feedback';
 
 export interface PracticeSessionOptions {
   bpm: number;
@@ -26,6 +27,8 @@ export interface PracticeSessionOptions {
   cueOptions?: CueOptions;
   clicks: Pick<ClickPlayer, 'play'>;
   voice: Voice;
+  /** Vibration output; omit for none. */
+  haptics?: HapticPlayer;
   /** Called on every tick with the cue (after sound and speech were triggered). */
   onCue?: (cue: PracticeCue) => void;
   /** Seed for the call sequence; random when omitted. */
@@ -55,6 +58,7 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
     if (!calls) return;
     const cue = cueForTick(tick, options.settings, calls, options.cueOptions);
     if (cue.click) options.clicks.play(cue.click);
+    if (cue.haptic) options.haptics?.play(cue.haptic);
     if (cue.speak) options.voice.say(cue.speak);
     options.onCue?.(cue);
   }

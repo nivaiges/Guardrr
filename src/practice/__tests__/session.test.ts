@@ -3,6 +3,7 @@ import { createPracticeSession } from '../session';
 
 jest.mock('expo-audio', () => ({}));
 jest.mock('expo-speech', () => ({}));
+jest.mock('expo-haptics', () => ({}));
 
 beforeEach(() => {
   jest.useFakeTimers({ now: 0 });
@@ -15,20 +16,34 @@ afterEach(() => {
 function setup(bpm = 120) {
   const clicks = { play: jest.fn() };
   const voice = { say: jest.fn(), stop: jest.fn() };
+  const haptics = { play: jest.fn() };
   const cues: PracticeCue[] = [];
   const session = createPracticeSession({
     bpm,
     settings: DEFAULT_TOSS_SETTINGS,
     clicks,
     voice,
+    haptics,
     seed: 42,
     onCue: (c) => cues.push(c),
     schedulerOverrides: { now: () => Date.now() },
   });
-  return { session, clicks, voice, cues };
+  return { session, clicks, voice, haptics, cues };
 }
 
 describe('createPracticeSession', () => {
+  it('buzzes on each release, starting with the first toss phrase', () => {
+    const { session, haptics } = setup();
+    session.start();
+    jest.advanceTimersByTime(16 * 500 - 1);
+    expect(haptics.play).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1);
+    expect(haptics.play).toHaveBeenCalledWith('release');
+    jest.advanceTimersByTime(16 * 500);
+    expect(haptics.play).toHaveBeenCalledTimes(2);
+    session.stop();
+  });
+
   it('clicks every count at tempo with count 1 accented', () => {
     const { session, clicks } = setup();
     session.start();

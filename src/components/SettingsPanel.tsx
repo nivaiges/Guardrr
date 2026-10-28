@@ -142,6 +142,12 @@ export function SettingsPanel({
         onChange={(andClicks) => onCueOptionsChange({ ...cueOptions, andClicks })}
         disabled={locked}
       />
+      <Toggle
+        label="Vibrate on the release (count 1)"
+        value={cueOptions.haptics ?? true}
+        onChange={(haptics) => onCueOptionsChange({ ...cueOptions, haptics })}
+        disabled={locked}
+      />
 
       {warnings.length > 0 ? (
         <View style={styles.warnings} accessibilityRole="summary">

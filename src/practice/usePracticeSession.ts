@@ -9,6 +9,7 @@ import {
   TossSettings,
   recordCue,
 } from '../engine';
+import { createHapticPlayer } from '../feedback';
 import { PracticeSession, createPracticeSession } from './session';
 
 export interface PracticeSessionState {
@@ -68,6 +69,7 @@ export function usePracticeSession(
       cueOptions,
       clicks: clicks.current,
       voice: createVoice(),
+      haptics: createHapticPlayer(),
       onCue: (c) => {
         // recordCue returns the same object for silent ticks, so this only
         // re-renders when something was counted.
