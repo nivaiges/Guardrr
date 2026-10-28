@@ -4,6 +4,7 @@ jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
   ImpactFeedbackStyle: { Heavy: 'heavy' },
 }));
+jest.mock('expo-keep-awake', () => ({}));
 
 function fakeHaptics(result: Promise<void> = Promise.resolve()) {
   return {

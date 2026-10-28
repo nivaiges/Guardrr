@@ -9,7 +9,7 @@ import {
   TossSettings,
   recordCue,
 } from '../engine';
-import { createHapticPlayer } from '../feedback';
+import { createHapticPlayer, useKeepAwakeWhile } from '../feedback';
 import { PracticeSession, createPracticeSession } from './session';
 
 export interface PracticeSessionState {
@@ -37,6 +37,7 @@ export function usePracticeSession(
   const session = useRef<PracticeSession | null>(null);
   const clicks = useRef<ClickPlayer | null>(null);
   const bpmRef = useRef(bpm);
+  useKeepAwakeWhile(running);
 
   useEffect(() => {
     void configurePracticeAudio();
