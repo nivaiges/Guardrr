@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
@@ -13,6 +13,9 @@ import {
   TossSettings,
   applyPreset,
   practiceDisplay,
+  practiceStartedAnnouncement,
+  practiceStoppedAnnouncement,
+  summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
 import { usePersistedSettings } from './src/storage';
@@ -32,12 +35,23 @@ export default function App() {
   const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
   const { running, cue, stats, start, stop } = usePracticeSession(bpm, settings, cueOptions);
+  // One short screen-reader announcement per Start/Stop (no-op without one).
+  const onStart = () => {
+    start();
+    AccessibilityInfo.announceForAccessibility(practiceStartedAnnouncement(bpm, settings));
+  };
+  const onStop = () => {
+    stop();
+    AccessibilityInfo.announceForAccessibility(practiceStoppedAnnouncement(summarizeStats(stats)));
+  };
 
   const display = practiceDisplay(cue, settings);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Guardrr</Text>
+      <Text style={styles.title} accessibilityRole="header">
+        Guardrr
+      </Text>
       <Text style={styles.subtitle}>
         {bpm} BPM · {settings.phraseLength}-count phrase · call on count{' '}
         {settings.phraseLength - settings.leadCounts + 1}
@@ -47,8 +61,12 @@ export default function App() {
 
       <Pressable
         style={[styles.startButton, running && styles.stopButton]}
-        onPress={running ? stop : start}
+        onPress={running ? onStop : onStart}
         accessibilityRole="button"
+        accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
+        accessibilityHint={
+          running ? undefined : 'Starts the metronome; the first toss is called after the lead-in'
+        }
       >
         <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
       </Pressable>
@@ -88,6 +106,8 @@ const getStyles = themed((t: Theme) =>
       marginTop: 24,
       paddingVertical: 18,
       paddingHorizontal: 64,
+      minWidth: 200,
+      alignItems: 'center',
       borderRadius: 32,
       backgroundColor: t.primary,
     },

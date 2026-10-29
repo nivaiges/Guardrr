@@ -16,7 +16,9 @@ export function PresetPicker({ settings, onApply, disabled = false }: PresetPick
   const current = matchingPreset(settings);
   return (
     <View style={styles.block}>
-      <Text style={styles.heading}>Presets</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        Presets
+      </Text>
       <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="Presets">
         {PRACTICE_PRESETS.map((preset) => {
           const selected = preset.id === current?.id;

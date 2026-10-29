@@ -73,7 +73,9 @@ export function SettingsPanel({
 
   return (
     <View style={styles.panel}>
-      <Text style={styles.heading}>Tempo</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        Tempo
+      </Text>
       <Stepper
         label="BPM"
         value={bpm}
@@ -84,7 +86,9 @@ export function SettingsPanel({
       />
       <TapTempoButton onBpm={onBpmChange} />
 
-      <Text style={styles.heading}>Phrase</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        Phrase
+      </Text>
       {locked ? <Text style={styles.note}>Stop to change these.</Text> : null}
       <Segmented
         label="Counts per phrase"
@@ -102,7 +106,9 @@ export function SettingsPanel({
         disabled={locked}
       />
 
-      <Text style={styles.heading}>Calls</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        Calls
+      </Text>
       <Stepper
         label="Shortest toss"
         value={range.min}
@@ -132,7 +138,9 @@ export function SettingsPanel({
         disabled={locked}
       />
 
-      <Text style={styles.heading}>Sound</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        Sound
+      </Text>
       <Toggle
         label="Accent count 1"
         value={cueOptions.accentDownbeat ?? true}
@@ -153,9 +161,13 @@ export function SettingsPanel({
       />
 
       {warnings.length > 0 ? (
-        <View style={styles.warnings} accessibilityRole="summary">
+        <View style={styles.warnings} accessibilityRole="summary" accessibilityLiveRegion="polite">
           {warnings.map((w) => (
-            <Text key={w.code} style={styles.warning}>
+            <Text
+              key={w.code}
+              style={styles.warning}
+              accessibilityLabel={`Warning: ${describeWarning(w)}`}
+            >
               ⚠︎ {describeWarning(w)}
             </Text>
           ))}

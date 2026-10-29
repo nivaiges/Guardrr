@@ -27,7 +27,9 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.heading}>{running ? 'This session' : 'Last session'}</Text>
+      <Text style={styles.heading} accessibilityRole="header">
+        {running ? 'This session' : 'Last session'}
+      </Text>
       <View style={styles.figures}>
         <Figure value={String(summary.tosses)} label="tosses" />
         <Figure value={summary.duration} label="time" />

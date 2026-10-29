@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PhraseBeat, PracticeDisplay as DisplayModel } from '../engine';
+import { PhraseBeat, PracticeDisplay as DisplayModel, displayAccessibilityLabel } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 
 function Beat({ beat }: { beat: PhraseBeat }) {
@@ -27,50 +27,53 @@ function countdownText(model: DisplayModel): string {
   return `${model.countsToCatch} to catch`;
 }
 
-/** The big count/cue display with a strip showing where you are in the phrase. */
+/**
+ * The big count/cue display with a strip showing where you are in the phrase.
+ *
+ * For screen readers it is a single element labelled with the whole state
+ * (no live region): the metronome and the spoken call are the real-time cues,
+ * and a screen reader reading every count would talk over them.
+ */
 export function PracticeDisplay({ model }: { model: DisplayModel }) {
   const theme = useTheme();
   const styles = getStyles(theme);
   const highlight = model.phase === 'release' || model.phase === 'catch';
   return (
-    <View style={[styles.display, { backgroundColor: theme.phase[model.phase] }]}>
+    <View
+      style={[styles.display, { backgroundColor: theme.phase[model.phase] }]}
+      accessible
+      accessibilityLabel={displayAccessibilityLabel(model)}
+    >
       <View style={styles.callRow}>
         <Text style={styles.callLabel}>Toss</Text>
-        <Text style={styles.callValue} accessibilityLabel="Current toss">
+        <Text style={styles.callValue} maxFontSizeMultiplier={1.5}>
           {model.callLabel ?? '–'}
         </Text>
         <Text style={styles.callLabel}>Next</Text>
-        <Text style={styles.callValue} accessibilityLabel="Next toss">
+        <Text style={styles.callValue} maxFontSizeMultiplier={1.5}>
           {model.nextCallLabel ?? '–'}
         </Text>
       </View>
 
-      <Text style={styles.count} accessibilityLabel="Current count">
+      {/* Already huge: don't let large-text settings push it off screen. */}
+      <Text style={styles.count} maxFontSizeMultiplier={1}>
         {model.count ?? '–'}
       </Text>
       <Text
         style={[styles.headline, highlight && styles.headlineHighlight]}
-        accessibilityLiveRegion="polite"
+        maxFontSizeMultiplier={1.4}
       >
         {model.headline}
       </Text>
       <Text style={styles.detail}>{model.detail}</Text>
       <Text style={styles.countdown}>{countdownText(model)}</Text>
 
-      <View
-        style={styles.strip}
-        accessible
-        accessibilityLabel={
-          model.count === null
-            ? `${model.beats.length}-count phrase`
-            : `Count ${model.count} of ${model.beats.length}`
-        }
-      >
+      <View style={styles.strip}>
         {model.beats.map((beat) => (
           <Beat key={beat.count} beat={beat} />
         ))}
       </View>
-      <View style={styles.legend} importantForAccessibility="no-hide-descendants">
+      <View style={styles.legend}>
         {(['release', 'catch', 'call'] as const).map((marker) => (
           <Text key={marker} style={styles.legendItem}>
             <Text style={{ color: theme.marker[marker] }}>●</Text> {marker}
@@ -92,7 +95,13 @@ const getStyles = themed((t: Theme) =>
       paddingHorizontal: 16,
       borderRadius: 16,
     },
-    callRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+    callRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      alignItems: 'baseline',
+      gap: 8,
+    },
     callLabel: { fontSize: 14, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
     callValue: {
       fontSize: 24,
@@ -108,9 +117,9 @@ const getStyles = themed((t: Theme) =>
       color: t.text,
       fontVariant: ['tabular-nums'],
     },
-    headline: { fontSize: 30, fontWeight: '700', color: t.text },
+    headline: { fontSize: 30, fontWeight: '700', color: t.text, textAlign: 'center' },
     headlineHighlight: { fontSize: 36 },
-    detail: { fontSize: 18, marginTop: 6, color: t.text },
+    detail: { fontSize: 18, marginTop: 6, color: t.text, textAlign: 'center' },
     countdown: { fontSize: 16, marginTop: 4, color: t.textMuted, fontVariant: ['tabular-nums'] },
     strip: {
       marginTop: 16,
