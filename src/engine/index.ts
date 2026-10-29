@@ -11,3 +11,4 @@ export * from './display';
 export * from './storedSettings';
 export * from './presets';
 export * from './stats';
+export * from './accessibility';
