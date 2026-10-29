@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-10-29
+
+### Added
+
+- **App icon and splash screen** (roadmap #11): a gold flag on a tilted white pole with a dotted
+  toss arc, on the app blue. `scripts/generate-icons.js` draws it with no dependencies (pure
+  Node + zlib, 4×4 supersampled, deterministic) into `assets/`: the iOS icon, Android adaptive
+  foreground/background/monochrome layers (art kept inside the mask's safe zone), the splash
+  image and the favicon.
+- Splash via the **`expo-splash-screen` config plugin** (SDK 58 has no top-level native `splash`
+  key anymore): blue background in light mode, the app's dark background in dark mode.
+- **Accessibility pass** (roadmap #11):
+  - `src/engine/accessibility.ts`: one screen-reader label for the whole practice display
+    ("Count 2 of 16. 5 count. Catch on 5. 3 counts to the catch. Toss: 5."), "&" always read as
+    "and", spoken durations, and Start/Stop announcements ("Started. 120 BPM, 16-count phrase,
+    call on count 13." / "Stopped. 7 tosses in 2 minutes 5 seconds.").
+  - Start/Stop announce through `AccessibilityInfo.announceForAccessibility`; the button has a
+    label and hint.
+  - Section titles are headers; settings warnings are a polite live region read as
+    "Warning: …".
+  - Large text: the giant count ignores the font-size setting (it's already 120 pt), the
+    headline and call row cap their scaling and wrap instead of overflowing.
+- 17 new tests (206 total).
+
+### Changed
+
+- Removed the live region on the display headline: TalkBack read it on every count, on top of
+  the metronome and the spoken call.
+
+### Decisions
+
+- **No per-count screen-reader narration.** The click and the spoken call are the real-time
+  cues; a screen reader reading counts would collide with them. The display is still fully
+  readable on focus.
+- Reduce-motion has nothing to act on yet (nothing animates); it's on the roadmap for when
+  something does.
+- The icon is generated from code rather than drawn in an editor, so it's easy to tweak and
+  reproducible; swap in designed artwork any time by replacing the PNGs in `assets/`.
+- Installed `expo-splash-screen@~58.0.10` with `npm install` at the SDK 58 pinned version
+  (same reason as before: `npx expo install` can't reach the Expo API from the build
+  environment). Checked with `npx expo prebuild` in a scratch copy that the plugin writes the
+  light/dark splash colors, and that the Android bundle still exports. Roadmap #11 is done.
+
+### To test on your phone
+
+- The new icon and splash only show in a **development build** (`eas build --profile
+development`) — Expo Go shows its own icon and splash.
+- Turn on VoiceOver/TalkBack: Start should say "Started. 120 BPM…", Stop should give the
+  summary, and swiping to the big display should read the current count and call. Check that
+  the Start announcement doesn't overlap the first spoken call badly.
+- Set the largest text size: the screen should stay readable without the count clipping.
+
 ## 2026-10-28
 
 ### Added

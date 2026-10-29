@@ -14,12 +14,12 @@
 - [x] 8. Big visual display: current count, called toss count, "release"/"catch" cues.
 - [x] 9. Persist settings (AsyncStorage).
 - [x] 10. Practice presets (e.g. "Standard 16", "Quick 8"), session stats (tosses called, history).
-- [ ] 11. Polish: haptics on count 1, keep-awake during practice, dark theme, app icon/splash, accessibility.
+- [x] 11. Polish: haptics on count 1, keep-awake during practice, dark theme, app icon/splash, accessibility.
   - [x] Haptics on every release (count 1), toggle in Settings → Sound.
   - [x] Keep the screen awake while practicing.
   - [x] Dark theme following the system appearance (WCAG AA contrast tested).
-  - [ ] App icon and splash screen (Guardrr artwork instead of the Expo template icon).
-  - [ ] Accessibility pass: screen-reader announcement of calls/cues (VoiceOver talking over the TTS call?), larger-text layout, reduce-motion.
+  - [x] App icon and splash screen (generated flag-and-toss artwork, `scripts/generate-icons.js`).
+  - [x] Accessibility pass: one screen-reader label for the display, Start/Stop announcements (no per-count narration over the TTS call), headers, larger-text layout. Reduce-motion: nothing animates yet, so nothing to reduce.
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
 
 ## Discovered along the way
@@ -44,4 +44,7 @@
 - [ ] User-saved custom presets ("save current settings as…").
 - [ ] Optional light haptic on the catch count (and/or on the call) — today only the release buzzes.
 - [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
+- [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
+- [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.
+- [ ] Respect reduce-motion once anything animates (e.g. the "and"-tick flash idea above).
 - [ ] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
