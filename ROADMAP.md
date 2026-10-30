@@ -21,6 +21,12 @@
   - [x] App icon and splash screen (generated flag-and-toss artwork, `scripts/generate-icons.js`).
   - [x] Accessibility pass: one screen-reader label for the display, Start/Stop announcements (no per-count narration over the TTS call), headers, larger-text layout. Reduce-motion: nothing animates yet, so nothing to reduce.
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
+  - [x] Count-in: 4 counts, 8 counts (default) or a full phrase before the first toss; never shorter than the lead counts.
+  - [x] Voice rate: Slow / Normal / Fast (default, the old fixed 1.1) / Faster, plus a Test voice button.
+  - [ ] Voice choice (`Speech.getAvailableVoicesAsync()` picker, filtered to the phone's language).
+  - [ ] Custom prep patterns.
+  - [ ] Background audio (keep the metronome going with the screen locked).
+  - [ ] Recorded voice option.
 
 ## Discovered along the way
 
@@ -47,4 +53,6 @@
 - [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
 - [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.
 - [ ] Respect reduce-motion once anything animates (e.g. the "and"-tick flash idea above).
+- [ ] Count-in: optionally speak the count-off ("5 6, 5 6 7 8") over the count-in clicks instead of clicks alone.
+- [ ] Check on device that a "Slow" call still finishes before the release at high tempos with 1–2 lead counts; if not, warn in Settings.
 - [ ] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.

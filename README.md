@@ -29,12 +29,14 @@ after Stop until the next Start).
 Below that you can fine-tune:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
-- **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32) and how many counts before the release
-  the call is spoken.
+- **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32), how many counts before the release
+  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase).
 - **Calls** — shortest and longest toss, optional "and" calls, and whether the same call may come
   twice in a row.
 - **Sound** — accent on count 1, an optional quiet click on the "and"s, and a vibration on every
   release (count 1) you can feel even when the gym is loud.
+- **Voice** — how fast the call is spoken (Slow / Normal / Fast / Faster) and a **Test voice**
+  button to check speed and volume before you start.
 
 Phrase, call and sound settings apply on the next Start. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
@@ -44,7 +46,7 @@ With VoiceOver or TalkBack on, Start and Stop are announced (tempo and call coun
 session summary) and the big display reads its whole state when focused — but the screen reader
 never narrates counts during practice, so it can't talk over the metronome or the call.
 Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (the "5" of the last
-"5 6 7 8").
+"5 6 7 8"), an 8-count count-in (the first release is 4 seconds after Start) and the "Fast" voice.
 
 ## Tech
 

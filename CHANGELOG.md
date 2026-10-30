@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-10-30
+
+### Added
+
+- **Count-in** (roadmap #12): choose 4 counts, 8 counts or a full phrase of metronome before the
+  first toss (Settings → Phrase). `src/engine/countIn.ts` (`effectiveCountIn`, `firstCountIndex`)
+  keeps the phrase model as is and simply starts the clock part-way through the lead-in phrase:
+  with 16 counts and an 8-count count-in the first click is count 9 and the first release comes
+  8 counts after Start. The practice session shifts the scheduler's ticks by that offset.
+- **Call speed** (roadmap #12): Slow (0.8) / Normal (1.0) / Fast (1.1) / Faster (1.3) in
+  Settings → Voice, and a **Test voice** button that says "five" at the chosen speed.
+- Both are saved with the other settings (missing or invalid stored values fall back to the
+  defaults, so settings saved yesterday still load). `Segmented` now takes custom option labels.
+- 20 new tests (226 total).
+
+### Decisions
+
+- **Default count-in is 8 counts**, not a full phrase: 8 counts is the length of the usual
+  "5 6, 5 6 7 8" count-off, and with the defaults the first release is now 4 s after Start
+  instead of 8 s. "Phrase" in the picker restores the old behavior.
+- The count-in is **never shorter than the lead counts** (the first call must be spoken after
+  the metronome starts) and never longer than a phrase; the setting label shows the count-in
+  actually used.
+- Presets don't change the count-in or the voice speed — like the sound options, they're
+  personal.
+- Named speeds rather than a free rate slider: TTS rates sound different per engine, and a few
+  clearly different steps are easier to choose by ear. Fast stays the default (it was the fixed
+  rate until now). Voice _choice_ is next on the list.
+
+### To test on your phone
+
+- Press Start with the defaults: the first click should be an unaccented count, the call on the
+  5th click, and the first release (accented click + buzz) on the 9th click.
+- Try the 4-count count-in with 4 lead counts: the call is spoken on the very first click.
+- Settings → Voice: try each speed with Test voice, then practice at a fast tempo (e.g. 160 BPM)
+  with Slow to see whether the call still lands before the release. TTS timing can't be checked
+  headless.
+
 ## 2026-10-29
 
 ### Added
