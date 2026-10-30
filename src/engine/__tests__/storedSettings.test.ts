@@ -16,6 +16,7 @@ const custom: PracticeSettings = {
   }),
   cue: { accentDownbeat: false, andClicks: true, haptics: false },
   countIn: 4,
+  voiceRate: 0.8,
 };
 
 describe('stored settings', () => {

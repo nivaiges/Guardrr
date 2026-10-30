@@ -4,6 +4,8 @@
 
 import * as Speech from 'expo-speech';
 
+import { DEFAULT_VOICE_RATE } from '../engine/voiceRate';
+
 export interface VoiceOptions {
   /** Speech rate, 1.0 = normal. Calls are short, so slightly fast is clearer on time. */
   rate?: number;
@@ -15,8 +17,6 @@ export interface Voice {
   say(text: string): void;
   stop(): void;
 }
-
-export const DEFAULT_VOICE_RATE = 1.1;
 
 export function createVoice(options: VoiceOptions = {}, speech: typeof Speech = Speech): Voice {
   return {

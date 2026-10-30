@@ -3,6 +3,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
+import { createVoice } from './src/audio';
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
 import { SessionStatsCard } from './src/components/SessionStatsCard';
@@ -11,6 +12,7 @@ import {
   CueOptions,
   PracticePreset,
   TossSettings,
+  VOICE_TEST_PHRASE,
   applyPreset,
   practiceDisplay,
   practiceStartedAnnouncement,
@@ -29,17 +31,20 @@ export default function App() {
     SystemUI.setBackgroundColorAsync(theme.background).catch(() => {});
   }, [theme]);
   const { settings: saved, setSettings: update } = usePersistedSettings();
-  const { bpm, toss: settings, cue: cueOptions, countIn } = saved;
+  const { bpm, toss: settings, cue: cueOptions, countIn, voiceRate } = saved;
   const setBpm = (next: number) => update((s) => ({ ...s, bpm: next }));
   const setSettings = (toss: TossSettings) => update((s) => ({ ...s, toss }));
   const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
   const setCountIn = (next: number) => update((s) => ({ ...s, countIn: next }));
+  const setVoiceRate = (next: number) => update((s) => ({ ...s, voiceRate: next }));
+  const testVoice = () => createVoice({ rate: voiceRate }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
   const { running, cue, stats, start, stop } = usePracticeSession(
     bpm,
     settings,
     cueOptions,
     countIn,
+    voiceRate,
   );
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
@@ -90,6 +95,9 @@ export default function App() {
         onCueOptionsChange={setCueOptions}
         countIn={countIn}
         onCountInChange={setCountIn}
+        voiceRate={voiceRate}
+        onVoiceRateChange={setVoiceRate}
+        onTestVoice={testVoice}
         running={running}
       />
       <StatusBar style={theme.dark ? 'light' : 'dark'} />

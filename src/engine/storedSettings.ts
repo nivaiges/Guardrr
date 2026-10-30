@@ -12,6 +12,7 @@ import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN } from './countIn';
 import { CueOptions } from './practice';
+import { DEFAULT_VOICE_RATE, isVoiceRateOption } from './voiceRate';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
 
 export const SETTINGS_STORAGE_KEY = 'guardrr.settings';
@@ -30,6 +31,8 @@ export interface PracticeSettings {
   cue: Required<CueOptions>;
   /** Counts of metronome before the first release; 0 = a full phrase (see countIn.ts). */
   countIn: number;
+  /** Speech rate of the spoken call (one of VOICE_RATE_OPTIONS). */
+  voiceRate: number;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -37,6 +40,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   toss: DEFAULT_TOSS_SETTINGS,
   cue: DEFAULT_CUE_OPTIONS,
   countIn: DEFAULT_COUNT_IN,
+  voiceRate: DEFAULT_VOICE_RATE,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -97,5 +101,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
+    voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,
   };
 }

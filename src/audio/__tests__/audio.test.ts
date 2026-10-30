@@ -1,4 +1,5 @@
 import { createClickPlayer, createVoice } from '..';
+import { DEFAULT_VOICE_RATE } from '../../engine';
 
 jest.mock('expo-audio', () => ({
   createAudioPlayer: jest.fn(),
@@ -74,5 +75,14 @@ describe('createVoice', () => {
     expect(speech.speak).toHaveBeenCalledWith('five', { rate: 1.3, language: undefined });
     voice.stop();
     expect(speech.stop).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to the default rate when none (or undefined) is given', () => {
+    const speech = { speak: jest.fn(), stop: jest.fn(() => Promise.resolve()) };
+    createVoice({ rate: undefined }, speech as never).say('six');
+    expect(speech.speak).toHaveBeenCalledWith('six', {
+      rate: DEFAULT_VOICE_RATE,
+      language: undefined,
+    });
   });
 });

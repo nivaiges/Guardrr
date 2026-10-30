@@ -8,6 +8,7 @@ import {
   MIN_BPM,
   PHRASE_LENGTH_OPTIONS,
   TossSettings,
+  VOICE_RATE_OPTIONS,
   addTap,
   announceCountInPhrase,
   countInLabel,
@@ -34,6 +35,10 @@ export interface SettingsPanelProps {
   /** Counts before the first release; 0 = a full phrase. */
   countIn: number;
   onCountInChange: (countIn: number) => void;
+  voiceRate: number;
+  onVoiceRateChange: (rate: number) => void;
+  /** Speak a sample call at the chosen speed. */
+  onTestVoice: () => void;
   /** While practicing only the tempo can change; the rest applies on the next start. */
   running: boolean;
 }
@@ -62,6 +67,33 @@ function TapTempoButton({ onBpm }: { onBpm: (bpm: number) => void }) {
   );
 }
 
+function VoiceRatePicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: number;
+  onChange: (rate: number) => void;
+  disabled: boolean;
+}) {
+  // Segmented works on numbers; index the options so labels stay words.
+  const index = Math.max(
+    0,
+    VOICE_RATE_OPTIONS.findIndex((o) => o.rate === value),
+  );
+  return (
+    <Segmented
+      label="Call speed"
+      options={VOICE_RATE_OPTIONS.map((_, i) => i)}
+      value={index}
+      onChange={(i) => onChange(VOICE_RATE_OPTIONS[i].rate)}
+      disabled={disabled}
+      optionLabel={(i) => VOICE_RATE_OPTIONS[i].label}
+      optionAccessibilityLabel={(i) => `${VOICE_RATE_OPTIONS[i].label} speech`}
+    />
+  );
+}
+
 export function SettingsPanel({
   bpm,
   onBpmChange,
@@ -71,6 +103,9 @@ export function SettingsPanel({
   onCueOptionsChange,
   countIn,
   onCountInChange,
+  voiceRate,
+  onVoiceRateChange,
+  onTestVoice,
   running,
 }: SettingsPanelProps) {
   const styles = getStyles(useTheme());
@@ -178,6 +213,22 @@ export function SettingsPanel({
         disabled={locked}
       />
 
+      <Text style={styles.heading} accessibilityRole="header">
+        Voice
+      </Text>
+      <VoiceRatePicker value={voiceRate} onChange={onVoiceRateChange} disabled={locked} />
+      <Pressable
+        style={({ pressed }) => [styles.tap, pressed && styles.tapPressed]}
+        onPress={onTestVoice}
+        disabled={locked}
+        accessibilityRole="button"
+        accessibilityLabel="Test voice"
+        accessibilityHint="Speaks a sample call at the chosen speed"
+        accessibilityState={{ disabled: locked }}
+      >
+        <Text style={[styles.tapText, locked && styles.dimmed]}>Test voice</Text>
+      </Pressable>
+
       {warnings.length > 0 ? (
         <View style={styles.warnings} accessibilityRole="summary" accessibilityLiveRegion="polite">
           {warnings.map((w) => (
@@ -217,6 +268,7 @@ const getStyles = themed((t: Theme) =>
     },
     tapPressed: { backgroundColor: t.controlPressed },
     tapText: { fontSize: 18, fontWeight: '700', color: t.text },
+    dimmed: { opacity: 0.4 },
     tapHint: { fontSize: 13, color: t.textMuted, marginTop: 2 },
     warnings: {
       marginTop: 16,

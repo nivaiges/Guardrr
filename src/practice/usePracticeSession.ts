@@ -31,6 +31,7 @@ export function usePracticeSession(
   settings: TossSettings,
   cueOptions?: CueOptions,
   countIn?: number,
+  voiceRate?: number,
 ): PracticeSessionState {
   const [running, setRunning] = useState(false);
   const [cue, setCue] = useState<PracticeCue | null>(null);
@@ -71,7 +72,7 @@ export function usePracticeSession(
       cueOptions,
       countIn,
       clicks: clicks.current,
-      voice: createVoice(),
+      voice: createVoice({ rate: voiceRate }),
       haptics: createHapticPlayer(),
       onCue: (c) => {
         // recordCue returns the same object for silent ticks, so this only
@@ -85,7 +86,7 @@ export function usePracticeSession(
     session.current = s;
     s.start();
     setRunning(true);
-  }, [settings, cueOptions, countIn]);
+  }, [settings, cueOptions, countIn, voiceRate]);
 
   return { running, cue, stats, start, stop };
 }

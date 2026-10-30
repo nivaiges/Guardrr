@@ -13,3 +13,4 @@ export * from './presets';
 export * from './stats';
 export * from './accessibility';
 export * from './countIn';
+export * from './voiceRate';
