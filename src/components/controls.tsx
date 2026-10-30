@@ -136,12 +136,18 @@ export function Segmented({
   value,
   onChange,
   disabled = false,
+  optionLabel = String,
+  optionAccessibilityLabel = (n: number) => `${n} counts`,
 }: {
   label: string;
   options: readonly number[];
   value: number;
   onChange: (value: number) => void;
   disabled?: boolean;
+  /** Text shown in each segment. Default: the number. */
+  optionLabel?: (option: number) => string;
+  /** Screen-reader label of each segment. Default: "8 counts". */
+  optionAccessibilityLabel?: (option: number) => string;
 }) {
   const styles = getStyles(useTheme());
   return (
@@ -162,10 +168,10 @@ export function Segmented({
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected, disabled }}
-              accessibilityLabel={`${option} counts`}
+              accessibilityLabel={optionAccessibilityLabel(option)}
             >
               <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
-                {option}
+                {optionLabel(option)}
               </Text>
             </Pressable>
           );

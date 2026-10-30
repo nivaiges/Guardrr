@@ -29,12 +29,18 @@ export default function App() {
     SystemUI.setBackgroundColorAsync(theme.background).catch(() => {});
   }, [theme]);
   const { settings: saved, setSettings: update } = usePersistedSettings();
-  const { bpm, toss: settings, cue: cueOptions } = saved;
+  const { bpm, toss: settings, cue: cueOptions, countIn } = saved;
   const setBpm = (next: number) => update((s) => ({ ...s, bpm: next }));
   const setSettings = (toss: TossSettings) => update((s) => ({ ...s, toss }));
   const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
+  const setCountIn = (next: number) => update((s) => ({ ...s, countIn: next }));
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
-  const { running, cue, stats, start, stop } = usePracticeSession(bpm, settings, cueOptions);
+  const { running, cue, stats, start, stop } = usePracticeSession(
+    bpm,
+    settings,
+    cueOptions,
+    countIn,
+  );
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
     start();
@@ -65,7 +71,7 @@ export default function App() {
         accessibilityRole="button"
         accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
         accessibilityHint={
-          running ? undefined : 'Starts the metronome; the first toss is called after the lead-in'
+          running ? undefined : 'Starts the metronome; the first toss is called during the count-in'
         }
       >
         <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
@@ -82,6 +88,8 @@ export default function App() {
         onSettingsChange={setSettings}
         cueOptions={cueOptions}
         onCueOptionsChange={setCueOptions}
+        countIn={countIn}
+        onCountInChange={setCountIn}
         running={running}
       />
       <StatusBar style={theme.dark ? 'light' : 'dark'} />

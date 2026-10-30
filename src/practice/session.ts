@@ -16,6 +16,7 @@ import {
   createRng,
   createScheduler,
   cueForTick,
+  firstCountIndex,
   randomSeed,
 } from '../engine';
 import type { ClickPlayer, Voice } from '../audio';
@@ -31,6 +32,11 @@ export interface PracticeSessionOptions {
   haptics?: HapticPlayer;
   /** Called on every tick with the cue (after sound and speech were triggered). */
   onCue?: (cue: PracticeCue) => void;
+  /**
+   * Counts of metronome before the first release (see countIn.ts);
+   * 0 or omitted = a full lead-in phrase.
+   */
+  countIn?: number;
   /** Seed for the call sequence; random when omitted. */
   seed?: number;
   /** Scheduler overrides (clock/timers) for tests. */
@@ -53,9 +59,16 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
   let calls: CallSequence | null = null;
   let scheduler: Scheduler | null = null;
   let bpm = options.bpm;
+  // The scheduler counts from 0; a short count-in starts part-way into the lead-in phrase.
+  let offset = 0;
 
-  function onTick(tick: Parameters<SchedulerOptions['onTick']>[0]): void {
+  function onTick(raw: Parameters<SchedulerOptions['onTick']>[0]): void {
     if (!calls) return;
+    const tick = {
+      tick: raw.tick + offset * TICKS_PER_COUNT,
+      countIndex: raw.countIndex + offset,
+      subdivision: raw.subdivision,
+    };
     const cue = cueForTick(tick, options.settings, calls, options.cueOptions);
     if (cue.click) options.clicks.play(cue.click);
     if (cue.haptic) options.haptics?.play(cue.haptic);
@@ -68,6 +81,7 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
       if (scheduler?.running) return;
       // Validates the settings up front (throws before anything plays).
       calls = new CallSequence(options.settings, createRng(options.seed ?? randomSeed()));
+      offset = firstCountIndex(options.countIn ?? 0, options.settings);
       scheduler = createScheduler({
         bpm,
         ticksPerCount: TICKS_PER_COUNT,

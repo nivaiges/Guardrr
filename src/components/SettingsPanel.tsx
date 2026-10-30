@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  COUNT_IN_OPTIONS,
   CueOptions,
   MAX_BPM,
   MIN_BPM,
@@ -9,7 +10,9 @@ import {
   TossSettings,
   addTap,
   announceCountInPhrase,
+  countInLabel,
   describeWarning,
+  effectiveCountIn,
   settingsWarnings,
   tapTempoBpm,
   tossRangeOf,
@@ -28,6 +31,9 @@ export interface SettingsPanelProps {
   onSettingsChange: (settings: TossSettings) => void;
   cueOptions: CueOptions;
   onCueOptionsChange: (options: CueOptions) => void;
+  /** Counts before the first release; 0 = a full phrase. */
+  countIn: number;
+  onCountInChange: (countIn: number) => void;
   /** While practicing only the tempo can change; the rest applies on the next start. */
   running: boolean;
 }
@@ -63,6 +69,8 @@ export function SettingsPanel({
   onSettingsChange,
   cueOptions,
   onCueOptionsChange,
+  countIn,
+  onCountInChange,
   running,
 }: SettingsPanelProps) {
   const styles = getStyles(useTheme());
@@ -70,6 +78,7 @@ export function SettingsPanel({
   const announceCount = announceCountInPhrase(settings.phraseLength, settings.leadCounts);
   const warnings = settingsWarnings(settings);
   const locked = running;
+  const countInUsed = effectiveCountIn(countIn, settings);
 
   return (
     <View style={styles.panel}>
@@ -104,6 +113,15 @@ export function SettingsPanel({
         max={settings.phraseLength}
         onChange={(n) => onSettingsChange(withLeadCounts(settings, n))}
         disabled={locked}
+      />
+      <Segmented
+        label={`Count-in before the first toss (${countInUsed} counts)`}
+        options={COUNT_IN_OPTIONS}
+        value={countIn}
+        onChange={onCountInChange}
+        disabled={locked}
+        optionLabel={countInLabel}
+        optionAccessibilityLabel={(n) => (n === 0 ? 'A full phrase' : `${n} counts`)}
       />
 
       <Text style={styles.heading} accessibilityRole="header">

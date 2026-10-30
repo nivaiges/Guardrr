@@ -30,6 +30,7 @@ export function usePracticeSession(
   bpm: number,
   settings: TossSettings,
   cueOptions?: CueOptions,
+  countIn?: number,
 ): PracticeSessionState {
   const [running, setRunning] = useState(false);
   const [cue, setCue] = useState<PracticeCue | null>(null);
@@ -68,6 +69,7 @@ export function usePracticeSession(
       bpm: bpmRef.current,
       settings,
       cueOptions,
+      countIn,
       clicks: clicks.current,
       voice: createVoice(),
       haptics: createHapticPlayer(),
@@ -83,7 +85,7 @@ export function usePracticeSession(
     session.current = s;
     s.start();
     setRunning(true);
-  }, [settings, cueOptions]);
+  }, [settings, cueOptions, countIn]);
 
   return { running, cue, stats, start, stop };
 }

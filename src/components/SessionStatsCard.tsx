@@ -58,7 +58,7 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
         </View>
       ) : (
         <Text style={styles.note}>
-          {running ? 'The first toss is released after the lead-in.' : 'No tosses yet.'}
+          {running ? 'The first toss is released after the count-in.' : 'No tosses yet.'}
         </Text>
       )}
 

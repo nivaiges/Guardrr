@@ -15,6 +15,7 @@ const custom: PracticeSettings = {
     andCounts: true,
   }),
   cue: { accentDownbeat: false, andClicks: true, haptics: false },
+  countIn: 4,
 };
 
 describe('stored settings', () => {
@@ -35,6 +36,20 @@ describe('stored settings', () => {
       expect(parseStoredSettings(json)).toEqual(DEFAULT_PRACTICE_SETTINGS);
     },
   );
+
+  it('keeps a stored count-in and repairs a bad one', () => {
+    const parse = (countIn: unknown) => parseStoredSettings(JSON.stringify({ countIn })).countIn;
+    expect(parse(0)).toBe(0);
+    expect(parse(12)).toBe(12);
+    expect(parse(-4)).toBe(8);
+    expect(parse(2.5)).toBe(8);
+    expect(parse('8')).toBe(8);
+    expect(parse(999)).toBe(8);
+  });
+
+  it('defaults settings saved before the count-in existed to an 8-count count-in', () => {
+    expect(parseStoredSettings(JSON.stringify({ bpm: 100 })).countIn).toBe(8);
+  });
 
   it('fills in missing fields with defaults', () => {
     expect(parseStoredSettings(JSON.stringify({ bpm: 90 }))).toEqual({

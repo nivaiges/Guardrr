@@ -13,7 +13,7 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-function setup(bpm = 120) {
+function setup(bpm = 120, countIn?: number) {
   const clicks = { play: jest.fn() };
   const voice = { say: jest.fn(), stop: jest.fn() };
   const haptics = { play: jest.fn() };
@@ -25,6 +25,7 @@ function setup(bpm = 120) {
     voice,
     haptics,
     seed: 42,
+    countIn,
     onCue: (c) => cues.push(c),
     schedulerOverrides: { now: () => Date.now() },
   });
@@ -97,6 +98,49 @@ describe('createPracticeSession', () => {
     jest.advanceTimersByTime(3001); // next at 1000, then 2000, 3000, 4000
     expect(clicks.play).toHaveBeenCalledTimes(6);
     session.stop();
+  });
+
+  describe('count-in', () => {
+    it('releases 8 counts (4 s at 120 BPM) after Start with an 8-count count-in', () => {
+      const { session, haptics, cues } = setup(120, 8);
+      session.start();
+      expect(cues[0]).toMatchObject({ phrase: 0, count: 9, click: 'count' });
+      jest.advanceTimersByTime(8 * 500 - 1);
+      expect(haptics.play).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(haptics.play).toHaveBeenCalledWith('release');
+      expect(cues[cues.length - 1]).toMatchObject({ phrase: 1, count: 1, release: true });
+      session.stop();
+    });
+
+    it('still speaks the first call 4 counts before the first release', () => {
+      const { session, voice } = setup(120, 8);
+      session.start();
+      jest.advanceTimersByTime(4 * 500 - 1);
+      expect(voice.say).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(voice.say).toHaveBeenCalledWith(speechTextForCall(session.callHistory()[0]));
+      session.stop();
+    });
+
+    it('keeps the same tick numbering as a full lead-in, just shifted', () => {
+      const { session, cues } = setup(120, 4);
+      session.start();
+      jest.advanceTimersByTime(20 * 500 - 1);
+      expect(cues[0]).toMatchObject({ tick: 24, countIndex: 12, subdivision: 0 });
+      expect(cues.filter((c) => c.release)).toHaveLength(1);
+      expect(cues.filter((c) => c.click === 'accent')).toHaveLength(1);
+      session.stop();
+    });
+
+    it('uses a full phrase when the count-in is 0 or omitted', () => {
+      for (const countIn of [0, undefined]) {
+        const { session, cues } = setup(120, countIn);
+        session.start();
+        expect(cues[0]).toMatchObject({ phrase: 0, count: 1 });
+        session.stop();
+      }
+    });
   });
 
   it('throws on start with settings where nothing fits', () => {

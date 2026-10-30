@@ -10,6 +10,7 @@
 import { DEFAULT_TOSS_SETTINGS, TossSettings, validateTossSettings } from './announce';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
+import { DEFAULT_COUNT_IN } from './countIn';
 import { CueOptions } from './practice';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
 
@@ -27,12 +28,15 @@ export interface PracticeSettings {
   bpm: number;
   toss: TossSettings;
   cue: Required<CueOptions>;
+  /** Counts of metronome before the first release; 0 = a full phrase (see countIn.ts). */
+  countIn: number;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   bpm: DEFAULT_BPM,
   toss: DEFAULT_TOSS_SETTINGS,
   cue: DEFAULT_CUE_OPTIONS,
+  countIn: DEFAULT_COUNT_IN,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -92,5 +96,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       andClicks: bool(cue.andClicks, DEFAULT_CUE_OPTIONS.andClicks),
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
     },
+    countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
   };
 }
