@@ -9,6 +9,7 @@ import {
   PHRASE_LENGTH_OPTIONS,
   TossSettings,
   VOICE_RATE_OPTIONS,
+  VoiceInfo,
   addTap,
   announceCountInPhrase,
   countInLabel,
@@ -24,6 +25,7 @@ import {
 } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 import { Segmented, Stepper, Toggle } from './controls';
+import { VoicePicker } from './VoicePicker';
 
 export interface SettingsPanelProps {
   bpm: number;
@@ -37,8 +39,15 @@ export interface SettingsPanelProps {
   onCountInChange: (countIn: number) => void;
   voiceRate: number;
   onVoiceRateChange: (rate: number) => void;
-  /** Speak a sample call at the chosen speed. */
-  onTestVoice: () => void;
+  /** English voices on this phone, best first. */
+  voices: readonly VoiceInfo[];
+  /** Chosen voice identifier, or null for the system default. */
+  voice: string | null;
+  onVoiceChange: (voice: string | null) => void;
+  /** Re-read the voice list (when the picker opens). */
+  onReloadVoices?: () => void;
+  /** Speak a sample call at the chosen speed, with `voice` if given (else the chosen one). */
+  onTestVoice: (voice?: string | null) => void;
   /** While practicing only the tempo can change; the rest applies on the next start. */
   running: boolean;
 }
@@ -105,6 +114,10 @@ export function SettingsPanel({
   onCountInChange,
   voiceRate,
   onVoiceRateChange,
+  voices,
+  voice,
+  onVoiceChange,
+  onReloadVoices,
   onTestVoice,
   running,
 }: SettingsPanelProps) {
@@ -216,14 +229,22 @@ export function SettingsPanel({
       <Text style={styles.heading} accessibilityRole="header">
         Voice
       </Text>
+      <VoicePicker
+        voices={voices}
+        value={voice}
+        onChange={onVoiceChange}
+        onPreview={onTestVoice}
+        onOpen={onReloadVoices}
+        disabled={locked}
+      />
       <VoiceRatePicker value={voiceRate} onChange={onVoiceRateChange} disabled={locked} />
       <Pressable
         style={({ pressed }) => [styles.tap, pressed && styles.tapPressed]}
-        onPress={onTestVoice}
+        onPress={() => onTestVoice()}
         disabled={locked}
         accessibilityRole="button"
         accessibilityLabel="Test voice"
-        accessibilityHint="Speaks a sample call at the chosen speed"
+        accessibilityHint="Speaks a sample call with the chosen voice and speed"
         accessibilityState={{ disabled: locked }}
       >
         <Text style={[styles.tapText, locked && styles.dimmed]}>Test voice</Text>

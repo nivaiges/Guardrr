@@ -13,6 +13,7 @@ import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN } from './countIn';
 import { CueOptions } from './practice';
 import { DEFAULT_VOICE_RATE, isVoiceRateOption } from './voiceRate';
+import { isStoredVoiceId } from './voices';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
 
 export const SETTINGS_STORAGE_KEY = 'guardrr.settings';
@@ -33,6 +34,11 @@ export interface PracticeSettings {
   countIn: number;
   /** Speech rate of the spoken call (one of VOICE_RATE_OPTIONS). */
   voiceRate: number;
+  /**
+   * Identifier of the voice that speaks the call (see voices.ts), or null for
+   * the system default. Ignored when the phone no longer has that voice.
+   */
+  voice: string | null;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -41,6 +47,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   cue: DEFAULT_CUE_OPTIONS,
   countIn: DEFAULT_COUNT_IN,
   voiceRate: DEFAULT_VOICE_RATE,
+  voice: null,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -102,5 +109,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,
+    voice: isStoredVoiceId(raw.voice) ? raw.voice : null,
   };
 }

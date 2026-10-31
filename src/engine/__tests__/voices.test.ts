@@ -103,6 +103,10 @@ describe('resolveVoice', () => {
     expect(resolveVoice(null, available)).toBeUndefined();
     expect(resolveVoice(undefined, available)).toBeUndefined();
   });
+
+  it('keeps the stored voice while the list is unknown (empty)', () => {
+    expect(resolveVoice('b', [])).toBe('b');
+  });
 });
 
 describe('isStoredVoiceId', () => {

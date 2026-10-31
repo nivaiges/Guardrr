@@ -104,13 +104,15 @@ export function voiceLabel(v: VoiceInfo): string {
 /**
  * The stored voice if this phone still has it; otherwise undefined (the
  * system default speaks). Voices disappear when the user removes a download
- * or restores settings onto another phone.
+ * or restores settings onto another phone. An empty list means "not known
+ * (yet)", so the stored voice is kept rather than dropped while loading.
  */
 export function resolveVoice(
   stored: string | null | undefined,
   available: readonly VoiceInfo[],
 ): string | undefined {
   if (!stored) return undefined;
+  if (available.length === 0) return stored;
   return available.some((v) => v.identifier === stored) ? stored : undefined;
 }
 

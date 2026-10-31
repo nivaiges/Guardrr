@@ -17,6 +17,7 @@ const custom: PracticeSettings = {
   cue: { accentDownbeat: false, andClicks: true, haptics: false },
   countIn: 4,
   voiceRate: 0.8,
+  voice: 'com.apple.voice.enhanced.Ava',
 };
 
 describe('stored settings', () => {
@@ -46,6 +47,15 @@ describe('stored settings', () => {
     expect(parse(2.5)).toBe(8);
     expect(parse('8')).toBe(8);
     expect(parse(999)).toBe(8);
+  });
+
+  it('keeps a stored voice and repairs a bad one', () => {
+    const parse = (voice: unknown) => parseStoredSettings(JSON.stringify({ voice })).voice;
+    expect(parse('en-us-x-sfg-local')).toBe('en-us-x-sfg-local');
+    expect(parse(null)).toBeNull();
+    expect(parse(undefined)).toBeNull();
+    expect(parse('')).toBeNull();
+    expect(parse(7)).toBeNull();
   });
 
   it('defaults settings saved before the count-in existed to an 8-count count-in', () => {

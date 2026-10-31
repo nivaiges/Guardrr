@@ -1,4 +1,4 @@
-import { createClickPlayer, createVoice } from '..';
+import { createClickPlayer, createVoice, loadCallVoices } from '..';
 import { DEFAULT_VOICE_RATE } from '../../engine';
 
 jest.mock('expo-audio', () => ({
@@ -69,20 +69,62 @@ describe('createClickPlayer', () => {
 describe('createVoice', () => {
   it('cuts off the previous call and speaks the new one at the configured rate', () => {
     const speech = { speak: jest.fn(), stop: jest.fn(() => Promise.resolve()) };
-    const voice = createVoice({ rate: 1.3 }, speech as never);
+    const voice = createVoice({ rate: 1.3, language: 'en-GB' }, speech as never);
     voice.say('five');
     expect(speech.stop).toHaveBeenCalled();
-    expect(speech.speak).toHaveBeenCalledWith('five', { rate: 1.3, language: undefined });
+    expect(speech.speak).toHaveBeenCalledWith('five', {
+      rate: 1.3,
+      language: 'en-GB',
+      voice: undefined,
+    });
     voice.stop();
     expect(speech.stop).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to the default rate when none (or undefined) is given', () => {
     const speech = { speak: jest.fn(), stop: jest.fn(() => Promise.resolve()) };
-    createVoice({ rate: undefined }, speech as never).say('six');
+    createVoice({ rate: undefined, language: 'en-US' }, speech as never).say('six');
     expect(speech.speak).toHaveBeenCalledWith('six', {
       rate: DEFAULT_VOICE_RATE,
-      language: undefined,
+      language: 'en-US',
+      voice: undefined,
     });
+  });
+
+  it('speaks with the chosen voice', () => {
+    const speech = { speak: jest.fn(), stop: jest.fn(() => Promise.resolve()) };
+    createVoice({ voice: 'com.apple.voice.Ava' }, speech as never).say('two and');
+    expect(speech.speak).toHaveBeenCalledWith(
+      'two and',
+      expect.objectContaining({ voice: 'com.apple.voice.Ava' }),
+    );
+  });
+
+  it('defaults to an English language even without options', () => {
+    const speech = { speak: jest.fn(), stop: jest.fn(() => Promise.resolve()) };
+    createVoice({}, speech as never).say('one');
+    const { language } = speech.speak.mock.calls[0][1];
+    expect(language).toMatch(/^en(-|$)/);
+  });
+});
+
+describe('loadCallVoices', () => {
+  it('returns English offline voices, best first for the locale', async () => {
+    const speech = {
+      getAvailableVoicesAsync: jest.fn(() =>
+        Promise.resolve([
+          { identifier: 'fr', name: 'Thomas', quality: 'Default', language: 'fr-FR' },
+          { identifier: 'gb', name: 'Daniel', quality: 'Default', language: 'en-GB' },
+          { identifier: 'us', name: 'Ava', quality: 'Enhanced', language: 'en-US' },
+        ]),
+      ),
+    };
+    const voices = await loadCallVoices(speech as never, 'en-GB');
+    expect(voices.map((v) => v.identifier)).toEqual(['gb', 'us']);
+  });
+
+  it('returns an empty list when the engine fails', async () => {
+    const speech = { getAvailableVoicesAsync: jest.fn(() => Promise.reject(new Error('no tts'))) };
+    await expect(loadCallVoices(speech as never, 'en-US')).resolves.toEqual([]);
   });
 });

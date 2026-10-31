@@ -3,7 +3,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { createVoice } from './src/audio';
+import { createVoice, useCallVoices } from './src/audio';
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
 import { SessionStatsCard } from './src/components/SessionStatsCard';
@@ -17,6 +17,7 @@ import {
   practiceDisplay,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
+  resolveVoice,
   summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
@@ -32,12 +33,20 @@ export default function App() {
   }, [theme]);
   const { settings: saved, setSettings: update } = usePersistedSettings();
   const { bpm, toss: settings, cue: cueOptions, countIn, voiceRate } = saved;
+  const { voices, reload: reloadVoices } = useCallVoices();
+  // A saved voice the phone no longer has falls back to the system default.
+  const voice = resolveVoice(saved.voice, voices);
   const setBpm = (next: number) => update((s) => ({ ...s, bpm: next }));
   const setSettings = (toss: TossSettings) => update((s) => ({ ...s, toss }));
   const setCueOptions = (cue: CueOptions) => update((s) => ({ ...s, cue: { ...s.cue, ...cue } }));
   const setCountIn = (next: number) => update((s) => ({ ...s, countIn: next }));
   const setVoiceRate = (next: number) => update((s) => ({ ...s, voiceRate: next }));
-  const testVoice = () => createVoice({ rate: voiceRate }).say(VOICE_TEST_PHRASE);
+  const setVoice = (next: string | null) => update((s) => ({ ...s, voice: next }));
+  const testVoice = (preview?: string | null) =>
+    createVoice({
+      rate: voiceRate,
+      voice: preview === undefined ? voice : (preview ?? undefined),
+    }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
   const { running, cue, stats, start, stop } = usePracticeSession(
     bpm,
@@ -45,6 +54,7 @@ export default function App() {
     cueOptions,
     countIn,
     voiceRate,
+    voice,
   );
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
@@ -97,6 +107,10 @@ export default function App() {
         onCountInChange={setCountIn}
         voiceRate={voiceRate}
         onVoiceRateChange={setVoiceRate}
+        voices={voices}
+        voice={voice ?? null}
+        onVoiceChange={setVoice}
+        onReloadVoices={reloadVoices}
         onTestVoice={testVoice}
         running={running}
       />
