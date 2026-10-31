@@ -1,0 +1,38 @@
+name: Morning check
+
+# Every morning after the overnight build (06:41 New York in winter, 07:41 in
+# summer; GitHub cron is UTC only), and on demand from the Actions tab.
+on:
+  schedule:
+    - cron: '41 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  morning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for the smoke test
+        run: npx playwright install --with-deps chromium
+      - name: Morning check (typecheck, lint, tests, iOS/Android/web bundles, smoke test)
+        run: npm run check:morning
+      - name: Summary
+        if: always()
+        run: cat test-results/morning/summary.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-check
+          path: |
+            test-results/morning/*.png
+            test-results/morning/*.json
+            test-results/morning/summary.md
+            test-results/morning/logs/
+          retention-days: 14
