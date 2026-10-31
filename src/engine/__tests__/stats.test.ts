@@ -6,8 +6,10 @@ import {
   STATS_HISTORY_LIMIT,
   SessionStats,
   formatDuration,
+  latestTossDropped,
   recordCue,
   summarizeStats,
+  toggleDrop,
 } from '../stats';
 
 const MS_PER_TICK = 250; // 120 BPM, two ticks per count
@@ -124,6 +126,95 @@ describe('session stats', () => {
     expect(s.tally[1].share).toBeCloseTo(0.4);
     expect(s.mostCalled).toEqual([3, 5]);
     expect(s.latest).toEqual(['3', '3', '5']);
+  });
+});
+
+describe('drops', () => {
+  it('does nothing before the first toss', () => {
+    expect(toggleDrop(EMPTY_STATS)).toBe(EMPTY_STATS);
+    expect(latestTossDropped(EMPTY_STATS)).toBe(false);
+    const s = summarizeStats(EMPTY_STATS);
+    expect(s.catchRate).toBeNull();
+    expect(s.catchRateLabel).toBe('–');
+  });
+
+  it('marks the latest toss and a second tap undoes it', () => {
+    const { stats } = play(DEFAULT_TOSS_SETTINGS, 16 * 4);
+    expect(stats.tosses).toBeGreaterThanOrEqual(2);
+    const last = stats.recent[stats.recent.length - 1];
+    const dropped = toggleDrop(stats);
+    expect(latestTossDropped(dropped)).toBe(true);
+    expect(dropped.drops).toBe(1);
+    expect(dropped.timesDropped).toEqual({ [String(last.call)]: 1 });
+    // Earlier tosses are untouched.
+    expect(dropped.recent.slice(0, -1)).toEqual(stats.recent.slice(0, -1));
+
+    const undone = toggleDrop(dropped);
+    expect(latestTossDropped(undone)).toBe(false);
+    expect(undone.drops).toBe(0);
+    expect(undone.timesDropped).toEqual({});
+  });
+
+  it('keeps drops when later cues are recorded and a new toss is releasable', () => {
+    const settings: TossSettings = { ...DEFAULT_TOSS_SETTINGS, phraseLength: 8, leadCounts: 4 };
+    const calls = new CallSequence(settings, createRng(1));
+    let stats: SessionStats = EMPTY_STATS;
+    let marked = false;
+    for (let tick = 0; tick < 8 * 2 * 4; tick++) {
+      const cue = cueForTick(
+        { tick, countIndex: Math.floor(tick / 2), subdivision: tick % 2 },
+        settings,
+        calls,
+      );
+      stats = recordCue(stats, cue, tick * MS_PER_TICK);
+      // Drop the first toss once, right after it is released.
+      if (!marked && stats.tosses === 1) {
+        stats = toggleDrop(stats);
+        marked = true;
+      }
+    }
+    expect(stats.tosses).toBe(3);
+    expect(stats.drops).toBe(1);
+    expect(stats.recent.map((r) => r.dropped === true)).toEqual([true, false, false]);
+    // The newest toss isn't dropped, so Drop would mark it, not the first one.
+    expect(latestTossDropped(stats)).toBe(false);
+  });
+
+  it('summarizes the catch rate, per-call drops and marks dropped tosses', () => {
+    const stats: SessionStats = {
+      ...EMPTY_STATS,
+      tosses: 4,
+      recent: [
+        { phrase: 1, call: 5 },
+        { phrase: 2, call: 7, dropped: true },
+        { phrase: 3, call: 5 },
+        { phrase: 4, call: 7, dropped: true },
+      ],
+      timesCalled: { '5': 2, '7': 2 },
+      drops: 2,
+      timesDropped: { '7': 2 },
+    };
+    const s = summarizeStats(stats);
+    expect(s.drops).toBe(2);
+    expect(s.catchRate).toBeCloseTo(0.5);
+    expect(s.catchRateLabel).toBe('50%');
+    expect(s.tally.map((t) => [t.label, t.times, t.drops])).toEqual([
+      ['5', 2, 0],
+      ['7', 2, 2],
+    ]);
+    expect(s.latest).toEqual(['7 ✗', '5', '7 ✗', '5']);
+  });
+
+  it('rounds the catch rate to a whole percent', () => {
+    const s = summarizeStats({
+      ...EMPTY_STATS,
+      tosses: 3,
+      drops: 1,
+      recent: [{ phrase: 1, call: 5, dropped: true }],
+      timesCalled: { '5': 3 },
+      timesDropped: { '5': 1 },
+    });
+    expect(s.catchRateLabel).toBe('67%');
   });
 });
 

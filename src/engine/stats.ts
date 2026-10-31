@@ -17,6 +17,8 @@ export interface TossRecord {
   /** Phrase the toss was released in (1 = first toss). */
   phrase: number;
   call: number;
+  /** Marked as dropped by the performer (the "Drop" button). */
+  dropped?: boolean;
 }
 
 export interface SessionStats {
@@ -34,6 +36,10 @@ export interface SessionStats {
   recent: readonly TossRecord[];
   /** How often each call was released, over the whole session. */
   timesCalled: Readonly<Record<string, number>>;
+  /** Tosses the performer marked as dropped. */
+  drops: number;
+  /** How often each call was dropped, over the whole session. */
+  timesDropped: Readonly<Record<string, number>>;
 }
 
 export const EMPTY_STATS: SessionStats = {
@@ -44,6 +50,8 @@ export const EMPTY_STATS: SessionStats = {
   catches: 0,
   recent: [],
   timesCalled: {},
+  drops: 0,
+  timesDropped: {},
 };
 
 /** Fold one cue into the stats. Returns the same object when nothing changed. */
@@ -62,6 +70,7 @@ export function recordCue(stats: SessionStats, cue: PracticeCue, nowMs: number):
     timesCalled = { ...timesCalled, [key]: (timesCalled[key] ?? 0) + 1 };
   }
   return {
+    ...stats,
     startedAtMs: stats.startedAtMs ?? nowMs,
     lastCueAtMs: nowMs,
     countsPlayed: stats.countsPlayed + (onCount ? 1 : 0),
@@ -72,17 +81,55 @@ export function recordCue(stats: SessionStats, cue: PracticeCue, nowMs: number):
   };
 }
 
+/** Whether the latest toss is marked as dropped (false before the first toss). */
+export function latestTossDropped(stats: SessionStats): boolean {
+  return stats.recent[stats.recent.length - 1]?.dropped === true;
+}
+
+function bump(counts: Readonly<Record<string, number>>, call: number, by: number) {
+  const key = String(call);
+  const next = (counts[key] ?? 0) + by;
+  const { [key]: _removed, ...rest } = counts;
+  return next > 0 ? { ...rest, [key]: next } : rest;
+}
+
+/**
+ * Mark the latest released toss as dropped, or un-mark it if it already is
+ * (so a mistaken tap can be undone with a second one). Only the latest toss
+ * can be marked: press Drop before the next release. Returns the same object
+ * before the first toss.
+ */
+export function toggleDrop(stats: SessionStats): SessionStats {
+  const last = stats.recent[stats.recent.length - 1];
+  if (!last) return stats;
+  const dropped = !last.dropped;
+  const by = dropped ? 1 : -1;
+  return {
+    ...stats,
+    recent: [...stats.recent.slice(0, -1), { ...last, dropped }],
+    drops: stats.drops + by,
+    timesDropped: bump(stats.timesDropped, last.call, by),
+  };
+}
+
 export interface CallTally {
   call: number;
   label: string;
   times: number;
   /** Share of all tosses, 0..1. */
   share: number;
+  /** Times this call was marked dropped. */
+  drops: number;
 }
 
 export interface StatsSummary {
   tosses: number;
   catches: number;
+  drops: number;
+  /** Tosses not marked dropped, 0..1; null before the first toss. */
+  catchRate: number | null;
+  /** "86%", or "–" before the first toss. */
+  catchRateLabel: string;
   durationMs: number;
   /** "4:05" style elapsed time. */
   duration: string;
@@ -117,13 +164,18 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
         label: callLabel(call),
         times,
         share: stats.tosses ? times / stats.tosses : 0,
+        drops: stats.timesDropped[key] ?? 0,
       };
     })
     .sort((a, b) => a.call - b.call);
   const top = Math.max(0, ...tally.map((t) => t.times));
+  const catchRate = stats.tosses > 0 ? (stats.tosses - stats.drops) / stats.tosses : null;
   return {
     tosses: stats.tosses,
     catches: stats.catches,
+    drops: stats.drops,
+    catchRate,
+    catchRateLabel: catchRate === null ? '–' : `${Math.round(catchRate * 100)}%`,
     durationMs,
     duration: formatDuration(durationMs),
     tally,
@@ -131,6 +183,6 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
     latest: stats.recent
       .slice(-latestCount)
       .reverse()
-      .map((r) => callLabel(r.call)),
+      .map((r) => (r.dropped ? `${callLabel(r.call)} ✗` : callLabel(r.call))),
   };
 }

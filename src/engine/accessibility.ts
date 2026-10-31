@@ -74,5 +74,9 @@ export function practiceStartedAnnouncement(bpm: number, settings: TossSettings)
 /** Said once when practice stops: how many tosses and how long. */
 export function practiceStoppedAnnouncement(summary: StatsSummary): string {
   if (summary.tosses === 0) return 'Stopped before the first toss.';
-  return `Stopped. ${plural(summary.tosses, 'toss', 'tosses')} in ${spokenDuration(summary.durationMs)}.`;
+  const drops =
+    summary.drops > 0
+      ? `, ${plural(summary.drops, 'drop')}, ${summary.catchRateLabel} caught,`
+      : '';
+  return `Stopped. ${plural(summary.tosses, 'toss', 'tosses')}${drops} in ${spokenDuration(summary.durationMs)}.`;
 }

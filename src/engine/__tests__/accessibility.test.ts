@@ -121,5 +121,17 @@ describe('practice announcements', () => {
       timesCalled: { '5': 7 },
     });
     expect(practiceStoppedAnnouncement(many)).toBe('Stopped. 7 tosses in 2 minutes 5 seconds.');
+    const dropped = summarizeStats({
+      ...EMPTY_STATS,
+      startedAtMs: 0,
+      lastCueAtMs: 60_000,
+      tosses: 4,
+      drops: 1,
+      timesCalled: { '5': 4 },
+      timesDropped: { '5': 1 },
+    });
+    expect(practiceStoppedAnnouncement(dropped)).toBe(
+      'Stopped. 4 tosses, 1 drop, 75% caught, in 1 minute.',
+    );
   });
 });
