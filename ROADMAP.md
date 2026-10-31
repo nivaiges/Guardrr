@@ -30,6 +30,11 @@
 
 ## Discovered along the way
 
+- [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
+- [ ] Display: the 16-dot phrase strip wraps onto a second line on a 390-pt-wide phone (seen in the smoke-test screenshot) — shrink the dots or the gap for long phrases.
+- [ ] Morning check on real platforms: Maestro flows on an Android emulator in CI (free), and iOS simulator later (needs macOS runners).
+- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options).
+
 - [x] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
 - [x] Engine support for settings warnings (`settingsWarnings`): call spoken before the current toss is caught, calls dropped for not fitting, no-repeat with one call. Settings UI (#7) must display them.

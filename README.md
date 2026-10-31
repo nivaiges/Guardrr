@@ -74,6 +74,27 @@ npm test             # Jest
 npm run typecheck    # tsc --noEmit
 npm run lint         # ESLint
 npm run format       # Prettier
+npm run test:smoke   # build for web and run the headless smoke test
+npm run check:morning  # everything below, as the morning check runs it
 ```
+
+### Morning check
+
+Every morning after the overnight build, an automated check runs everything that can be tested
+without a phone (`scripts/morning-check.sh`):
+
+1. Typecheck, lint, format check and the Jest unit tests.
+2. Builds the **iOS** and **Android** JavaScript bundles (`expo export`), so a change that only
+   breaks one platform's bundle is caught.
+3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
+   practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
+   call is spoken and when the release lands, Drop / Undo drop, Stop, that settings survive a
+   reload, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
+   played.
+
+It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on
+the run page; also runnable by hand from the Actions tab), and a Claude scheduled task that
+notifies your phone only when something fails. Real sound, speech, haptics and timing on a phone
+still need a hands-on check — each CHANGELOG entry lists what to try.
 
 See [ROADMAP.md](ROADMAP.md) for what's next and [CHANGELOG.md](CHANGELOG.md) for what's shipped.

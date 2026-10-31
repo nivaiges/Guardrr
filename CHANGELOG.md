@@ -4,6 +4,15 @@
 
 ### Added
 
+- **Morning check** (asked for by Niv): `npm run check:morning` runs typecheck, lint, format, unit
+  tests, builds the iOS, Android and web bundles, then a **headless smoke test** of the real app
+  (`e2e/smoke.js`, web build in Chromium) — 17 checks including tempo/drift of the clicks, the
+  count-in, call and release timing, Drop, Stop, saved settings and the dark theme. It runs daily
+  in the new **Morning check** GitHub workflow (11:41 UTC) and in a Claude scheduled task at
+  6:41 New York time that notifies only on failure.
+- The app now also builds for web (`react-dom`, `react-native-web`, `@expo/metro-runtime` at the
+  SDK 58 versions) — needed for the smoke test; not meant as a product target.
+
 - **Voice choice** (roadmap #12): Settings → Voice now has a **Voice** row that opens the phone's
   English voices; tapping one selects it and speaks a sample call, so voices can be compared by
   ear. "System default" is always first. `src/engine/voices.ts` (`callVoices`, `voiceLabel`,
