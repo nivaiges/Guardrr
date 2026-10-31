@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-10-31
+
+### Added
+
+- **Voice choice** (roadmap #12): Settings → Voice now has a **Voice** row that opens the phone's
+  English voices; tapping one selects it and speaks a sample call, so voices can be compared by
+  ear. "System default" is always first. `src/engine/voices.ts` (`callVoices`, `voiceLabel`,
+  `resolveVoice`, `callLanguage`) keeps the filtering, ranking and naming pure and tested;
+  `loadCallVoices`/`useCallVoices` read the list through `Speech.getAvailableVoicesAsync()` and
+  re-read it each time the picker opens. The choice is saved with the other settings.
+- **Drop button and catch rate** (discovered item): once the first toss is released a **Drop**
+  button appears under Start. It marks the latest toss as dropped and turns into **Undo drop**
+  for a mis-tap. The stats card then shows the **catch rate** (tosses not marked dropped), drops
+  per call next to the tally (✗2) and ✗ on dropped tosses in the latest list; the screen-reader
+  Stop summary mentions drops ("Stopped. 4 tosses, 1 drop, 75% caught, in 1 minute.").
+- New `dangerText` theme color for drop marks (AA contrast in light and dark, tested).
+- 26 new tests (252 total).
+
+### Changed
+
+- With no voice chosen, the call is now spoken in the phone's English (en-GB, en-AU, …) or US
+  English, instead of the phone's language: on a phone set to e.g. Spanish the old code asked a
+  Spanish voice to read "five".
+
+### Decisions
+
+- **Only English voices are offered**, not "the phone's language" as the roadmap first said:
+  the calls are English words ("five", "two and"). Localized calls are a separate roadmap item.
+- **Android "-network" voices are hidden**: they stream from a server, so their start delay is
+  unpredictable — the one thing a timed call can't afford. Android voice ids like
+  `en-us-x-sfg-local` are shown as "Voice SFG (US)".
+- A saved voice the phone no longer has (deleted download, settings on another phone) silently
+  falls back to the system default; while the voice list is still loading the saved one is used.
+- **Drop marks only the latest released toss.** Simple and predictable; a drop noticed after the
+  next release would mark the new toss (tap again to undo). A grace period is on the roadmap if
+  this turns out to be a problem in practice. Drop also works after Stop, for the last toss.
+- Catch rate = tosses not marked dropped ÷ tosses released; it only appears once something was
+  dropped, so sessions where nobody uses the button look as before.
+
+### To test on your phone
+
+- Settings → Voice → Voice: check the list looks sensible (iOS may list many novelty voices),
+  tap a few to hear them, pick one, press Start and confirm the call uses it. Restart the app and
+  check the choice is remembered. Voice lists and TTS can't be checked headless.
+- Android: check the list isn't empty on first open (some engines report voices only after the
+  first utterance — reopening the list re-reads it).
+- Practice a few phrases, tap **Drop** after one toss, check the ✗ and catch rate in the stats
+  card, then tap **Undo drop** and check it disappears.
+
 ## 2026-10-30
 
 ### Added

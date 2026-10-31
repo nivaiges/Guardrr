@@ -23,7 +23,7 @@
 - [ ] 12. Later ideas: voice choice/rate, count-in, custom prep patterns, background audio, recorded voice option.
   - [x] Count-in: 4 counts, 8 counts (default) or a full phrase before the first toss; never shorter than the lead counts.
   - [x] Voice rate: Slow / Normal / Fast (default, the old fixed 1.1) / Faster, plus a Test voice button.
-  - [ ] Voice choice (`Speech.getAvailableVoicesAsync()` picker, filtered to the phone's language).
+  - [x] Voice choice: picker of the phone's offline English voices (calls are English words), phone's region and enhanced voices first, tap to preview.
   - [ ] Custom prep patterns.
   - [ ] Background audio (keep the metronome going with the screen locked).
   - [ ] Recorded voice option.
@@ -55,4 +55,8 @@
 - [ ] Respect reduce-motion once anything animates (e.g. the "and"-tick flash idea above).
 - [ ] Count-in: optionally speak the count-off ("5 6, 5 6 7 8") over the count-in clicks instead of clicks alone.
 - [ ] Check on device that a "Slow" call still finishes before the release at high tempos with 1–2 lead counts; if not, warn in Settings.
-- [ ] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
+- [x] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
+- [ ] Drop button: a grace period (or "drop the previous toss") for drops marked just after the next release — today Drop always marks the latest released toss.
+- [ ] Save drops with past sessions once session history exists, to show the catch rate per call over time.
+- [ ] Voice picker: check on device how long the iOS English voice list is (novelty voices like "Bubbles" included) and whether it needs a search box or a "hide novelty voices" filter.
+- [ ] Localized calls (speak the numbers in the phone's language) — today calls are always English words.

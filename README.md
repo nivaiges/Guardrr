@@ -21,7 +21,8 @@ catch, and has a dot per count of the phrase marking the release, the call and t
 
 Under the Start button a **session stats** card shows how many tosses were called, how long
 you've practiced, which call came up most, a bar per call and the latest calls (it stays visible
-after Stop until the next Start).
+after Stop until the next Start). Tap **Drop** when you drop a toss: it marks the latest toss
+(tap again to undo) and the card shows your catch rate and which calls you drop.
 
 **Presets** set up a whole drill in one tap: _Standard 16_, _Quick 8_, _Singles & doubles_
 (short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_.
@@ -35,8 +36,9 @@ Below that you can fine-tune:
   twice in a row.
 - **Sound** — accent on count 1, an optional quiet click on the "and"s, and a vibration on every
   release (count 1) you can feel even when the gym is loud.
-- **Voice** — how fast the call is spoken (Slow / Normal / Fast / Faster) and a **Test voice**
-  button to check speed and volume before you start.
+- **Voice** — which of the phone's English voices speaks the call (tap one to hear it), how fast
+  it's spoken (Slow / Normal / Fast / Faster) and a **Test voice** button to check speed and
+  volume before you start.
 
 Phrase, call and sound settings apply on the next Start. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
