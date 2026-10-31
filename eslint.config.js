@@ -8,10 +8,10 @@ module.exports = defineConfig([
   expoConfig,
   prettierConfig,
   {
-    files: ['scripts/**/*.js'],
+    files: ['scripts/**/*.js', 'e2e/**/*.js'],
     languageOptions: { globals: globals.node },
   },
   {
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*'],
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'coverage/*', 'test-results/*'],
   },
 ]);
