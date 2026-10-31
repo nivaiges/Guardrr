@@ -33,6 +33,7 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
       <View style={styles.figures}>
         <Figure value={String(summary.tosses)} label="tosses" />
         <Figure value={summary.duration} label="time" />
+        {summary.drops > 0 ? <Figure value={summary.catchRateLabel} label="caught" /> : null}
         <Figure
           value={summary.mostCalled.length ? summary.mostCalled.map(callLabel).join(', ') : '–'}
           label="called most"
@@ -46,13 +47,16 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
               key={t.call}
               style={styles.tallyRow}
               accessible
-              accessibilityLabel={`${t.label}: called ${t.times} ${t.times === 1 ? 'time' : 'times'}`}
+              accessibilityLabel={`${t.label}: called ${t.times} ${t.times === 1 ? 'time' : 'times'}${t.drops ? `, dropped ${t.drops}` : ''}`}
             >
               <Text style={styles.tallyLabel}>{t.label}</Text>
               <View style={styles.barTrack}>
                 <View style={[styles.bar, { width: `${(t.times / top) * 100}%` }]} />
               </View>
-              <Text style={styles.tallyTimes}>{t.times}</Text>
+              <Text style={styles.tallyTimes}>
+                {t.times}
+                {t.drops ? <Text style={styles.tallyDrops}> ✗{t.drops}</Text> : null}
+              </Text>
             </View>
           ))}
         </View>
@@ -65,7 +69,7 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
       {summary.latest.length > 0 ? (
         <Text
           style={styles.latest}
-          accessibilityLabel={`Latest calls: ${summary.latest.join(', ')}`}
+          accessibilityLabel={`Latest calls: ${summary.latest.map((l) => l.replace(' ✗', ' dropped')).join(', ')}`}
         >
           Latest: {summary.latest.join(' · ')}
         </Text>
@@ -100,7 +104,8 @@ const getStyles = themed((t: Theme) =>
     tallyLabel: { width: 48, fontSize: 14, fontWeight: '600', textAlign: 'right', color: t.text },
     barTrack: { flex: 1, height: 10, borderRadius: 5, backgroundColor: t.track },
     bar: { height: 10, borderRadius: 5, backgroundColor: t.primary },
-    tallyTimes: { width: 32, fontSize: 14, color: t.text, fontVariant: ['tabular-nums'] },
+    tallyTimes: { minWidth: 32, fontSize: 14, color: t.text, fontVariant: ['tabular-nums'] },
+    tallyDrops: { color: t.dangerText, fontWeight: '600' },
     note: { fontSize: 14, color: t.textMuted, marginTop: 12 },
     latest: { fontSize: 14, color: t.textMuted, marginTop: 12 },
   }),

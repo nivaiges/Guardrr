@@ -20,6 +20,8 @@ export interface Theme {
   primary: string;
   onPrimary: string;
   danger: string;
+  /** Red text (drop marks) and the Drop button outline on the background/surface. */
+  dangerText: string;
   warningBackground: string;
   warningText: string;
   /** Empty bar/track behind progress bars. */
@@ -41,6 +43,7 @@ export const lightTheme: Theme = {
   primary: '#1f6feb',
   onPrimary: '#ffffff',
   danger: '#cf222e',
+  dangerText: '#c11f2b',
   warningBackground: '#fff4d6',
   warningText: '#5c4400',
   track: '#d5dae1',
@@ -66,6 +69,7 @@ export const darkTheme: Theme = {
   primary: '#1f6feb',
   onPrimary: '#ffffff',
   danger: '#cf222e',
+  dangerText: '#ff7b72',
   warningBackground: '#3b2e00',
   warningText: '#f2cc60',
   track: '#21262d',

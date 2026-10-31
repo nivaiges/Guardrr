@@ -14,6 +14,7 @@ import {
   TossSettings,
   VOICE_TEST_PHRASE,
   applyPreset,
+  latestTossDropped,
   practiceDisplay,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
@@ -48,7 +49,7 @@ export default function App() {
       voice: preview === undefined ? voice : (preview ?? undefined),
     }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
-  const { running, cue, stats, start, stop } = usePracticeSession(
+  const { running, cue, stats, start, stop, toggleDrop } = usePracticeSession(
     bpm,
     settings,
     cueOptions,
@@ -91,6 +92,22 @@ export default function App() {
       >
         <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
       </Pressable>
+
+      {stats.tosses > 0 ? (
+        <Pressable
+          style={({ pressed }) => [styles.dropButton, pressed && styles.dropPressed]}
+          onPress={toggleDrop}
+          accessibilityRole="button"
+          accessibilityLabel={latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
+          accessibilityHint={
+            latestTossDropped(stats)
+              ? 'Counts the latest toss as caught again'
+              : 'Marks the latest toss as dropped'
+          }
+        >
+          <Text style={styles.dropText}>{latestTossDropped(stats) ? 'Undo drop' : 'Drop'}</Text>
+        </Pressable>
+      ) : null}
 
       <SessionStatsCard stats={stats} running={running} />
 
@@ -143,5 +160,16 @@ const getStyles = themed((t: Theme) =>
     },
     stopButton: { backgroundColor: t.danger },
     startText: { color: t.onPrimary, fontSize: 22, fontWeight: '700' },
+    dropButton: {
+      marginTop: 12,
+      paddingVertical: 14,
+      minWidth: 200,
+      alignItems: 'center',
+      borderRadius: 28,
+      borderWidth: 2,
+      borderColor: t.dangerText,
+    },
+    dropPressed: { backgroundColor: t.controlPressed },
+    dropText: { color: t.text, fontSize: 18, fontWeight: '700' },
   }),
 );

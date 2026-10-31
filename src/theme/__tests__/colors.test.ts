@@ -41,6 +41,12 @@ describe.each<[string, Theme]>([
     expect(contrastRatio(t.warningText, t.warningBackground)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
+  it('has readable drop marks on the background and the stats card', () => {
+    for (const bg of [t.background, t.surface]) {
+      expect(contrastRatio(t.dangerText, bg)).toBeGreaterThanOrEqual(AA_TEXT);
+    }
+  });
+
   it('has phrase-strip markers and bars visible on the display at rest', () => {
     for (const m of Object.values(t.marker)) {
       expect(contrastRatio(m, t.phase.ready)).toBeGreaterThanOrEqual(AA_UI);

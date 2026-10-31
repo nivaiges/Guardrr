@@ -8,6 +8,7 @@ import {
   SessionStats,
   TossSettings,
   recordCue,
+  toggleDrop,
 } from '../engine';
 import { createHapticPlayer, useKeepAwakeWhile } from '../feedback';
 import { PracticeSession, createPracticeSession } from './session';
@@ -20,6 +21,8 @@ export interface PracticeSessionState {
   stats: SessionStats;
   start(): void;
   stop(): void;
+  /** Mark (or un-mark) the latest toss as dropped; also works after Stop. */
+  toggleDrop(): void;
 }
 
 /**
@@ -90,5 +93,7 @@ export function usePracticeSession(
     setRunning(true);
   }, [settings, cueOptions, countIn, voiceRate, voice]);
 
-  return { running, cue, stats, start, stop };
+  const toggleLatestDrop = useCallback(() => setStats((prev) => toggleDrop(prev)), []);
+
+  return { running, cue, stats, start, stop, toggleDrop: toggleLatestDrop };
 }
