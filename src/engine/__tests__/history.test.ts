@@ -52,6 +52,13 @@ describe('sessionRecord', () => {
     });
   });
 
+  it('rounds the duration to whole milliseconds (the clock is sub-millisecond)', () => {
+    const precise = { ...stats, startedAtMs: 1000.25, lastCueAtMs: 9003.45 };
+    expect(sessionRecord(precise, { startedAt: 1, bpm: 120, phraseLength: 16 })?.durationMs).toBe(
+      8003,
+    );
+  });
+
   it('is null when nothing was tossed', () => {
     expect(sessionRecord(EMPTY_STATS, { startedAt: 1, bpm: 120, phraseLength: 16 })).toBeNull();
     const leadInOnly = { ...EMPTY_STATS, startedAtMs: 0, lastCueAtMs: 4000, countsPlayed: 8 };
@@ -121,6 +128,11 @@ describe('stored history', () => {
     ];
     const json = JSON.stringify({ version: 1, sessions: [good, ...bad] });
     expect(parseStoredHistory(json)).toEqual([good]);
+  });
+
+  it('reads a fractional duration (saved by an earlier build) as whole milliseconds', () => {
+    const json = JSON.stringify({ version: 1, sessions: [record({ durationMs: 8003.2 })] });
+    expect(parseStoredHistory(json)).toEqual([record({ durationMs: 8003 })]);
   });
 
   it('sorts newest first and drops duplicate start times', () => {

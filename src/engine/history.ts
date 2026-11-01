@@ -43,7 +43,7 @@ export function sessionRecord(stats: SessionStats, context: SessionContext): Ses
   if (stats.tosses === 0) return null;
   const durationMs =
     stats.startedAtMs !== null && stats.lastCueAtMs !== null
-      ? Math.max(0, stats.lastCueAtMs - stats.startedAtMs)
+      ? Math.max(0, Math.round(stats.lastCueAtMs - stats.startedAtMs))
       : 0;
   return {
     startedAt: context.startedAt,
@@ -97,9 +97,9 @@ const sum = (counts: Record<string, number>) => Object.values(counts).reduce((a,
 function parseRecord(raw: unknown): SessionRecord | null {
   if (!isObject(raw)) return null;
   const { startedAt, durationMs, bpm, phraseLength, tosses, drops } = raw;
-  if (!isCount(startedAt) || !isCount(durationMs) || !isCount(tosses) || !isCount(drops)) {
-    return null;
-  }
+  if (!isCount(startedAt) || !isCount(tosses) || !isCount(drops)) return null;
+  // Durations come from a sub-millisecond clock; accept fractions, keep whole ms.
+  if (typeof durationMs !== 'number' || !Number.isFinite(durationMs) || durationMs < 0) return null;
   if (typeof bpm !== 'number' || !Number.isFinite(bpm) || bpm <= 0) return null;
   if (!isCount(phraseLength) || phraseLength < 1) return null;
   const timesCalled = parseCallCounts(raw.timesCalled);
@@ -108,7 +108,16 @@ function parseRecord(raw: unknown): SessionRecord | null {
   // The totals must agree with the per-call counts, or the record is corrupt.
   if (tosses === 0 || sum(timesCalled) !== tosses || sum(timesDropped) !== drops) return null;
   if (Object.entries(timesDropped).some(([k, n]) => n > (timesCalled[k] ?? 0))) return null;
-  return { startedAt, durationMs, bpm, phraseLength, tosses, drops, timesCalled, timesDropped };
+  return {
+    startedAt,
+    durationMs: Math.round(durationMs),
+    bpm,
+    phraseLength,
+    tosses,
+    drops,
+    timesCalled,
+    timesDropped,
+  };
 }
 
 /** History from stored JSON (newest first, duplicates and unreadable records dropped). */
