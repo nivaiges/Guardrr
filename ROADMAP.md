@@ -31,7 +31,7 @@
 ## Discovered along the way
 
 - [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
-- [ ] Display: the 16-dot phrase strip wraps onto a second line on a 390-pt-wide phone (seen in the smoke-test screenshot) — shrink the dots or the gap for long phrases.
+- [x] Display: the 16-dot phrase strip wrapped onto a second line on a 390-pt-wide phone — dots now shrink to fit, long phrases split into even rows (`phraseStripLayout`).
 - [ ] Morning check on real platforms: Maestro flows on an Android emulator in CI (free), and iOS simulator later (needs macOS runners).
 - [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options).
 
@@ -51,7 +51,7 @@
 - [ ] Display: optional full-screen "practice mode" (hide settings, larger count) for propping the phone up across the floor.
 - [ ] Display: flash/animate on "and" ticks too (today the screen only re-renders on counts and on "and" catches).
 - [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).
-- [ ] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list.
+- [x] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list (History card).
 - [ ] User-saved custom presets ("save current settings as…").
 - [ ] Optional light haptic on the catch count (and/or on the call) — today only the release buzzes.
 - [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
@@ -62,6 +62,10 @@
 - [ ] Check on device that a "Slow" call still finishes before the release at high tempos with 1–2 lead counts; if not, warn in Settings.
 - [x] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
 - [ ] Drop button: a grace period (or "drop the previous toss") for drops marked just after the next release — today Drop always marks the latest released toss.
-- [ ] Save drops with past sessions once session history exists, to show the catch rate per call over time.
+- [x] Save drops with past sessions, to show the catch rate per call over time (History → "Dropped most").
 - [ ] Voice picker: check on device how long the iOS English voice list is (novelty voices like "Bubbles" included) and whether it needs a search box or a "hide novelty voices" filter.
 - [ ] Localized calls (speak the numbers in the phone's language) — today calls are always English words.
+- [ ] History: delete one session / clear all (needs a confirm dialog that works on web too).
+- [ ] History: catch-rate trend per call over time (e.g. a small chart per call, last 10 sessions).
+- [ ] History: export/share sessions (CSV) for a coach.
+- [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).

@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-11-01
+
+### Added
+
+- **Session history** (discovered item): every session with at least one toss is saved on Stop
+  (and saved again if a drop is marked or undone after Stop, or when the app goes to the
+  background mid-session), keyed by its start time. A new **History** card under the session
+  stats shows all-time sessions, tosses, catch rate and practice time, **"Dropped most"** (the up
+  to 3 calls with the lowest catch rate across all sessions), and the latest 5 sessions (date,
+  tosses, catch rate, length) with **Show more** for up to 25. Kept on the phone (AsyncStorage,
+  key `guardrr.history`), newest 200 sessions.
+  - Engine: `src/engine/history.ts` — `sessionRecord`, `upsertSession`, `serializeHistory` /
+    `parseStoredHistory` (tolerant: unreadable or self-inconsistent records are skipped, never
+    thrown), `formatSessionDate` ("Today 6:05 PM", "Oct 28 7:00 PM") and `summarizeHistory`.
+  - Storage: `createHistoryStore` (writes immediately, one at a time and in order, skips
+    unchanged writes, reports errors without throwing) and the `useSessionHistory` hook.
+- Smoke test: 2 new checks (19 total) — the 16-count phrase strip is one row, and the practiced
+  session (with its drop) is in History after a reload.
+- 34 new unit tests (286 total).
+
+### Fixed
+
+- **Phrase strip wrapping** (discovered item): on a 390-pt-wide phone the 16th dot wrapped onto a
+  line of its own. `phraseStripLayout` (pure, tested) now sizes the dots to the measured width
+  (13 pt instead of 14 there) and only adds rows for long phrases, as even splits of at most 16
+  per row (32 → 2 × 16, 24 → 2 × 12).
+- Session durations are whole milliseconds; the first history build stored fractional ones (from
+  `performance.now()`) that the stored-history parser then rejected — caught by the new smoke
+  check before it shipped.
+
+### Decisions
+
+- A session is only saved once something was tossed; a Start → Stop inside the count-in isn't
+  history.
+- The tempo saved with a session is the tempo at Stop (it can change while practicing).
+- No delete/clear yet: React Native's `Alert` confirm doesn't work on web (used by the smoke
+  test), so a proper confirm dialog comes with that roadmap item.
+- "Dropped most" ranks calls by catch rate (ties: the call tossed more often) rather than raw
+  drop count. A call tossed once and dropped once ranks first; the per-call trend item on the
+  roadmap should give a better picture.
+
+### To test on your phone
+
+- Practice a few short sessions, mark some drops, then fully close and reopen the app: History
+  should list them with the right dates and catch rates.
+- Mark a drop right after Stop — the latest History row should update.
+- Check the phrase strip on your phone: 16 dots on one row; switch to the _Slow 32_ preset — two
+  rows of 16.
+
 ## 2026-10-31
 
 ### Added
