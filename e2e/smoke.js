@@ -184,6 +184,8 @@ async function main() {
         .first()
         .isVisible(),
     );
+    const historyRow = page.getByLabel(/^Today .*: 1 toss, 1 dropped, 0% caught/);
+    check('the session is in History after a reload', await historyRow.isVisible());
 
     // 6. Dark theme renders.
     const dark = await browser.newContext({

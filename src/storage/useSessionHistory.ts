@@ -9,6 +9,8 @@ export interface SessionHistory {
   history: readonly SessionRecord[];
   /** Add a session, or replace the one with the same start time; saved right away. */
   saveSession: (record: SessionRecord) => void;
+  /** When the history was last loaded or changed (epoch ms), for "Today"/"Yesterday". */
+  updatedAt: number;
   /** False until the saved history has been read. */
   loaded: boolean;
 }
@@ -18,6 +20,7 @@ export function useSessionHistory(): SessionHistory {
   const store = useRef<HistoryStore | null>(null);
   const [history, setHistory] = useState<readonly SessionRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(0);
   // Sessions saved before the stored history finished loading.
   const early = useRef<SessionRecord[]>([]);
   const historyRef = useRef<readonly SessionRecord[]>([]);
@@ -35,6 +38,7 @@ export function useSessionHistory(): SessionHistory {
       historyRef.current = merged;
       early.current = [];
       setHistory(merged);
+      setUpdatedAt(Date.now());
       setLoaded(true);
       if (merged !== saved) void s.save(merged);
     });
@@ -52,10 +56,11 @@ export function useSessionHistory(): SessionHistory {
       const next = upsertSession(historyRef.current, record);
       historyRef.current = next;
       setHistory(next);
+      setUpdatedAt(Date.now());
       void store.current?.save(next);
     },
     [loaded],
   );
 
-  return { history, saveSession, loaded };
+  return { history, saveSession, updatedAt, loaded };
 }

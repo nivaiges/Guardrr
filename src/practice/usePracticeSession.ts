@@ -19,6 +19,8 @@ export interface PracticeSessionState {
   cue: PracticeCue | null;
   /** Stats of the current run, or of the last one after Stop (reset on Start). */
   stats: SessionStats;
+  /** Wall-clock time (epoch ms) of the latest Start, or null before the first. */
+  startedAt: number | null;
   start(): void;
   stop(): void;
   /** Mark (or un-mark) the latest toss as dropped; also works after Stop. */
@@ -41,6 +43,7 @@ export function usePracticeSession(
   const [running, setRunning] = useState(false);
   const [cue, setCue] = useState<PracticeCue | null>(null);
   const [stats, setStats] = useState<SessionStats>(EMPTY_STATS);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const session = useRef<PracticeSession | null>(null);
   const clicks = useRef<ClickPlayer | null>(null);
   const bpmRef = useRef(bpm);
@@ -71,6 +74,7 @@ export function usePracticeSession(
   const start = useCallback(() => {
     if (session.current?.running || !clicks.current) return;
     setStats(EMPTY_STATS);
+    setStartedAt(Date.now());
     const s = createPracticeSession({
       bpm: bpmRef.current,
       settings,
@@ -95,5 +99,5 @@ export function usePracticeSession(
 
   const toggleLatestDrop = useCallback(() => setStats((prev) => toggleDrop(prev)), []);
 
-  return { running, cue, stats, start, stop, toggleDrop: toggleLatestDrop };
+  return { running, cue, stats, startedAt, start, stop, toggleDrop: toggleLatestDrop };
 }

@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
-import { useEffect } from 'react';
-import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { AccessibilityInfo, AppState, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { createVoice, useCallVoices } from './src/audio';
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
+import { SessionHistoryCard } from './src/components/SessionHistoryCard';
 import { SessionStatsCard } from './src/components/SessionStatsCard';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import {
@@ -19,10 +20,11 @@ import {
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
   resolveVoice,
+  sessionRecord,
   summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
-import { usePersistedSettings } from './src/storage';
+import { usePersistedSettings, useSessionHistory } from './src/storage';
 import { Theme, themed, useTheme } from './src/theme';
 
 export default function App() {
@@ -49,7 +51,7 @@ export default function App() {
       voice: preview === undefined ? voice : (preview ?? undefined),
     }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
-  const { running, cue, stats, start, stop, toggleDrop } = usePracticeSession(
+  const { running, cue, stats, startedAt, start, stop, toggleDrop } = usePracticeSession(
     bpm,
     settings,
     cueOptions,
@@ -57,6 +59,33 @@ export default function App() {
     voiceRate,
     voice,
   );
+  const { history, saveSession, updatedAt: historyUpdatedAt } = useSessionHistory();
+  // The finished session goes into the history on Stop, and is re-saved if a
+  // drop is marked (or undone) after Stop. While practicing, it is saved when
+  // the app goes to the background, so a session isn't lost if the app is
+  // closed from there.
+  const record = useMemo(
+    () =>
+      startedAt === null
+        ? null
+        : sessionRecord(stats, { startedAt, bpm, phraseLength: settings.phraseLength }),
+    [stats, startedAt, bpm, settings.phraseLength],
+  );
+  const latestRecord = useRef(record);
+  useEffect(() => {
+    latestRecord.current = record;
+  }, [record]);
+  useEffect(() => {
+    if (!running && record) saveSession(record);
+    // Re-save only when the totals change (a late drop), not on every new object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, record?.tosses, record?.drops, saveSession]);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active' && latestRecord.current) saveSession(latestRecord.current);
+    });
+    return () => sub.remove();
+  }, [saveSession]);
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
     start();
@@ -110,6 +139,7 @@ export default function App() {
       ) : null}
 
       <SessionStatsCard stats={stats} running={running} />
+      <SessionHistoryCard history={history} nowMs={historyUpdatedAt} />
 
       <PresetPicker settings={saved} onApply={applyPresetToSettings} disabled={running} />
 
