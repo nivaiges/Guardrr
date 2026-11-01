@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { PhraseBeat, PracticeDisplay as DisplayModel, displayAccessibilityLabel } from '../engine';
+import {
+  PhraseBeat,
+  PracticeDisplay as DisplayModel,
+  displayAccessibilityLabel,
+  phraseStripLayout,
+} from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 
-function Beat({ beat }: { beat: PhraseBeat }) {
+function Beat({ beat, size }: { beat: PhraseBeat; size: number }) {
   const theme = useTheme();
   const styles = getStyles(theme);
   const color = theme.marker[beat.marker ?? 'idle'];
@@ -11,7 +17,7 @@ function Beat({ beat }: { beat: PhraseBeat }) {
     <View
       style={[
         styles.beat,
-        { borderColor: color },
+        { width: size, height: size, borderRadius: size / 2, borderColor: color },
         (beat.past || beat.current) && { backgroundColor: color },
         beat.current && styles.beatCurrent,
       ]}
@@ -38,6 +44,9 @@ export function PracticeDisplay({ model }: { model: DisplayModel }) {
   const theme = useTheme();
   const styles = getStyles(theme);
   const highlight = model.phase === 'release' || model.phase === 'catch';
+  // Fit the strip to the measured width (0 until the first layout pass).
+  const [stripWidth, setStripWidth] = useState(0);
+  const strip = phraseStripLayout(model.beats.length, stripWidth);
   return (
     <View
       style={[styles.display, { backgroundColor: theme.phase[model.phase] }]}
@@ -68,9 +77,20 @@ export function PracticeDisplay({ model }: { model: DisplayModel }) {
       <Text style={styles.detail}>{model.detail}</Text>
       <Text style={styles.countdown}>{countdownText(model)}</Text>
 
-      <View style={styles.strip}>
-        {model.beats.map((beat) => (
-          <Beat key={beat.count} beat={beat} />
+      <View
+        style={[styles.strip, { gap: strip.gap }]}
+        onLayout={(e) => setStripWidth(e.nativeEvent.layout.width)}
+      >
+        {strip.rows.map((row) => (
+          <View
+            key={row[0]}
+            testID="phrase-strip-row"
+            style={[styles.stripRow, { gap: strip.gap }]}
+          >
+            {row.map((count) => (
+              <Beat key={count} beat={model.beats[count - 1]} size={strip.dotSize} />
+            ))}
+          </View>
         ))}
       </View>
       <View style={styles.legend}>
@@ -121,17 +141,9 @@ const getStyles = themed((t: Theme) =>
     headlineHighlight: { fontSize: 36 },
     detail: { fontSize: 18, marginTop: 6, color: t.text, textAlign: 'center' },
     countdown: { fontSize: 16, marginTop: 4, color: t.textMuted, fontVariant: ['tabular-nums'] },
-    strip: {
-      marginTop: 16,
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: 6,
-    },
+    strip: { marginTop: 16, alignSelf: 'stretch', alignItems: 'center' },
+    stripRow: { flexDirection: 'row', justifyContent: 'center' },
     beat: {
-      width: 14,
-      height: 14,
-      borderRadius: 7,
       borderWidth: 2,
       alignItems: 'center',
       justifyContent: 'center',

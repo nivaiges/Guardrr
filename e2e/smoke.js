@@ -99,6 +99,8 @@ async function main() {
     await startButton.waitFor({ timeout: 20_000 });
     check('app boots and shows Start', true);
     check('subtitle shows the defaults', await page.getByText(`${BPM} BPM`).first().isVisible());
+    const stripRows = await page.locator('[data-testid="phrase-strip-row"]').count();
+    check('16-count phrase strip fits on one row', stripRows === 1, `${stripRows} row(s)`);
     await page.screenshot({ path: path.join(outDir, 'home.png'), fullPage: true });
 
     // 2. Practice: count-in, the call, the first release and a few more counts.
