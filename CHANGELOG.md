@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-11-02
+
+### Added
+
+- **Hand-picked calls** (discovered item): Settings → Calls now has a chip for every call the
+  phrase allows (1–16 in a 16-count phrase, plus "and" chips such as "3&" when "and" calls are
+  on). Tap a chip to add or remove that call, e.g. to drill only 3, 5 and 7. The line above the
+  chips summarizes the set ("Calls: 1–7", "Calls: 2–5 with "and"s", "Calls: 3, 5, 7").
+  - Engine (`src/engine/editSettings.ts`): `callChoices`, `withCallToggled`, `isCallRange`,
+    `withAndCalls`, `callSetSummary`.
+  - Smoke test: 3 new checks (22 total) — pick 3, 5, 7; the set survives a reload; only one of
+    them is spoken.
+- **Light tap on the catch** (discovered item): Settings → Sound → "Light tap on the catch" (off
+  by default) adds a light haptic on every catch — on the called count, or on its "and" for "and"
+  calls and pop tosses. The release keeps its heavy buzz; each can be switched on its own. Saved
+  with the other sound settings.
+- 16 new unit tests (302 total).
+
+### Decisions
+
+- The shortest/longest steppers still edit a contiguous range: changing either turns a
+  hand-picked set back into the full range between them (a note under the chips says so). Simpler
+  than keeping two editors in sync, and the chips are one tap away.
+- "1 and" is not offered as a chip: it's caught at the same moment as the pop toss ("1"), so it
+  would be the same toss under two names. Picking one swaps out the other if old settings had it.
+- The last picked call can't be removed (a session needs at least one call).
+- Flipping "Include "and" calls" keeps a hand-picked set's shape: on adds the "and" after each
+  picked count (3, 5 → 3, 3 and, 5, 5 and); off removes the "and" calls.
+- Shortening the phrase keeps the hand-picked calls that still fit (3, 5, 7, 12 → 3, 5, 7 in an
+  8-count phrase); if none fit, it falls back to the outer range, pulled in.
+- The catch tap uses `ImpactFeedbackStyle.Light` so it never feels like the release (`Heavy`).
+
+### To test on your phone
+
+- Settings → Calls: tap chips so only 3, 5 and 7 are lit, practice a few phrases — only those
+  should be called. Close and reopen the app: the set should still be picked.
+- Turn on "Light tap on the catch" and practice with headphones off: the light tap should land
+  on the catch count (and on the "and" for "and" calls), clearly different from the release buzz.
+  Not verifiable here (no haptics in the headless browser).
+
 ## 2026-11-01
 
 ### Added
