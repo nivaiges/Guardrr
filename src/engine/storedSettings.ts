@@ -24,6 +24,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   accentDownbeat: true,
   andClicks: false,
   haptics: true,
+  catchHaptics: false,
 };
 
 export interface PracticeSettings {
@@ -106,6 +107,7 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       accentDownbeat: bool(cue.accentDownbeat, DEFAULT_CUE_OPTIONS.accentDownbeat),
       andClicks: bool(cue.andClicks, DEFAULT_CUE_OPTIONS.andClicks),
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
+      catchHaptics: bool(cue.catchHaptics, DEFAULT_CUE_OPTIONS.catchHaptics),
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,

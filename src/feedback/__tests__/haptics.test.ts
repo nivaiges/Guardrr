@@ -2,14 +2,14 @@ import { createHapticPlayer } from '..';
 
 jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(() => Promise.resolve()),
-  ImpactFeedbackStyle: { Heavy: 'heavy' },
+  ImpactFeedbackStyle: { Heavy: 'heavy', Light: 'light' },
 }));
 jest.mock('expo-keep-awake', () => ({}));
 
 function fakeHaptics(result: Promise<void> = Promise.resolve()) {
   return {
     impactAsync: jest.fn(() => result),
-    ImpactFeedbackStyle: { Heavy: 'heavy' } as never,
+    ImpactFeedbackStyle: { Heavy: 'heavy', Light: 'light' } as never,
   };
 }
 
@@ -18,6 +18,12 @@ describe('createHapticPlayer', () => {
     const haptics = fakeHaptics();
     createHapticPlayer(haptics).play('release');
     expect(haptics.impactAsync).toHaveBeenCalledWith('heavy');
+  });
+
+  it('plays a light impact on a catch', () => {
+    const haptics = fakeHaptics();
+    createHapticPlayer(haptics).play('catch');
+    expect(haptics.impactAsync).toHaveBeenCalledWith('light');
   });
 
   it('swallows errors from devices without haptics', async () => {

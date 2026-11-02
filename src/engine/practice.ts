@@ -19,10 +19,12 @@ export interface CueOptions {
   andClicks?: boolean;
   /** Buzz the phone on every release (count 1) once tosses start. Default true. */
   haptics?: boolean;
+  /** A lighter tap on every catch (the called count, or its "and"). Default false. */
+  catchHaptics?: boolean;
 }
 
-/** Vibration to play on a tick: a firm tap on the release. */
-export type HapticKind = 'release';
+/** Vibration to play on a tick: a firm tap on the release, a light one on the catch. */
+export type HapticKind = 'release' | 'catch';
 
 export interface PracticeCue {
   tick: number;
@@ -107,6 +109,12 @@ function clickFor(subdivision: number, events: CountEvents, options: CueOptions)
   return 'count';
 }
 
+function hapticFor(release: boolean, caught: boolean, options: CueOptions): HapticKind | null {
+  if (release && (options.haptics ?? true)) return 'release';
+  if (caught && (options.catchHaptics ?? false)) return 'catch';
+  return null;
+}
+
 /**
  * Cue for one scheduler tick. Drive the scheduler with `ticksPerCount: 2`:
  * subdivision 1 is the "and", which is where "and" calls and pop tosses are
@@ -127,6 +135,7 @@ export function cueForTick(
   const announceIndex = nextPhrase * settings.phraseLength - settings.leadCounts;
   const nextCall = tick.countIndex >= announceIndex ? calls.callFor(nextPhrase) : null;
   const release = onCount && events.release;
+  const caught = onCount ? events.catch : events.catchOnAnd && tick.subdivision === 1;
   return {
     tick: tick.tick,
     countIndex: tick.countIndex,
@@ -139,7 +148,7 @@ export function cueForTick(
     phrase: events.position.phrase,
     currentCall: events.currentCall,
     release,
-    catch: onCount ? events.catch : events.catchOnAnd && tick.subdivision === 1,
-    haptic: release && (options.haptics ?? true) ? 'release' : null,
+    catch: caught,
+    haptic: hapticFor(release, caught, options),
   };
 }

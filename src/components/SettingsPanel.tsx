@@ -234,6 +234,12 @@ export function SettingsPanel({
         onChange={(haptics) => onCueOptionsChange({ ...cueOptions, haptics })}
         disabled={locked}
       />
+      <Toggle
+        label="Light tap on the catch"
+        value={cueOptions.catchHaptics ?? false}
+        onChange={(catchHaptics) => onCueOptionsChange({ ...cueOptions, catchHaptics })}
+        disabled={locked}
+      />
 
       <Text style={styles.heading} accessibilityRole="header">
         Voice

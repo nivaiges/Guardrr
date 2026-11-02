@@ -14,7 +14,7 @@ const custom: PracticeSettings = {
     max: 6,
     andCounts: true,
   }),
-  cue: { accentDownbeat: false, andClicks: true, haptics: false },
+  cue: { accentDownbeat: false, andClicks: true, haptics: false, catchHaptics: true },
   countIn: 4,
   voiceRate: 0.8,
   voice: 'com.apple.voice.enhanced.Ava',
@@ -71,6 +71,7 @@ describe('stored settings', () => {
       accentDownbeat: true,
       andClicks: true,
       haptics: true,
+      catchHaptics: false,
     });
   });
 
@@ -79,6 +80,14 @@ describe('stored settings', () => {
       false,
     );
     expect(parseStoredSettings(JSON.stringify({ cue: { haptics: 'yes' } })).cue.haptics).toBe(true);
+  });
+
+  it('keeps a saved catch-tap choice, off for settings saved before it existed', () => {
+    expect(parseStoredSettings(JSON.stringify({ cue: { haptics: true } })).cue.catchHaptics).toBe(
+      false,
+    );
+    const on = JSON.stringify({ cue: { catchHaptics: true } });
+    expect(parseStoredSettings(on).cue.catchHaptics).toBe(true);
   });
 
   it('clamps or replaces a bad BPM', () => {

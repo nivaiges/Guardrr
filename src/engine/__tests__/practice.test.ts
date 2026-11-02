@@ -130,6 +130,23 @@ describe('cueForTick', () => {
     expect(walk(settings, 48, { haptics: false }).cues.some((c) => c.haptic !== null)).toBe(false);
   });
 
+  it('taps lightly on every catch when asked, including "and" catches', () => {
+    const calls: TossSettings = { ...settings, allowedTossCounts: [1, 3.5] };
+    const { cues } = walk(calls, 48, { catchHaptics: true });
+    const taps = cues.filter((c) => c.haptic !== null);
+    expect(taps.every((c) => (c.haptic === 'release') === c.release)).toBe(true);
+    expect(taps.filter((c) => c.haptic === 'catch')).toEqual(cues.filter((c) => c.catch));
+    // Pop toss (caught on the "and" of 1) and "3 and" both land on an "and".
+    expect(taps.filter((c) => c.haptic === 'catch').every((c) => c.subdivision === 1)).toBe(true);
+    expect(taps.filter((c) => c.haptic === 'catch')).toHaveLength(2);
+  });
+
+  it('taps on the catch even with the release buzz off, and not by default', () => {
+    const { cues } = walk(settings, 48, { haptics: false, catchHaptics: true });
+    expect(cues.filter((c) => c.haptic !== null).map((c) => c.haptic)).toEqual(['catch', 'catch']);
+    expect(walk(settings, 48).cues.some((c) => c.haptic === 'catch')).toBe(false);
+  });
+
   it('catches on the called count', () => {
     const fives: TossSettings = { ...settings, allowedTossCounts: [5] };
     const { cues } = walk(fives, 48);
