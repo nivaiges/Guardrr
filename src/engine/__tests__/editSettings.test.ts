@@ -1,10 +1,14 @@
 import { DEFAULT_TOSS_SETTINGS, TossSettings, validateTossSettings } from '../announce';
 import {
   PHRASE_LENGTH_OPTIONS,
+  callChoices,
   clampBpm,
+  isCallRange,
   tossCountsForRange,
   tossRangeOf,
   withAllowRepeats,
+  withAndCalls,
+  withCallToggled,
   withLeadCounts,
   withPhraseLength,
   withTossRange,
@@ -84,7 +88,7 @@ describe('editing settings', () => {
     const int = (lo: number, hi: number) => lo + Math.floor(rng() * (hi - lo + 1));
     let s = DEFAULT_TOSS_SETTINGS;
     for (let i = 0; i < 500; i++) {
-      switch (int(0, 3)) {
+      switch (int(0, 5)) {
         case 0:
           s = withPhraseLength(s, PHRASE_LENGTH_OPTIONS[int(0, PHRASE_LENGTH_OPTIONS.length - 1)]);
           break;
@@ -94,6 +98,12 @@ describe('editing settings', () => {
         case 2:
           s = withTossRange(s, { min: int(-2, 40), max: int(-2, 40), andCounts: rng() < 0.5 });
           break;
+        case 3:
+          s = withCallToggled(s, int(-2, 66) / 2);
+          break;
+        case 4:
+          s = withAndCalls(s, rng() < 0.5);
+          break;
         default:
           s = withAllowRepeats(s, rng() < 0.5);
       }
@@ -101,5 +111,87 @@ describe('editing settings', () => {
       // Nothing is silently dropped: every call in the set fits the phrase.
       expect(validateTossSettings(s)).toEqual(s.allowedTossCounts);
     }
+  });
+});
+
+describe('hand-picked calls', () => {
+  it('offers every count of the phrase, and the "and"s except "1 and"', () => {
+    expect(callChoices(4, false)).toEqual([1, 2, 3, 4]);
+    expect(callChoices(4, true)).toEqual([1, 2, 2.5, 3, 3.5, 4]);
+    expect(callChoices(16, false)).toHaveLength(16);
+  });
+
+  it('tells a range from a set with gaps', () => {
+    expect(isCallRange(DEFAULT_TOSS_SETTINGS)).toBe(true);
+    expect(isCallRange(settings({ allowedTossCounts: [2, 2.5, 3] }))).toBe(true);
+    expect(isCallRange(settings({ allowedTossCounts: [1, 2, 2.5, 3] }))).toBe(true);
+    expect(isCallRange(settings({ allowedTossCounts: [3, 5, 7] }))).toBe(false);
+    // "And" calls on some counts only is not a range either.
+    expect(isCallRange(settings({ allowedTossCounts: [2, 3, 3.5, 4] }))).toBe(false);
+  });
+
+  it('adds and removes calls, keeping them sorted', () => {
+    const s = settings({ allowedTossCounts: [3, 5, 7] });
+    expect(withCallToggled(s, 4).allowedTossCounts).toEqual([3, 4, 5, 7]);
+    expect(withCallToggled(s, 5).allowedTossCounts).toEqual([3, 7]);
+    expect(withCallToggled(s, 6.5).allowedTossCounts).toEqual([3, 5, 6.5, 7]);
+  });
+
+  it('never removes the last call', () => {
+    const one = settings({ allowedTossCounts: [5] });
+    expect(withCallToggled(one, 5)).toBe(one);
+  });
+
+  it('ignores calls that are invalid or past the end of the phrase', () => {
+    const s = settings({ phraseLength: 8, allowedTossCounts: [3, 5] });
+    expect(withCallToggled(s, 9)).toBe(s);
+    expect(withCallToggled(s, 8.5)).toBe(s);
+    expect(withCallToggled(s, 0)).toBe(s);
+    expect(withCallToggled(s, 2.25)).toBe(s);
+    expect(withCallToggled(s, 8).allowedTossCounts).toEqual([3, 5, 8]);
+  });
+
+  it('swaps the pop toss and "1 and", which are caught at the same moment', () => {
+    const s = settings({ allowedTossCounts: [1, 3] });
+    expect(withCallToggled(s, 1.5).allowedTossCounts).toEqual([1.5, 3]);
+    expect(withCallToggled(withCallToggled(s, 1.5), 1).allowedTossCounts).toEqual([1, 3]);
+  });
+
+  it('keeps the calls of a hand-picked set that fit a shorter phrase', () => {
+    const s = settings({ allowedTossCounts: [3, 5, 7, 12] });
+    expect(withPhraseLength(s, 8).allowedTossCounts).toEqual([3, 5, 7]);
+    expect(withPhraseLength(s, 32).allowedTossCounts).toEqual([3, 5, 7, 12]);
+  });
+
+  it('falls back to the pulled-in range when no hand-picked call fits', () => {
+    const s = settings({ allowedTossCounts: [10, 14] });
+    expect(withPhraseLength(s, 8).allowedTossCounts).toEqual([8]);
+  });
+
+  it('turns a set back into a range when the range is edited', () => {
+    const s = settings({ allowedTossCounts: [3, 5, 7] });
+    const next = withTossRange(s, { ...tossRangeOf(s), min: 2 });
+    expect(next.allowedTossCounts).toEqual([2, 3, 4, 5, 6, 7]);
+    expect(isCallRange(next)).toBe(true);
+  });
+
+  it('switches "and" calls on and off for a range', () => {
+    const on = withAndCalls(settings({ allowedTossCounts: [2, 3, 4] }), true);
+    expect(on.allowedTossCounts).toEqual([2, 2.5, 3, 3.5, 4]);
+    expect(withAndCalls(on, false).allowedTossCounts).toEqual([2, 3, 4]);
+  });
+
+  it('switches "and" calls on and off for a hand-picked set, keeping its shape', () => {
+    const s = settings({ phraseLength: 8, allowedTossCounts: [1, 3, 5, 8] });
+    const on = withAndCalls(s, true);
+    // No "1 and" (same catch as the pop toss), no "8 and" (past the phrase).
+    expect(on.allowedTossCounts).toEqual([1, 3, 3.5, 5, 5.5, 8]);
+    expect(withAndCalls(on, false).allowedTossCounts).toEqual([1, 3, 5, 8]);
+    expect(
+      withAndCalls(settings({ allowedTossCounts: [1.5, 4] }), false).allowedTossCounts,
+    ).toEqual([1, 4]);
+    expect(
+      withAndCalls(settings({ allowedTossCounts: [2.5, 6.5] }), false).allowedTossCounts,
+    ).toEqual(tossCountsForRange({ min: 2, max: 7, andCounts: false }, 16));
   });
 });
