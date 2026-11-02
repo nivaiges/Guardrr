@@ -187,6 +187,25 @@ async function main() {
     const historyRow = page.getByLabel(/^Today .*: 1 toss, 1 dropped, 0% caught/);
     check('the session is in History after a reload', await historyRow.isVisible());
 
+    // 5b. Hand-pick calls 3, 5 and 7: only those are called, and the set is saved.
+    for (const call of [1, 2, 4, 6]) await page.getByTestId(`call-chip-${call}`).click();
+    check('hand-picked calls show as 3, 5, 7', await page.getByText('Calls: 3, 5, 7').isVisible());
+    await page.waitForTimeout(1500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    check('hand-picked calls survive a reload', await page.getByText('Calls: 3, 5, 7').isVisible());
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    // Stop after the call but before the release, so no session is recorded.
+    await page.waitForTimeout((COUNT_IN - LEAD_COUNTS + 1.5) * (60_000 / (BPM + 1)));
+    await page.getByRole('button', { name: 'Stop practice' }).click();
+    const picked = await page.evaluate(() => window.__speech.map((u) => u.text));
+    check(
+      'only a hand-picked call is spoken',
+      picked.length === 1 && ['three', 'five', 'seven'].includes(picked[0]),
+      picked.map((t) => `"${t}"`).join(', ') || 'none',
+    );
+    await page.screenshot({ path: path.join(outDir, 'calls.png'), fullPage: true });
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',
