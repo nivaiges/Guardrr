@@ -8,7 +8,7 @@
  */
 
 import { TossSettings } from './announce';
-import { catchPositionOf, isValidCall } from './calls';
+import { callLabel, catchPositionOf, isValidCall } from './calls';
 import { tossCountsInRange } from './random';
 import { MAX_BPM, MAX_PHRASE_LENGTH, MIN_BPM, MIN_PHRASE_LENGTH } from './timing';
 
@@ -160,4 +160,15 @@ export function withAndCalls(settings: TossSettings, andCounts: boolean): TossSe
     if (catchPositionOf(and) <= settings.phraseLength) next = withCallToggled(next, and);
   }
   return next;
+}
+
+/** Short description of the calls: "1–7", "2–5 with \"and\"s", "3, 5, 7", "Only 5". */
+export function callSetSummary(settings: TossSettings): string {
+  const calls = [...settings.allowedTossCounts].sort((a, b) => a - b);
+  if (calls.length === 1) return `Only ${callLabel(calls[0])}`;
+  if (isCallRange(settings)) {
+    const { min, max, andCounts } = tossRangeOf(settings);
+    return `${min}–${max}${andCounts ? ' with "and"s' : ''}`;
+  }
+  return calls.map(callLabel).join(', ');
 }

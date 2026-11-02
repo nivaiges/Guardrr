@@ -18,12 +18,15 @@ import {
   settingsWarnings,
   tapTempoBpm,
   tossRangeOf,
+  isCallRange,
   withAllowRepeats,
+  withAndCalls,
   withLeadCounts,
   withPhraseLength,
   withTossRange,
 } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
+import { CallPicker } from './CallPicker';
 import { Segmented, Stepper, Toggle } from './controls';
 import { VoicePicker } from './VoicePicker';
 
@@ -194,9 +197,15 @@ export function SettingsPanel({
       <Toggle
         label={'Include "and" calls (e.g. "2 and")'}
         value={range.andCounts}
-        onChange={(andCounts) => onSettingsChange(withTossRange(settings, { ...range, andCounts }))}
+        onChange={(andCounts) => onSettingsChange(withAndCalls(settings, andCounts))}
         disabled={locked}
       />
+      <CallPicker settings={settings} onChange={onSettingsChange} disabled={locked} />
+      {isCallRange(settings) ? null : (
+        <Text style={styles.note}>
+          Picked by hand. Changing the shortest or longest toss turns it back into a full range.
+        </Text>
+      )}
       <Toggle
         label="Allow the same call twice in a row"
         value={settings.allowRepeats}

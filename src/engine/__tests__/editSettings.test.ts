@@ -2,6 +2,7 @@ import { DEFAULT_TOSS_SETTINGS, TossSettings, validateTossSettings } from '../an
 import {
   PHRASE_LENGTH_OPTIONS,
   callChoices,
+  callSetSummary,
   clampBpm,
   isCallRange,
   tossCountsForRange,
@@ -193,5 +194,13 @@ describe('hand-picked calls', () => {
     expect(
       withAndCalls(settings({ allowedTossCounts: [2.5, 6.5] }), false).allowedTossCounts,
     ).toEqual(tossCountsForRange({ min: 2, max: 7, andCounts: false }, 16));
+  });
+
+  it('summarizes the calls in a few words', () => {
+    expect(callSetSummary(DEFAULT_TOSS_SETTINGS)).toBe('1–7');
+    expect(callSetSummary(settings({ allowedTossCounts: [2, 2.5, 3] }))).toBe('2–3 with "and"s');
+    expect(callSetSummary(settings({ allowedTossCounts: [7, 3, 5] }))).toBe('3, 5, 7');
+    expect(callSetSummary(settings({ allowedTossCounts: [3, 4.5] }))).toBe('3, 4 and');
+    expect(callSetSummary(settings({ allowedTossCounts: [5] }))).toBe('Only 5');
   });
 });
