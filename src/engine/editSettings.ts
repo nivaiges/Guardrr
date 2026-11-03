@@ -172,3 +172,43 @@ export function callSetSummary(settings: TossSettings): string {
   }
   return calls.map(callLabel).join(', ');
 }
+
+/** Quick picks above the call chips. */
+export type CallShortcut = 'all' | 'odd' | 'even';
+
+export const CALL_SHORTCUTS: readonly CallShortcut[] = ['all', 'odd', 'even'];
+
+/**
+ * The calls a shortcut picks, keeping the current "and" setting: "all" is
+ * every call the picker offers; "odd"/"even" are the odd/even whole counts of
+ * the phrase, each followed by its "and" when "and" calls are on (never
+ * "1 and", which is the pop toss under another name).
+ */
+export function callsForShortcut(
+  shortcut: CallShortcut,
+  phraseLength: number,
+  andCounts: boolean,
+): number[] {
+  const choices = callChoices(phraseLength, andCounts);
+  if (shortcut === 'all') return choices;
+  const parity = shortcut === 'odd' ? 1 : 0;
+  return choices.filter((n) => Math.floor(n) % 2 === parity);
+}
+
+/** Pick the calls of a shortcut (see callsForShortcut). */
+export function withCallShortcut(settings: TossSettings, shortcut: CallShortcut): TossSettings {
+  const { andCounts } = tossRangeOf(settings);
+  const calls = callsForShortcut(shortcut, settings.phraseLength, andCounts);
+  return { ...settings, allowedTossCounts: calls };
+}
+
+/** The shortcut whose calls are exactly the current set, or null. */
+export function callShortcutOf(settings: TossSettings): CallShortcut | null {
+  const { andCounts } = tossRangeOf(settings);
+  const calls = [...new Set(settings.allowedTossCounts)].sort((a, b) => a - b);
+  for (const shortcut of CALL_SHORTCUTS) {
+    const want = callsForShortcut(shortcut, settings.phraseLength, andCounts);
+    if (want.length === calls.length && want.every((n, i) => n === calls[i])) return shortcut;
+  }
+  return null;
+}
