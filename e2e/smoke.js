@@ -206,6 +206,15 @@ async function main() {
     );
     await page.screenshot({ path: path.join(outDir, 'calls.png'), fullPage: true });
 
+    // 5c. Call shortcuts: Odd and All pick whole groups in one tap.
+    await page.getByTestId('call-shortcut-odd').click();
+    check(
+      'Odd picks the odd counts',
+      await page.getByText('Calls: 1, 3, 5, 7, 9, 11, 13, 15').isVisible(),
+    );
+    await page.getByTestId('call-shortcut-all').click();
+    check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',
