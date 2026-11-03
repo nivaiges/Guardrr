@@ -33,7 +33,7 @@
 - [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
 - [x] Display: the 16-dot phrase strip wrapped onto a second line on a 390-pt-wide phone — dots now shrink to fit, long phrases split into even rows (`phraseStripLayout`).
 - [ ] Morning check on real platforms: Maestro flows on an Android emulator in CI (free), and iOS simulator later (needs macOS runners).
-- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options). Hand-picked calls: done.
+- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options). Hand-picked calls and call shortcuts: done.
 
 - [x] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
@@ -55,7 +55,8 @@
 - [ ] User-saved custom presets ("save current settings as…").
 - [x] Optional light haptic on the catch count (Settings → Sound → "Light tap on the catch").
 - [ ] Optional haptic on the call too (for performers who can't hear the voice), if the catch tap proves useful.
-- [ ] Calls: quick "odd only" / "even only" / "clear" shortcuts above the call chips, if picking by hand is slow on 32-count phrases.
+- [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
+- [ ] Calls: hide the "Picked by hand" note when a shortcut (Odd / Even) is selected, or reword it per shortcut.
 - [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
 - [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
 - [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.

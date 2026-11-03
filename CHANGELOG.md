@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-03
+
+### Added
+
+- **Call shortcuts** (discovered item): Settings → Calls has **All / Odd / Even** buttons above
+  the call chips. One tap picks every call the phrase allows, only the odd counts (1, 3, 5, …) or
+  only the even counts (2, 4, 6, …); the button matching the current set shows as selected, and
+  the chips stay editable afterwards (e.g. Odd, then tap 1 off to drill 3, 5, 7, … without pops).
+  - Engine (`src/engine/editSettings.ts`): `CALL_SHORTCUTS`, `callsForShortcut`,
+    `withCallShortcut`, `callShortcutOf`.
+- Smoke test: 2 new checks (24 total) — Odd picks 1, 3, …, 15 and All picks 1–16 in a 16-count
+  phrase.
+- 7 new unit tests (309 total).
+
+### Decisions
+
+- Shortcuts keep the current "and" setting: with "and" calls on, Odd picks each odd count and its
+  "and" (3, 3 and, 5, 5 and, …). "1 and" is never added — it's the pop toss ("1") under another
+  name. Parity goes by the whole count, so "4 and" counts as even.
+- No "Clear" button: a session needs at least one call, so clearing would leave an invalid set.
+  To build a small set, pick Odd or Even and tap chips off.
+- "All" means every call the phrase allows (1–16 in a 16-count phrase), not the 1–7 default;
+  the shortest/longest steppers still set any contiguous range.
+- Unselected shortcut buttons use the control colors (dark text on light grey / light text on
+  dark grey) rather than blue text, which wouldn't meet AA contrast in the dark theme.
+
+### To test on your phone
+
+- Settings → Calls: tap Odd and practice a few phrases — only odd calls should come up. Tap
+  Even, then turn on "Include "and" calls": the "and" after each even count should light up.
+- Check the three buttons fit on one row with your phone's text size turned up.
+
 ## 2026-11-02
 
 ### Added

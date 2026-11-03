@@ -37,7 +37,8 @@ Below that you can fine-tune:
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32), how many counts before the release
   the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase).
 - **Calls** — shortest and longest toss, optional "and" calls, a chip per call to **hand-pick**
-  exactly which ones come up (e.g. only 3, 5 and 7), and whether the same call may come twice in a
+  exactly which ones come up (e.g. only 3, 5 and 7), **All / Odd / Even** shortcuts to pick a
+  whole group in one tap, and whether the same call may come twice in a
   row.
 - **Sound** — accent on count 1, an optional quiet click on the "and"s, a vibration on every
   release (count 1) you can feel even when the gym is loud, and an optional lighter tap on every
@@ -95,7 +96,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, that the phrase strip fits on one row, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, that the phrase strip fits on one row, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on
