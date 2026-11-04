@@ -212,3 +212,21 @@ export function callShortcutOf(settings: TossSettings): CallShortcut | null {
   }
   return null;
 }
+
+const SHORTCUT_NOTES: Record<CallShortcut, string> = {
+  all: 'Every call.',
+  odd: 'Odd counts only.',
+  even: 'Even counts only.',
+};
+
+/**
+ * The note under the call chips for a set the range steppers can't show:
+ * null for a plain range; otherwise what the set is ("Odd counts only.",
+ * "Picked by hand.") and that the steppers turn it back into a full range.
+ */
+export function callSetNote(settings: TossSettings): string | null {
+  if (isCallRange(settings)) return null;
+  const shortcut = callShortcutOf(settings);
+  const what = shortcut ? SHORTCUT_NOTES[shortcut] : 'Picked by hand.';
+  return `${what} Changing the shortest or longest toss turns it back into a full range.`;
+}

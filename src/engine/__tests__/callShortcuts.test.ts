@@ -1,6 +1,7 @@
 import { DEFAULT_TOSS_SETTINGS, TossSettings, validateTossSettings } from '../announce';
 import {
   PHRASE_LENGTH_OPTIONS,
+  callSetNote,
   callSetSummary,
   callShortcutOf,
   callsForShortcut,
@@ -65,5 +66,32 @@ describe('call shortcuts', () => {
     const withAnds = withAndCalls(odd, true);
     expect(callShortcutOf(withAnds)).toBe('odd');
     expect(callShortcutOf(withAndCalls(withAnds, false))).toBe('odd');
+  });
+});
+
+describe('callSetNote', () => {
+  const steppers = 'Changing the shortest or longest toss turns it back into a full range.';
+
+  it('says nothing for a plain range, including All', () => {
+    expect(callSetNote(settings())).toBeNull();
+    expect(callSetNote(withCallShortcut(settings(), 'all'))).toBeNull();
+    expect(callSetNote(withCallShortcut(settings({ phraseLength: 8 }), 'all'))).toBeNull();
+  });
+
+  it('names the Odd and Even shortcuts instead of "picked by hand"', () => {
+    expect(callSetNote(withCallShortcut(settings(), 'odd'))).toBe(`Odd counts only. ${steppers}`);
+    expect(callSetNote(withCallShortcut(settings(), 'even'))).toBe(`Even counts only. ${steppers}`);
+    const oddWithAnds = withCallShortcut(withAndCalls(settings(), true), 'odd');
+    expect(callSetNote(oddWithAnds)).toBe(`Odd counts only. ${steppers}`);
+  });
+
+  it('falls back to "picked by hand" for any other set', () => {
+    expect(callSetNote(settings({ allowedTossCounts: [3, 5, 7] }))).toBe(
+      `Picked by hand. ${steppers}`,
+    );
+    // Odd, then one chip tapped off: no longer the Odd shortcut.
+    expect(callSetNote(settings({ allowedTossCounts: [3, 5, 7, 9, 11, 13, 15] }))).toBe(
+      `Picked by hand. ${steppers}`,
+    );
   });
 });

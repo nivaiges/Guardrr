@@ -12,13 +12,13 @@ import {
   VoiceInfo,
   addTap,
   announceCountInPhrase,
+  callSetNote,
   countInLabel,
   describeWarning,
   effectiveCountIn,
   settingsWarnings,
   tapTempoBpm,
   tossRangeOf,
-  isCallRange,
   withAllowRepeats,
   withAndCalls,
   withLeadCounts,
@@ -126,6 +126,7 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   const styles = getStyles(useTheme());
   const range = tossRangeOf(settings);
+  const callNote = callSetNote(settings);
   const announceCount = announceCountInPhrase(settings.phraseLength, settings.leadCounts);
   const warnings = settingsWarnings(settings);
   const locked = running;
@@ -201,11 +202,7 @@ export function SettingsPanel({
         disabled={locked}
       />
       <CallPicker settings={settings} onChange={onSettingsChange} disabled={locked} />
-      {isCallRange(settings) ? null : (
-        <Text style={styles.note}>
-          Picked by hand. Changing the shortest or longest toss turns it back into a full range.
-        </Text>
-      )}
+      {callNote ? <Text style={styles.note}>{callNote}</Text> : null}
       <Toggle
         label="Allow the same call twice in a row"
         value={settings.allowRepeats}

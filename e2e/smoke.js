@@ -212,6 +212,10 @@ async function main() {
       'Odd picks the odd counts',
       await page.getByText('Calls: 1, 3, 5, 7, 9, 11, 13, 15').isVisible(),
     );
+    check(
+      'the note under the chips names the Odd shortcut',
+      await page.getByText(/^Odd counts only\./).isVisible(),
+    );
     await page.getByTestId('call-shortcut-all').click();
     check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
 
