@@ -41,8 +41,8 @@ describe.each<[string, Theme]>([
     expect(contrastRatio(t.warningText, t.warningBackground)).toBeGreaterThanOrEqual(AA_TEXT);
   });
 
-  it('has readable drop marks on the background and the stats card', () => {
-    for (const bg of [t.background, t.surface]) {
+  it('has readable red text on the background, the cards and the History delete buttons', () => {
+    for (const bg of [t.background, t.surface, t.control]) {
       expect(contrastRatio(t.dangerText, bg)).toBeGreaterThanOrEqual(AA_TEXT);
     }
   });

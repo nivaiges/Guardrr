@@ -59,7 +59,14 @@ export default function App() {
     voiceRate,
     voice,
   );
-  const { history, saveSession, updatedAt: historyUpdatedAt } = useSessionHistory();
+  const {
+    history,
+    saveSession,
+    deleteSession,
+    clearHistory,
+    restoreSessions,
+    updatedAt: historyUpdatedAt,
+  } = useSessionHistory();
   // The finished session goes into the history on Stop, and is re-saved if a
   // drop is marked (or undone) after Stop. While practicing, it is saved when
   // the app goes to the background, so a session isn't lost if the app is
@@ -139,7 +146,13 @@ export default function App() {
       ) : null}
 
       <SessionStatsCard stats={stats} running={running} />
-      <SessionHistoryCard history={history} nowMs={historyUpdatedAt} />
+      <SessionHistoryCard
+        history={history}
+        nowMs={historyUpdatedAt}
+        onDelete={deleteSession}
+        onClear={clearHistory}
+        onRestore={restoreSessions}
+      />
 
       <PresetPicker settings={saved} onApply={applyPresetToSettings} disabled={running} />
 
