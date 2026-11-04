@@ -215,6 +215,27 @@ async function main() {
     await page.getByTestId('call-shortcut-all').click();
     check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
 
+    // 5d. History: delete a session, undo it, then clear all (asks first) and reload.
+    await page.getByTestId('history-edit').click();
+    await page.getByRole('button', { name: /^Delete session Today/ }).click();
+    check(
+      'deleting a session offers Undo',
+      (await page.getByText(/^Deleted Today/).isVisible()) && !(await historyRow.isVisible()),
+    );
+    await page.getByTestId('history-undo').click();
+    check('Undo puts the session back', await historyRow.isVisible());
+    await page.getByTestId('history-clear').click();
+    await page.getByTestId('history-clear-confirm').click();
+    check('Clear all empties History', await page.getByText('No sessions saved.').isVisible());
+    await page.getByTestId('history-edit').click();
+    await page.waitForTimeout(500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    check(
+      'cleared History stays cleared after a reload',
+      (await page.getByText('History', { exact: true }).count()) === 0,
+    );
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',
