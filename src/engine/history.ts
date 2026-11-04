@@ -257,3 +257,86 @@ export function summarizeHistory(
     })),
   };
 }
+
+/**
+ * Deleting sessions. The history and the start times deleted since the app
+ * opened travel together, so a session deleted right after Stop isn't
+ * brought back by a late re-save (a Drop marked or undone after Stop, or the
+ * app going to the background) — only Undo brings it back.
+ */
+export interface HistoryState {
+  /** Newest first. */
+  sessions: readonly SessionRecord[];
+  /** Start times deleted (and not undone) since the app opened. */
+  deleted: readonly number[];
+}
+
+export const EMPTY_HISTORY_STATE: HistoryState = { sessions: [], deleted: [] };
+
+/** Save a session unless it was deleted; returns the same state when ignored. */
+export function saveToHistory(
+  state: HistoryState,
+  record: SessionRecord,
+  limit = HISTORY_LIMIT,
+): HistoryState {
+  if (state.deleted.includes(record.startedAt)) return state;
+  return { ...state, sessions: upsertSession(state.sessions, record, limit) };
+}
+
+export interface HistoryDeletion {
+  state: HistoryState;
+  /** The records taken out (newest first), for Undo; empty when nothing matched. */
+  removed: SessionRecord[];
+}
+
+/** Delete the sessions with these start times. */
+export function deleteFromHistory(
+  state: HistoryState,
+  startedAts: readonly number[],
+): HistoryDeletion {
+  const ids = new Set(startedAts);
+  const removed = state.sessions.filter((r) => ids.has(r.startedAt));
+  if (removed.length === 0) return { state, removed };
+  const gone = new Set(removed.map((r) => r.startedAt));
+  return {
+    state: {
+      sessions: state.sessions.filter((r) => !gone.has(r.startedAt)),
+      deleted: [...state.deleted.filter((t) => !gone.has(t)), ...gone],
+    },
+    removed,
+  };
+}
+
+/** Delete every session. */
+export function clearHistory(state: HistoryState): HistoryDeletion {
+  return deleteFromHistory(
+    state,
+    state.sessions.map((r) => r.startedAt),
+  );
+}
+
+/**
+ * Undo a deletion: put the records back (a session saved again since keeps
+ * its newer copy) and allow them to be saved again.
+ */
+export function restoreToHistory(
+  state: HistoryState,
+  records: readonly SessionRecord[],
+  limit = HISTORY_LIMIT,
+): HistoryState {
+  const back = new Set(records.map((r) => r.startedAt));
+  const kept = new Set(state.sessions.map((r) => r.startedAt));
+  const sessions = records
+    .filter((r) => !kept.has(r.startedAt))
+    .reduce<readonly SessionRecord[]>((h, r) => upsertSession(h, r, Infinity), state.sessions);
+  return {
+    sessions: sessions.slice(0, Math.max(0, limit)),
+    deleted: state.deleted.filter((t) => !back.has(t)),
+  };
+}
+
+/** "Deleted Today 6:05 PM" for one session, "Deleted 12 sessions" for more. */
+export function deletionMessage(removed: readonly SessionRecord[], nowMs: number): string {
+  if (removed.length === 1) return `Deleted ${formatSessionDate(removed[0].startedAt, nowMs)}`;
+  return `Deleted ${removed.length} sessions`;
+}
