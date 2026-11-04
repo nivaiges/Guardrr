@@ -58,6 +58,19 @@ never narrates counts during practice, so it can't talk over the metronome or th
 Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (the "5" of the last
 "5 6 7 8"), an 8-count count-in (the first release is 4 seconds after Start) and the "Fast" voice.
 
+## Screenshots
+
+Web build at phone size (390 × 844), regenerated with `npm run screenshots` whenever the UI
+changes ([scripts/screenshots.js](scripts/screenshots.js)).
+
+| Ready                                   | The call                                                         | Release                                                | Catch                                                       |
+| --------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| ![Ready](docs/screenshots/01-ready.png) | ![Call spoken during the count-in](docs/screenshots/02-call.png) | ![Release on count 1](docs/screenshots/03-release.png) | ![Catch on the called count](docs/screenshots/04-catch.png) |
+
+| Stats & history                                                        | Editing History                                               | Calls                                                                       | Dark theme                                                         |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ![Stats and history after Stop](docs/screenshots/05-stats-history.png) | ![History in edit mode](docs/screenshots/06-history-edit.png) | ![Settings → Calls with Odd picked](docs/screenshots/07-settings-calls.png) | ![Dark theme on the release](docs/screenshots/08-dark-release.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript
@@ -83,6 +96,7 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # ESLint
 npm run format       # Prettier
 npm run test:smoke   # build for web and run the headless smoke test
+npm run screenshots  # build for web and refresh docs/screenshots/
 npm run check:morning  # everything below, as the morning check runs it
 ```
 

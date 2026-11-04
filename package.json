@@ -43,7 +43,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:smoke": "expo export --platform web --output-dir dist && node e2e/smoke.js dist",
-    "check:morning": "bash scripts/morning-check.sh"
+    "check:morning": "bash scripts/morning-check.sh",
+    "screenshots": "expo export --platform web --output-dir dist && node scripts/screenshots.js dist docs/screenshots"
   },
   "private": true
 }

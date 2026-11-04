@@ -15,6 +15,10 @@
 - Smoke test: 5 new checks (29 total) — delete a session and see Undo, Undo brings it back,
   Clear all empties History, a cleared History stays cleared after a reload, and the Odd note.
 - 17 new unit tests (326 total).
+- **Screenshots** (Niv's request): `npm run screenshots` builds the web version and captures 8
+  phone-size screens (ready, the call, release, catch, stats & history, editing History, Settings
+  → Calls, dark theme) into `docs/screenshots/`, shown in the README. Audio/speech are stubbed and
+  the session's random seed is fixed so the first call is always a "4 count".
 
 ### Fixed
 
