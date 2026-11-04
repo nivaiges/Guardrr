@@ -26,7 +26,8 @@ after Stop until the next Start). Tap **Drop** when you drop a toss: it marks th
 
 Every session with at least one toss is saved to **History** (on the phone, up to 200 sessions):
 all-time sessions, tosses, catch rate and practice time, the calls you drop most, and a list of
-recent sessions with their date, tosses, catch rate and length.
+recent sessions with their date, tosses, catch rate and length. Tap **Edit** to delete a session
+or clear the whole history (it asks first); every delete can be undone right after.
 
 **Presets** set up a whole drill in one tap: _Standard 16_, _Quick 8_, _Singles & doubles_
 (short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_.
@@ -96,7 +97,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, that the phrase strip fits on one row, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on

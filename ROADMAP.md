@@ -33,7 +33,7 @@
 - [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
 - [x] Display: the 16-dot phrase strip wrapped onto a second line on a 390-pt-wide phone — dots now shrink to fit, long phrases split into even rows (`phraseStripLayout`).
 - [ ] Morning check on real platforms: Maestro flows on an Android emulator in CI (free), and iOS simulator later (needs macOS runners).
-- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options). Hand-picked calls and call shortcuts: done.
+- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options). Hand-picked calls, call shortcuts and History editing: done.
 
 - [x] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
@@ -56,7 +56,7 @@
 - [x] Optional light haptic on the catch count (Settings → Sound → "Light tap on the catch").
 - [ ] Optional haptic on the call too (for performers who can't hear the voice), if the catch tap proves useful.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
-- [ ] Calls: hide the "Picked by hand" note when a shortcut (Odd / Even) is selected, or reword it per shortcut.
+- [x] Calls: reword the "Picked by hand" note per shortcut ("Odd counts only." / "Even counts only.").
 - [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
 - [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
 - [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.
@@ -68,7 +68,8 @@
 - [x] Save drops with past sessions, to show the catch rate per call over time (History → "Dropped most").
 - [ ] Voice picker: check on device how long the iOS English voice list is (novelty voices like "Bubbles" included) and whether it needs a search box or a "hide novelty voices" filter.
 - [ ] Localized calls (speak the numbers in the phone's language) — today calls are always English words.
-- [ ] History: delete one session / clear all (needs a confirm dialog that works on web too).
+- [x] History: delete one session / clear all (Edit → Delete per session, "Clear all history" with an inline confirm; Undo after every delete).
 - [ ] History: catch-rate trend per call over time (e.g. a small chart per call, last 10 sessions).
 - [ ] History: export/share sessions (CSV) for a coach.
+- [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).

@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-11-04
+
+### Added
+
+- **Edit History** (discovered item): the History card has an **Edit** button. While editing,
+  each session shows a ✕ button to delete it, and **Clear all history** at the bottom asks
+  "Delete all N sessions?" (Cancel / Delete all) before deleting. After any delete an
+  "Deleted Today 6:05 PM · Undo" bar stays up until the next delete or **Done**, so a mis-tap is
+  one tap to fix. Screen readers hear "Deleted …. Undo is available."
+  - Engine (`src/engine/history.ts`): `HistoryState`, `saveToHistory`, `deleteFromHistory`,
+    `clearHistory`, `restoreToHistory`, `deletionMessage`.
+  - `useSessionHistory` gains `deleteSession`, `clearHistory` and `restoreSessions`.
+- Smoke test: 5 new checks (29 total) — delete a session and see Undo, Undo brings it back,
+  Clear all empties History, a cleared History stays cleared after a reload, and the Odd note.
+- 17 new unit tests (326 total).
+
+### Fixed
+
+- The note under the call chips said "Picked by hand" even when the **Odd** or **Even** shortcut
+  was selected. It now says "Odd counts only." / "Even counts only." for those (`callSetNote`);
+  "Picked by hand." is kept for any other set that isn't a plain range.
+
+### Decisions
+
+- Confirm inline in the card rather than with `Alert.alert`: React Native Web's `Alert` does
+  nothing, and the smoke test (and any web build) needs the same flow as the phone. Single
+  deletes don't ask — Undo is quicker than a dialog for one row.
+- A session deleted since the app opened can't come back by itself: the app re-saves the last
+  session when a Drop is marked after Stop or when it goes to the background, and those
+  re-saves are now ignored for deleted sessions. Only Undo restores it. Undo keeps a copy saved
+  since (newer) over the deleted one.
+- While editing, the ✕ buttons replace the time column so dates still fit on a 390-pt-wide
+  phone ("Today 9:03 AM" was cut off to "Today 9:0…" with both).
+- Red ✕ text on the grey control color is checked for AA contrast in both themes.
+
+### To test on your phone
+
+- History → Edit: delete a session, tap Undo — it should come back in the same place. Then
+  Clear all history → Delete all, close and reopen the app: History should be gone.
+- Delete the session you just stopped, then tap Drop / Undo drop on the stats card: the deleted
+  session must not reappear in History.
+- With VoiceOver/TalkBack: each ✕ reads "Delete session <date>", and a delete announces Undo.
+
 ## 2026-11-03
 
 ### Added
