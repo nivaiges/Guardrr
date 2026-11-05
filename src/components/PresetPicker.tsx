@@ -118,6 +118,7 @@ export function PresetPicker({
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected, disabled }}
+              aria-checked={selected}
               accessibilityLabel={custom ? `${preset.name}, your preset` : preset.name}
               accessibilityHint={`${preset.description}, ${preset.bpm} BPM`}
             >

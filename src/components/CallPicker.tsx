@@ -89,6 +89,7 @@ export function CallPicker({ settings, onChange, disabled = false }: CallPickerP
               disabled={disabled}
               accessibilityRole="checkbox"
               accessibilityState={{ checked, disabled }}
+              aria-checked={checked}
               accessibilityLabel={`Call ${callLabel(call)}`}
               accessibilityHint={last ? 'The last call can’t be removed' : undefined}
             >

@@ -168,6 +168,7 @@ export function Segmented({
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected, disabled }}
+              aria-checked={selected}
               accessibilityLabel={optionAccessibilityLabel(option)}
             >
               <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>

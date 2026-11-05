@@ -86,6 +86,7 @@ export function VoicePicker({
                 onPress={() => choose(o.id)}
                 accessibilityRole="radio"
                 accessibilityState={{ selected }}
+                aria-checked={selected}
                 accessibilityLabel={o.label}
                 accessibilityHint="Selects this voice and speaks a sample call"
               >
