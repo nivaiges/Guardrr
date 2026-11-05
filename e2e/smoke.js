@@ -240,6 +240,46 @@ async function main() {
       (await page.getByText('History', { exact: true }).count()) === 0,
     );
 
+    // 5e. Presets of your own: save, name clash, survive a reload, delete with Undo.
+    const mine = page.getByRole('radio', { name: 'Full range, your preset' });
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('Full range');
+    await page.getByTestId('preset-save-confirm').click();
+    check(
+      'saving a preset adds it, selected',
+      (await mine.isVisible()) && (await mine.getAttribute('aria-checked')) === 'true',
+    );
+    await page.getByRole('radio', { name: 'Standard 16' }).click();
+    await page.getByTestId('call-shortcut-odd').click();
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('standard 16');
+    await page.getByTestId('preset-save-confirm').click();
+    check(
+      'a preset name already in use is refused',
+      await page.getByText('A preset already has that name.').isVisible(),
+    );
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.waitForTimeout(1500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    await mine.click();
+    check(
+      'a saved preset survives a reload and applies its calls',
+      await page.getByText('Calls: 1–16').isVisible(),
+    );
+    await page.getByTestId('preset-delete').click();
+    check(
+      'deleting a preset offers Undo',
+      (await page.getByText('Deleted “Full range”').isVisible()) && (await mine.count()) === 0,
+    );
+    await page.getByTestId('preset-undo').click();
+    check('Undo puts the preset back', await mine.isVisible());
+    await page.getByTestId('preset-delete').click();
+    await page.waitForTimeout(500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    check('a deleted preset stays deleted after a reload', (await mine.count()) === 0);
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',
