@@ -2,7 +2,42 @@
 
 ## 2026-11-05
 
-### Added
+### Changed (Niv's feedback, same day)
+
+- **Camera on the practice screen.** The front camera fills the screen behind the count display
+  (mirrored), so you can watch your toss. The round **⟲ Front/Back** button at the top right flips
+  to the back camera. Settings → Camera turns the preview off or picks the camera; both are saved.
+  Preview only: nothing is recorded, and the app doesn't ask for the microphone.
+  The camera pauses while the settings page is showing, to save battery.
+- **Two pages.** The practice page has only the essentials: title and tempo, the flip button, the
+  count display (85% opaque over the camera, no legend), Start / Drop and a **Settings & stats ›**
+  link. Swipe left for stats, History, presets, camera and settings (**‹ Practice** to go back).
+- **Default is Quads 155**: 155 BPM, 16 counts, called on 13, calls 3, 3 and, 4, 4 and, 5. It's
+  also the first preset. "Standard 16" (120 BPM, 1–7) is still there.
+- Smoke test: 4 new checks (39 total) using Chromium's fake camera; screenshots show the fake
+  camera's green test pattern behind the practice screen.
+
+### Decisions (camera, pages, quads)
+
+- Quad calls: my research notes say a quad is caught on the "and" of 3 (beginners drift to 4); at
+  155 BPM a count is ~0.39 s, so a quad's air time spans about 3–5 counts. Hence 3, 3&, 4, 4&, 5.
+- Swiping uses a horizontal paging ScrollView (core React Native, works on web and in Expo Go)
+  rather than a new navigation library; it's still one screen in the app's terms.
+- Saved settings from before today keep their tempo and calls (tap **Quads 155** to switch);
+  they get the camera on.
+- Camera permission is asked as soon as the practice page shows. If it's refused, a **Turn on
+  camera** / **Allow camera in Settings** button shows instead of the preview.
+
+### To test on your phone (camera)
+
+- First open: iOS should ask for the camera; the front camera should fill the screen behind the
+  count. Tap the top-right button: back camera. Kill and reopen the app: the same camera.
+- Practice with the camera on: clicks, the spoken call and the vibration should stay on time.
+- Swipe left and right between the pages while practicing; the metronome must not stop.
+- The camera needs a fresh `npm install` after `git pull` (new package: expo-camera), then restart
+  `npx expo start`.
+
+### Added (earlier today)
 
 - **Your own presets** (discovered item "save current settings as…"): when the settings match no
   preset, Presets shows **Save as preset…**. The name is prefilled ("My preset 1", "My preset 2",

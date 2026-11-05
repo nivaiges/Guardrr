@@ -6,7 +6,8 @@ A practice tool for colorguard performers to sharpen toss technique.
 
 A metronome plays continuously at your tempo, grouped into phrases (16 counts by default).
 A toss prep is typically counted "5 6, 5 6 7 8" and you **release on count 1** of the phrase.
-Shortly before the release, Guardrr **speaks a random toss count** (1–7 by default). You release
+Shortly before the release, Guardrr **speaks a random toss count** (by default the app starts
+on **Quads 155**: 155 BPM, calls 3, 3 and, 4, 4 and, 5). You release
 on 1, **catch on the called count** (a "5" is caught on count 5, a "6" on count 6), keep marking
 time until the phrase ends, and the cycle repeats with a new random call.
 
@@ -15,11 +16,17 @@ Calls can be on any count the phrase allows (up to 16 in a 16-count phrase), and
 of the release. See [docs/colorguard-research.md](docs/colorguard-research.md) for the counting
 conventions this is based on.
 
-Today you can press **Start** and practice. The display shows the current count, the toss being
+The app opens on the **practice screen**: the **front camera** fills the screen (mirrored, like
+a mirror) so you can watch your toss, with the count display and **Start** / **Drop** over it. The
+round button at the top right **flips** to the back camera, for propping the phone up facing you.
+Nothing is recorded. **Swipe left** (or tap **Settings & stats ›**) for everything else: stats,
+History, presets, camera options and settings.
+
+Press **Start** and practice. The display shows the current count, the toss being
 thrown and the next call once it's spoken, flashes **Release!** and **Catch!**, counts down to the
 catch, and has a dot per count of the phrase marking the release, the call and the catch.
 
-Under the Start button a **session stats** card shows how many tosses were called, how long
+On the settings page a **session stats** card shows how many tosses were called, how long
 you've practiced, which call came up most, a bar per call and the latest calls (it stays visible
 after Stop until the next Start). Tap **Drop** when you drop a toss: it marks the latest toss
 (tap again to undo) and the card shows your catch rate and which calls you drop.
@@ -63,7 +70,8 @@ Defaults: 120 BPM, 16-count phrase, calls 1–7 spoken on count 13 (the "5" of t
 ## Screenshots
 
 Web build at phone size (390 × 844), regenerated with `npm run screenshots` whenever the UI
-changes ([scripts/screenshots.js](scripts/screenshots.js)).
+changes ([scripts/screenshots.js](scripts/screenshots.js)). The green pattern behind the
+practice screen is Chromium's fake camera; on the phone it's you.
 
 | Ready                                   | The call                                                         | Release                                                | Catch                                                       |
 | --------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |

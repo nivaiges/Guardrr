@@ -28,6 +28,14 @@
   - [ ] Background audio (keep the metronome going with the screen locked).
   - [ ] Recorded voice option.
 
+- [x] **Niv's feedback 2026-11-05:** front camera on by default behind the practice display, with a
+      flip button (top right) for the back camera; move stats, History, presets and settings to a second
+      page you swipe to; default to **Quads 155** (155 BPM, calls 3, 3&, 4, 4&, 5).
+- [ ] Camera: check on device that the preview doesn't add audio/haptic latency or drain the
+      battery too fast in a long session; consider a "dim display" option.
+- [ ] Camera: optional recording of a session (needs microphone permission decision, storage).
+- [ ] Practice page: page dots / a swipe hint the first time the app opens.
+
 ## Discovered along the way
 
 - [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
