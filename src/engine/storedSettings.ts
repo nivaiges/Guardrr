@@ -7,7 +7,7 @@
  * settings as a whole are re-validated so the result always starts.
  */
 
-import { DEFAULT_TOSS_SETTINGS, TossSettings, validateTossSettings } from './announce';
+import { TossSettings, validateTossSettings } from './announce';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN } from './countIn';
@@ -19,7 +19,30 @@ import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
 export const SETTINGS_STORAGE_KEY = 'guardrr.settings';
 export const SETTINGS_VERSION = 1;
 
-export const DEFAULT_BPM = 120;
+/** Default tempo: Niv's "Quads 155" drill (2026-11-05). */
+export const DEFAULT_BPM = 155;
+
+/**
+ * Toss settings the app starts with: quads. A quad is caught around the
+ * "and" of 3 (see docs/colorguard-research.md); at 155 BPM a count is only
+ * ~0.39 s, so calls run from 3 to 5 with the "and"s in between.
+ */
+export const QUADS_TOSS_SETTINGS: TossSettings = {
+  phraseLength: 16,
+  leadCounts: 4,
+  allowedTossCounts: [3, 3.5, 4, 4.5, 5],
+  allowRepeats: true,
+};
+
+export type CameraFacing = 'front' | 'back';
+
+export interface CameraSettings {
+  /** Show the camera behind the practice display (mirror-style self-check). */
+  enabled: boolean;
+  facing: CameraFacing;
+}
+
+export const DEFAULT_CAMERA_SETTINGS: CameraSettings = { enabled: true, facing: 'front' };
 export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   accentDownbeat: true,
   andClicks: false,
@@ -40,15 +63,18 @@ export interface PracticeSettings {
    * the system default. Ignored when the phone no longer has that voice.
    */
   voice: string | null;
+  /** Camera preview on the practice screen. */
+  camera: CameraSettings;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   bpm: DEFAULT_BPM,
-  toss: DEFAULT_TOSS_SETTINGS,
+  toss: QUADS_TOSS_SETTINGS,
   cue: DEFAULT_CUE_OPTIONS,
   countIn: DEFAULT_COUNT_IN,
   voiceRate: DEFAULT_VOICE_RATE,
   voice: null,
+  camera: DEFAULT_CAMERA_SETTINGS,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -69,8 +95,8 @@ function int(v: unknown, lo: number, hi: number, fallback: number): number {
 }
 
 function parseToss(raw: unknown): TossSettings {
-  if (!isObject(raw)) return DEFAULT_TOSS_SETTINGS;
-  const d = DEFAULT_TOSS_SETTINGS;
+  const d = DEFAULT_PRACTICE_SETTINGS.toss;
+  if (!isObject(raw)) return d;
   const phraseLength = int(raw.phraseLength, MIN_PHRASE_LENGTH, MAX_PHRASE_LENGTH, d.phraseLength);
   const counts = Array.isArray(raw.allowedTossCounts)
     ? raw.allowedTossCounts.filter((n): n is number => typeof n === 'number' && isValidCall(n))
@@ -85,8 +111,17 @@ function parseToss(raw: unknown): TossSettings {
     // Keep only calls that fit; if none do, the whole toss block is unusable.
     return { ...candidate, allowedTossCounts: validateTossSettings(candidate) };
   } catch {
-    return DEFAULT_TOSS_SETTINGS;
+    return d;
   }
+}
+
+function parseCamera(raw: unknown): CameraSettings {
+  if (!isObject(raw)) return DEFAULT_CAMERA_SETTINGS;
+  return {
+    enabled: bool(raw.enabled, DEFAULT_CAMERA_SETTINGS.enabled),
+    facing:
+      raw.facing === 'front' || raw.facing === 'back' ? raw.facing : DEFAULT_CAMERA_SETTINGS.facing,
+  };
 }
 
 /** Settings from stored JSON (or null when nothing is stored). Never throws. */
@@ -112,5 +147,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,
     voice: isStoredVoiceId(raw.voice) ? raw.voice : null,
+    camera: parseCamera(raw.camera),
   };
 }

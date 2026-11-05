@@ -60,8 +60,11 @@ describe('practice presets', () => {
     }
   });
 
-  it('the default settings match "Standard 16"', () => {
-    expect(matchingPreset(DEFAULT_PRACTICE_SETTINGS)?.id).toBe('standard-16');
+  it('the default settings match "Quads 155", tempo included', () => {
+    const quads = matchingPreset(DEFAULT_PRACTICE_SETTINGS);
+    expect(quads?.id).toBe('quads-155');
+    expect(DEFAULT_PRACTICE_SETTINGS.bpm).toBe(quads?.bpm);
+    expect(PRACTICE_PRESETS[0]).toBe(quads);
   });
 
   it('applying a preset sets tempo and toss settings but keeps sound options', () => {

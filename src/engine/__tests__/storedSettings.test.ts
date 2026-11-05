@@ -18,6 +18,7 @@ const custom: PracticeSettings = {
   countIn: 4,
   voiceRate: 0.8,
   voice: 'com.apple.voice.enhanced.Ava',
+  camera: { enabled: false, facing: 'back' },
 };
 
 describe('stored settings', () => {
@@ -93,7 +94,7 @@ describe('stored settings', () => {
   it('clamps or replaces a bad BPM', () => {
     expect(parseStoredSettings(JSON.stringify({ bpm: 9999 })).bpm).toBe(400);
     expect(parseStoredSettings(JSON.stringify({ bpm: 99.6 })).bpm).toBe(100);
-    expect(parseStoredSettings(JSON.stringify({ bpm: 'fast' })).bpm).toBe(120);
+    expect(parseStoredSettings(JSON.stringify({ bpm: 'fast' })).bpm).toBe(155);
   });
 
   it('repairs invalid toss fields one at a time', () => {
@@ -118,11 +119,23 @@ describe('stored settings', () => {
     const none = parseStoredSettings(
       JSON.stringify({ toss: { phraseLength: 4, leadCounts: 2, allowedTossCounts: [7, 9] } }),
     );
-    expect(none.toss).toEqual(DEFAULT_TOSS_SETTINGS);
+    expect(none.toss).toEqual(DEFAULT_PRACTICE_SETTINGS.toss);
   });
 
   it('pulls default lead counts into a short phrase', () => {
-    const toss = parseStoredSettings(JSON.stringify({ toss: { phraseLength: 2 } })).toss;
+    const toss = parseStoredSettings(
+      JSON.stringify({ toss: { phraseLength: 2, allowedTossCounts: [1] } }),
+    ).toss;
     expect(toss.leadCounts).toBe(2);
+  });
+
+  it('starts with the front camera on, and repairs a bad camera block', () => {
+    expect(DEFAULT_PRACTICE_SETTINGS.camera).toEqual({ enabled: true, facing: 'front' });
+    const parse = (camera: unknown) => parseStoredSettings(JSON.stringify({ camera })).camera;
+    expect(parse({ enabled: false, facing: 'back' })).toEqual({ enabled: false, facing: 'back' });
+    expect(parse({ enabled: 'no', facing: 'side' })).toEqual({ enabled: true, facing: 'front' });
+    expect(parse(null)).toEqual({ enabled: true, facing: 'front' });
+    // Settings saved before the camera existed get the camera on.
+    expect(parseStoredSettings(JSON.stringify({ bpm: 120 })).camera.enabled).toBe(true);
   });
 });

@@ -9,7 +9,7 @@
  */
 
 import { TossSettings } from './announce';
-import { PracticeSettings } from './storedSettings';
+import { PracticeSettings, QUADS_TOSS_SETTINGS } from './storedSettings';
 
 export interface PracticePreset {
   id: string;
@@ -21,6 +21,13 @@ export interface PracticePreset {
 }
 
 export const PRACTICE_PRESETS: readonly PracticePreset[] = [
+  {
+    id: 'quads-155',
+    name: 'Quads 155',
+    description: 'Quads at 155: calls 3 to 5 with the "and"s (3&, 4&)',
+    bpm: 155,
+    toss: QUADS_TOSS_SETTINGS,
+  },
   {
     id: 'standard-16',
     name: 'Standard 16',

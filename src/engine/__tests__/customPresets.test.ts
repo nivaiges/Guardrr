@@ -40,9 +40,7 @@ function withOne(name = 'Odd drill', now = 1000): PracticePreset[] {
 
 describe('describeToss', () => {
   it('describes calls, phrase and lead like the built-ins do', () => {
-    expect(describeToss(DEFAULT_PRACTICE_SETTINGS.toss)).toBe(
-      'Calls 1–7 · 16 counts · called 4 early',
-    );
+    expect(describeToss(PRACTICE_PRESETS[1].toss)).toBe('Calls 1–7 · 16 counts · called 4 early');
     expect(describeToss(drill.toss)).toBe('Calls 3, 5, 7 · 8 counts · called 4 early · no repeats');
     expect(
       describeToss({
