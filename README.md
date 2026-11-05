@@ -30,7 +30,9 @@ recent sessions with their date, tosses, catch rate and length. Tap **Edit** to 
 or clear the whole history (it asks first); every delete can be undone right after.
 
 **Presets** set up a whole drill in one tap: _Standard 16_, _Quick 8_, _Singles & doubles_
-(short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_.
+(short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_. Set
+things up your own way and tap **Save as preset…** to keep it as a chip of your own (up to 12;
+select one to delete it, with Undo).
 
 Below that you can fine-tune:
 

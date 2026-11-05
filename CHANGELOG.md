@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-11-05
+
+### Added
+
+- **Your own presets** (discovered item "save current settings as…"): when the settings match no
+  preset, Presets shows **Save as preset…**. The name is prefilled ("My preset 1", "My preset 2",
+  …), and a name already used by any preset — built-in ones included, in any letter case — is
+  refused with "A preset already has that name." Saved presets appear as outlined chips after the
+  built-in ones and work the same way: one tap sets the tempo, phrase, lead counts, calls and
+  repeats. Select one of yours to get **Delete "name"**, with an Undo bar right after.
+  - Engine (`src/engine/customPresets.ts`): `saveCustomPreset`, `deleteCustomPreset`,
+    `restoreCustomPreset`, `presetNameProblem`, `suggestPresetName`, `describeToss`,
+    `matchingAnyPreset`, `canSavePreset`, and parsing/serializing under `guardrr.customPresets`.
+  - Storage: `createCustomPresetStore` and the `useCustomPresets` hook.
+- Smoke test: 6 new checks (35 total) — save a preset (it shows selected), a name clash is refused,
+  the preset survives a reload and applies its calls, delete offers Undo, Undo brings it back,
+  and a deleted preset stays deleted after a reload.
+- Screenshots: `09-save-preset` (naming a preset) and `10-my-preset` (the saved preset selected).
+- 23 new unit tests (349 total).
+
+### Fixed
+
+- Screen readers on the web build couldn't tell which chip was picked (preset, phrase length,
+  count-in, voice, calls): React Native Web ignores `accessibilityState`. The chips now also set
+  `aria-checked`, which iOS/Android read too. Found while writing today's smoke checks.
+
+### Decisions
+
+- A custom preset is the same thing as a built-in one: tempo + toss settings. Sound options
+  (accent, "and" clicks, haptics, voice) stay personal and aren't changed by any preset.
+- **Save** is offered only when the settings match no preset (tempo ignored, like the built-ins),
+  so there are never two chips for the same drill. To save a variation, change a setting first.
+- Up to 12 presets of your own, names up to 24 characters — beyond that the chip row stops being
+  a quick pick. When full, the note says to delete one first.
+- Saving and deleting stay available while practicing (they don't touch the running settings);
+  applying a preset is still locked until Stop.
+- Descriptions are generated from the settings, e.g. "Calls 3, 5, 7 · 8 counts · called 4 early
+  · no repeats"; odd/even sets are named ("Odd calls 1–15") instead of listing eight numbers.
+- Stored presets are untrusted like the other saved data: unreadable ones, repeated names, copies
+  of a built-in preset and presets whose calls no longer fit their phrase are skipped on load.
+- No rename yet (delete and save again); added to the roadmap with "update preset".
+
+### To test on your phone
+
+- Settings → Calls → Odd, then Presets → Save as preset… → type a name → Save. The new chip should
+  be selected. Pick Standard 16, then your chip again: tempo, phrase and calls should come back.
+- Close and reopen the app: your preset should still be there.
+- Check the name field: the keyboard's Done key should save, and the field shouldn't hide behind
+  the keyboard on a small phone (if it does, note it — the screen doesn't scroll for the keyboard
+  yet).
+- With VoiceOver/TalkBack: your chips read "<name>, your preset", and the selected chip reads as
+  checked.
+
 ## 2026-11-04
 
 ### Added

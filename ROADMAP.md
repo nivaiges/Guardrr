@@ -33,7 +33,7 @@
 - [x] Morning check: typecheck, lint, unit tests, iOS/Android/web bundles and a headless web smoke test, every morning (GitHub workflow + scheduled task that notifies on failure).
 - [x] Display: the 16-dot phrase strip wrapped onto a second line on a 390-pt-wide phone — dots now shrink to fit, long phrases split into even rows (`phraseStripLayout`).
 - [ ] Morning check on real platforms: Maestro flows on an Android emulator in CI (free), and iOS simulator later (needs macOS runners).
-- [ ] Extend the smoke test as features land (e.g. voice picker, presets, count-in options). Hand-picked calls, call shortcuts and History editing: done.
+- [ ] Extend the smoke test as features land (e.g. voice picker, count-in options). Hand-picked calls, call shortcuts, History editing and custom presets: done.
 
 - [x] Validate that a called toss count fits inside the phrase (e.g. a 7-count toss in an 8-count phrase is fine; in a 4-count phrase it isn't).
 - [ ] Decide whether TTS lead time needs compensation for speech-engine latency (measure on device).
@@ -52,7 +52,7 @@
 - [ ] Display: flash/animate on "and" ticks too (today the screen only re-renders on counts and on "and" catches).
 - [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).
 - [x] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list (History card).
-- [ ] User-saved custom presets ("save current settings as…").
+- [x] User-saved custom presets ("save current settings as…") — Presets → Save as preset…, delete with Undo, up to 12.
 - [x] Optional light haptic on the catch count (Settings → Sound → "Light tap on the catch").
 - [ ] Optional haptic on the call too (for performers who can't hear the voice), if the catch tap proves useful.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
@@ -73,3 +73,7 @@
 - [ ] History: export/share sessions (CSV) for a coach.
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
+- [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
+- [ ] Custom presets: rename, reorder, and "update preset with current settings".
+- [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
+- [ ] Show which preset a History session used (needs the preset id saved with the session).
