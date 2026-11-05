@@ -17,3 +17,4 @@ export * from './voiceRate';
 export * from './voices';
 export * from './stripLayout';
 export * from './history';
+export * from './customPresets';
