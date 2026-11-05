@@ -24,7 +24,7 @@ import {
   summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
-import { usePersistedSettings, useSessionHistory } from './src/storage';
+import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
 import { Theme, themed, useTheme } from './src/theme';
 
 export default function App() {
@@ -51,6 +51,7 @@ export default function App() {
       voice: preview === undefined ? voice : (preview ?? undefined),
     }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
+  const { presets: customPresets, savePreset, deletePreset, restorePreset } = useCustomPresets();
   const { running, cue, stats, startedAt, start, stop, toggleDrop } = usePracticeSession(
     bpm,
     settings,
@@ -154,7 +155,15 @@ export default function App() {
         onRestore={restoreSessions}
       />
 
-      <PresetPicker settings={saved} onApply={applyPresetToSettings} disabled={running} />
+      <PresetPicker
+        settings={saved}
+        customPresets={customPresets}
+        onApply={applyPresetToSettings}
+        onSave={(name) => savePreset(saved, name)}
+        onDelete={deletePreset}
+        onRestore={restorePreset}
+        disabled={running}
+      />
 
       <SettingsPanel
         bpm={bpm}

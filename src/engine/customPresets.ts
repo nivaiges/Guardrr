@@ -11,8 +11,8 @@
  */
 
 import { TossSettings, validateTossSettings } from './announce';
-import { isValidCall } from './calls';
-import { callSetSummary, clampBpm } from './editSettings';
+import { callLabel, isValidCall } from './calls';
+import { callSetSummary, callShortcutOf, clampBpm, isCallRange } from './editSettings';
 import { PRACTICE_PRESETS, PracticePreset, tossMatchesPreset } from './presets';
 import { PracticeSettings } from './storedSettings';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
@@ -28,10 +28,21 @@ export function isCustomPreset(preset: PracticePreset): boolean {
   return preset.id.startsWith(ID_PREFIX);
 }
 
-/** "Calls 1–7 · 16 counts · called 4 early" (tempo is shown separately). */
+/**
+ * "Calls 1–7 · 16 counts · called 4 early" (tempo is shown separately).
+ * Odd/even sets are named rather than listed ("Odd calls 1–15").
+ */
 export function describeToss(toss: TossSettings): string {
   const calls = callSetSummary(toss);
-  const what = calls.startsWith('Only') ? calls : `Calls ${calls}`;
+  const shortcut = isCallRange(toss) ? null : callShortcutOf(toss);
+  const sorted = [...toss.allowedTossCounts].sort((a, b) => a - b);
+  const span = `${callLabel(sorted[0])}–${callLabel(sorted[sorted.length - 1])}`;
+  const what =
+    shortcut === 'odd' || shortcut === 'even'
+      ? `${shortcut === 'odd' ? 'Odd' : 'Even'} calls ${span}`
+      : calls.startsWith('Only')
+        ? calls
+        : `Calls ${calls}`;
   return [
     what,
     `${toss.phraseLength} counts`,

@@ -2,7 +2,8 @@
  * Screenshots of the app for the README and for Niv to see what changed:
  * runs the web build in headless Chromium at phone size (390 x 844 pt, 2x)
  * and captures the main screens — ready, the call, the release, the catch,
- * stats and history, History in edit mode, the call picker and dark theme.
+ * stats and history, History in edit mode, the call picker, dark theme and
+ * saving a preset of your own.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -155,6 +156,17 @@ async function main() {
     await scrollTo(page.getByText(/^Calls: /).first());
     await page.waitForTimeout(200);
     await shot(page, '07-settings-calls');
+
+    // Presets: save the Odd calls as "Odd drill" — naming it, then the new chip.
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('Odd drill');
+    await scrollTo(exact(page, 'Presets'));
+    await page.waitForTimeout(200);
+    await shot(page, '09-save-preset');
+    await page.getByTestId('preset-save-confirm').click();
+    await page.getByTestId('preset-delete').waitFor();
+    await page.waitForTimeout(200);
+    await shot(page, '10-my-preset');
     await context.close();
 
     // Dark theme, mid-toss.

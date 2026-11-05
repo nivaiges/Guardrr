@@ -71,6 +71,10 @@ changes ([scripts/screenshots.js](scripts/screenshots.js)).
 | ---------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![Stats and history after Stop](docs/screenshots/05-stats-history.png) | ![History in edit mode](docs/screenshots/06-history-edit.png) | ![Settings → Calls with Odd picked](docs/screenshots/07-settings-calls.png) | ![Dark theme on the release](docs/screenshots/08-dark-release.png) |
 
+| Saving a preset                                             | Your preset                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------- |
+| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript
