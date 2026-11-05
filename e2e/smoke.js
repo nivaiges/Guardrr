@@ -82,10 +82,20 @@ async function main() {
 
   const server = await serve(webDir);
   const base = `http://127.0.0.1:${server.address().port}/`;
-  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const browser = await chromium.launch({
+    args: [
+      '--autoplay-policy=no-user-gesture-required',
+      // A fake camera (test pattern) that needs no permission prompt.
+      '--use-fake-device-for-media-stream',
+      '--use-fake-ui-for-media-stream',
+    ],
+  });
   const errors = [];
   try {
-    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      permissions: ['camera'],
+    });
     await context.addInitScript(instrument);
     const page = await context.newPage();
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
@@ -98,7 +108,26 @@ async function main() {
     const startButton = page.getByRole('button', { name: 'Start practice' });
     await startButton.waitFor({ timeout: 20_000 });
     check('app boots and shows Start', true);
-    check('subtitle shows the defaults', await page.getByText(`${BPM} BPM`).first().isVisible());
+    check('defaults are Quads 155', await page.getByText('155 BPM').first().isVisible());
+    check(
+      'the Quads 155 preset is selected',
+      (await page.getByRole('radio', { name: 'Quads 155' }).getAttribute('aria-checked')) ===
+        'true',
+    );
+    const preview = page.getByTestId('camera-preview-front');
+    await preview.waitFor({ timeout: 10_000 }).catch(() => {});
+    check('the front camera shows by default', await preview.isVisible());
+    await page.getByTestId('camera-flip').click();
+    check(
+      'the flip button switches to the back camera',
+      await page.getByTestId('camera-preview-back').isVisible(),
+    );
+    await page.getByTestId('camera-flip').click();
+    // The rest of the test runs at Standard 16 (120 BPM, calls 1–7) on the settings page.
+    await page.getByTestId('go-to-settings').click();
+    await page.getByRole('radio', { name: 'Standard 16' }).click();
+    await page.getByTestId('go-to-practice').click();
+    check('Standard 16 sets 120 BPM', await page.getByText(`${BPM} BPM`).first().isVisible());
     const stripRows = await page.locator('[data-testid="phrase-strip-row"]').count();
     check('16-count phrase strip fits on one row', stripRows === 1, `${stripRows} row(s)`);
     await page.screenshot({ path: path.join(outDir, 'home.png'), fullPage: true });
