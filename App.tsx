@@ -1,15 +1,30 @@
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
-import { useEffect, useMemo, useRef } from 'react';
-import { AccessibilityInfo, AppState, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AccessibilityInfo,
+  AppState,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  ScrollViewInstance,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import { createVoice, useCallVoices } from './src/audio';
+import { CameraBackdrop } from './src/components/CameraBackdrop';
+import { CameraSettings } from './src/components/CameraSettings';
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
 import { SessionHistoryCard } from './src/components/SessionHistoryCard';
 import { SessionStatsCard } from './src/components/SessionStatsCard';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import {
+  CameraSettings as CameraSettingsValue,
   CueOptions,
   PracticePreset,
   TossSettings,
@@ -45,6 +60,13 @@ export default function App() {
   const setCountIn = (next: number) => update((s) => ({ ...s, countIn: next }));
   const setVoiceRate = (next: number) => update((s) => ({ ...s, voiceRate: next }));
   const setVoice = (next: string | null) => update((s) => ({ ...s, voice: next }));
+  const { camera } = saved;
+  const setCamera = (next: CameraSettingsValue) => update((s) => ({ ...s, camera: next }));
+  const flipCamera = () =>
+    update((s) => ({
+      ...s,
+      camera: { ...s.camera, facing: s.camera.facing === 'front' ? 'back' : 'front' },
+    }));
   const testVoice = (preview?: string | null) =>
     createVoice({
       rate: voiceRate,
@@ -106,106 +128,223 @@ export default function App() {
 
   const display = practiceDisplay(cue, settings);
 
+  // Two pages side by side: practice (camera) and settings & stats.
+  const { width, height } = useWindowDimensions();
+  const pager = useRef<ScrollViewInstance>(null);
+  const [page, setPage] = useState(0);
+  const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (width > 0) setPage(Math.round(e.nativeEvent.contentOffset.x / width));
+  };
+  const goToPage = (p: number) => {
+    pager.current?.scrollTo({ x: p * width, animated: true });
+    setPage(p);
+  };
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <Text style={styles.title} accessibilityRole="header">
-        Guardrr
-      </Text>
-      <Text style={styles.subtitle}>
-        {bpm} BPM · {settings.phraseLength}-count phrase · call on count{' '}
-        {settings.phraseLength - settings.leadCounts + 1}
-      </Text>
-
-      <PracticeDisplay model={display} />
-
-      <Pressable
-        style={[styles.startButton, running && styles.stopButton]}
-        onPress={running ? onStop : onStart}
-        accessibilityRole="button"
-        accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
-        accessibilityHint={
-          running ? undefined : 'Starts the metronome; the first toss is called during the count-in'
-        }
+    <View style={styles.root}>
+      <ScrollView
+        ref={pager}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onPagerScroll}
+        scrollEventThrottle={32}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
-      </Pressable>
+        {/* Page 1: practice, over the camera. */}
+        <View style={[styles.practicePage, { width, height }]} testID="practice-page">
+          <CameraBackdrop enabled={camera.enabled} facing={camera.facing} active={page === 0} />
+          <View style={styles.topBar}>
+            <View style={styles.titlePill}>
+              <Text style={styles.title} accessibilityRole="header">
+                Guardrr
+              </Text>
+              <Text style={styles.subtitle}>
+                {bpm} BPM · {settings.phraseLength} counts · call on{' '}
+                {settings.phraseLength - settings.leadCounts + 1}
+              </Text>
+            </View>
+            {camera.enabled ? (
+              <Pressable
+                testID="camera-flip"
+                style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}
+                onPress={flipCamera}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  camera.facing === 'front' ? 'Switch to back camera' : 'Switch to front camera'
+                }
+                hitSlop={8}
+              >
+                <Text style={styles.roundButtonText}>⟲</Text>
+                <Text style={styles.roundButtonLabel}>
+                  {camera.facing === 'front' ? 'Front' : 'Back'}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
 
-      {stats.tosses > 0 ? (
-        <Pressable
-          style={({ pressed }) => [styles.dropButton, pressed && styles.dropPressed]}
-          onPress={toggleDrop}
-          accessibilityRole="button"
-          accessibilityLabel={latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
-          accessibilityHint={
-            latestTossDropped(stats)
-              ? 'Counts the latest toss as caught again'
-              : 'Marks the latest toss as dropped'
-          }
+          <View style={styles.displayArea}>
+            <PracticeDisplay model={display} overlay />
+          </View>
+
+          <View style={styles.controls}>
+            <View style={styles.buttonRow}>
+              <Pressable
+                style={[styles.startButton, running && styles.stopButton]}
+                onPress={running ? onStop : onStart}
+                accessibilityRole="button"
+                accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
+                accessibilityHint={
+                  running
+                    ? undefined
+                    : 'Starts the metronome; the first toss is called during the count-in'
+                }
+              >
+                <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
+              </Pressable>
+              {stats.tosses > 0 ? (
+                <Pressable
+                  style={({ pressed }) => [styles.dropButton, pressed && styles.pressed]}
+                  onPress={toggleDrop}
+                  accessibilityRole="button"
+                  accessibilityLabel={latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
+                  accessibilityHint={
+                    latestTossDropped(stats)
+                      ? 'Counts the latest toss as caught again'
+                      : 'Marks the latest toss as dropped'
+                  }
+                >
+                  <Text style={styles.dropText}>
+                    {latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+            <Pressable
+              testID="go-to-settings"
+              style={({ pressed }) => [styles.pageLink, pressed && styles.pressed]}
+              onPress={() => goToPage(1)}
+              accessibilityRole="button"
+              accessibilityLabel="Settings, stats and history"
+              accessibilityHint="Or swipe left"
+            >
+              <Text style={styles.pageLinkText}>Settings & stats ›</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Page 2: everything else, one swipe to the right. */}
+        <ScrollView
+          style={[styles.settingsPage, { width, height }]}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          testID="settings-page"
         >
-          <Text style={styles.dropText}>{latestTossDropped(stats) ? 'Undo drop' : 'Drop'}</Text>
-        </Pressable>
-      ) : null}
+          <View style={styles.settingsHeader}>
+            <Pressable
+              testID="go-to-practice"
+              style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
+              onPress={() => goToPage(0)}
+              accessibilityRole="button"
+              accessibilityLabel="Back to practice"
+              accessibilityHint="Or swipe right"
+            >
+              <Text style={styles.backText}>‹ Practice</Text>
+            </Pressable>
+            <Text style={styles.settingsTitle} accessibilityRole="header">
+              Settings & stats
+            </Text>
+          </View>
 
-      <SessionStatsCard stats={stats} running={running} />
-      <SessionHistoryCard
-        history={history}
-        nowMs={historyUpdatedAt}
-        onDelete={deleteSession}
-        onClear={clearHistory}
-        onRestore={restoreSessions}
-      />
+          <SessionStatsCard stats={stats} running={running} />
+          <SessionHistoryCard
+            history={history}
+            nowMs={historyUpdatedAt}
+            onDelete={deleteSession}
+            onClear={clearHistory}
+            onRestore={restoreSessions}
+          />
 
-      <PresetPicker
-        settings={saved}
-        customPresets={customPresets}
-        onApply={applyPresetToSettings}
-        onSave={(name) => savePreset(saved, name)}
-        onDelete={deletePreset}
-        onRestore={restorePreset}
-        disabled={running}
-      />
+          <PresetPicker
+            settings={saved}
+            customPresets={customPresets}
+            onApply={applyPresetToSettings}
+            onSave={(name) => savePreset(saved, name)}
+            onDelete={deletePreset}
+            onRestore={restorePreset}
+            disabled={running}
+          />
 
-      <SettingsPanel
-        bpm={bpm}
-        onBpmChange={setBpm}
-        settings={settings}
-        onSettingsChange={setSettings}
-        cueOptions={cueOptions}
-        onCueOptionsChange={setCueOptions}
-        countIn={countIn}
-        onCountInChange={setCountIn}
-        voiceRate={voiceRate}
-        onVoiceRateChange={setVoiceRate}
-        voices={voices}
-        voice={voice ?? null}
-        onVoiceChange={setVoice}
-        onReloadVoices={reloadVoices}
-        onTestVoice={testVoice}
-        running={running}
-      />
+          <CameraSettings camera={camera} onChange={setCamera} />
+
+          <SettingsPanel
+            bpm={bpm}
+            onBpmChange={setBpm}
+            settings={settings}
+            onSettingsChange={setSettings}
+            cueOptions={cueOptions}
+            onCueOptionsChange={setCueOptions}
+            countIn={countIn}
+            onCountInChange={setCountIn}
+            voiceRate={voiceRate}
+            onVoiceRateChange={setVoiceRate}
+            voices={voices}
+            voice={voice ?? null}
+            onVoiceChange={setVoice}
+            onReloadVoices={reloadVoices}
+            onTestVoice={testVoice}
+            running={running}
+          />
+        </ScrollView>
+      </ScrollView>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-    </ScrollView>
+    </View>
   );
 }
 
 const getStyles = themed((t: Theme) =>
   StyleSheet.create({
-    screen: { backgroundColor: t.background },
-    container: {
-      flexGrow: 1,
-      backgroundColor: t.background,
-      alignItems: 'center',
-      paddingHorizontal: 24,
-      paddingTop: 72,
-      paddingBottom: 48,
+    root: { flex: 1, backgroundColor: t.background },
+    practicePage: { backgroundColor: t.background, overflow: 'hidden' },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 12,
+      paddingTop: 56,
+      paddingHorizontal: 16,
     },
-    title: { fontSize: 36, fontWeight: '700', color: t.text },
-    subtitle: { fontSize: 15, marginTop: 4, color: t.textMuted, textAlign: 'center' },
+    titlePill: {
+      flexShrink: 1,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      borderRadius: 14,
+      backgroundColor: t.background + 'CC',
+    },
+    title: { fontSize: 22, fontWeight: '700', color: t.text },
+    subtitle: { fontSize: 13, color: t.textMuted },
+    roundButton: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: t.background + 'CC',
+    },
+    roundButtonText: { fontSize: 22, lineHeight: 24, color: t.text, fontWeight: '700' },
+    roundButtonLabel: { fontSize: 11, fontWeight: '600', color: t.text },
+    pressed: { opacity: 0.7 },
+    displayArea: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+    },
+    controls: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 32, gap: 10 },
+    buttonRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
     startButton: {
-      marginTop: 24,
       paddingVertical: 18,
-      paddingHorizontal: 64,
-      minWidth: 200,
+      minWidth: 150,
       alignItems: 'center',
       borderRadius: 32,
       backgroundColor: t.primary,
@@ -213,15 +352,45 @@ const getStyles = themed((t: Theme) =>
     stopButton: { backgroundColor: t.danger },
     startText: { color: t.onPrimary, fontSize: 22, fontWeight: '700' },
     dropButton: {
-      marginTop: 12,
-      paddingVertical: 14,
-      minWidth: 200,
+      paddingVertical: 16,
+      minWidth: 130,
       alignItems: 'center',
-      borderRadius: 28,
+      borderRadius: 32,
       borderWidth: 2,
       borderColor: t.dangerText,
+      backgroundColor: t.background + 'CC',
     },
-    dropPressed: { backgroundColor: t.controlPressed },
-    dropText: { color: t.text, fontSize: 18, fontWeight: '700' },
+    dropText: { color: t.text, fontSize: 20, fontWeight: '700' },
+    pageLink: {
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      backgroundColor: t.background + 'CC',
+    },
+    pageLinkText: { fontSize: 15, fontWeight: '600', color: t.text },
+    settingsPage: { backgroundColor: t.background },
+    container: {
+      flexGrow: 1,
+      backgroundColor: t.background,
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingTop: 56,
+      paddingBottom: 48,
+    },
+    settingsHeader: {
+      width: '100%',
+      maxWidth: 480,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    backButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 16,
+      backgroundColor: t.control,
+    },
+    backText: { fontSize: 15, fontWeight: '600', color: t.text },
+    settingsTitle: { fontSize: 22, fontWeight: '700', color: t.text },
   }),
 );

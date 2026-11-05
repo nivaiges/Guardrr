@@ -33,6 +33,14 @@
             "backgroundColor": "#0d1117"
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Guardrr shows the camera behind the count so you can watch your tosses. Nothing is recorded.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
       ]
     ]
   }

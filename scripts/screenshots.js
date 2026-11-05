@@ -1,7 +1,7 @@
 /**
  * Screenshots of the app for the README and for Niv to see what changed:
  * runs the web build in headless Chromium at phone size (390 x 844 pt, 2x)
- * and captures the main screens — ready, the call, the release, the catch,
+ * and captures the main screens — ready (over a fake camera), the call, the release, the catch,
  * stats and history, History in edit mode, the call picker, dark theme and
  * saving a preset of your own.
  *
@@ -95,7 +95,14 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   const server = await serve(webDir);
   const base = `http://127.0.0.1:${server.address().port}/`;
-  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const browser = await chromium.launch({
+    args: [
+      '--autoplay-policy=no-user-gesture-required',
+      // Chromium's fake camera (a green test pattern) stands in for the phone's camera.
+      '--use-fake-device-for-media-stream',
+      '--use-fake-ui-for-media-stream',
+    ],
+  });
   const shots = [];
   const errors = [];
 
@@ -104,6 +111,7 @@ async function main() {
       viewport: { width: 390, height: 844 },
       deviceScaleFactor: 2,
       colorScheme,
+      permissions: ['camera'],
     });
     await context.addInitScript(setUp, sampleHistory(Date.now()));
     const page = await context.newPage();
@@ -123,6 +131,8 @@ async function main() {
 
   try {
     const { context, page } = await open('light');
+    await page.getByTestId('camera-preview-front').waitFor({ timeout: 10_000 });
+    await page.waitForTimeout(800);
     await shot(page, '01-ready');
 
     // Practice: the call during the count-in, the release on 1, the catch.
@@ -140,8 +150,10 @@ async function main() {
     await page.waitForTimeout(1_000);
     await page.getByRole('button', { name: 'Stop practice' }).click();
 
-    // Stats and history after Stop.
-    await scrollTo(exact(page, 'Last session'));
+    // Stats and history after Stop, on the settings page (swipe left / "Settings & stats").
+    await page.getByTestId('go-to-settings').click();
+    await page.waitForTimeout(600);
+    await scrollTo(exact(page, 'Settings & stats'));
     await page.waitForTimeout(200);
     await shot(page, '05-stats-history');
     const historyCard = exact(page, 'History').locator('xpath=../..');

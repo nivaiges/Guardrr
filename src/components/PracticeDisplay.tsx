@@ -40,7 +40,17 @@ function countdownText(model: DisplayModel): string {
  * (no live region): the metronome and the spoken call are the real-time cues,
  * and a screen reader reading every count would talk over them.
  */
-export function PracticeDisplay({ model }: { model: DisplayModel }) {
+export function PracticeDisplay({
+  model,
+  overlay = false,
+}: {
+  model: DisplayModel;
+  /**
+   * Shown over the camera: slightly see-through, tighter, no legend (the
+   * legend's colors are explained on the settings page).
+   */
+  overlay?: boolean;
+}) {
   const theme = useTheme();
   const styles = getStyles(theme);
   const highlight = model.phase === 'release' || model.phase === 'catch';
@@ -49,7 +59,12 @@ export function PracticeDisplay({ model }: { model: DisplayModel }) {
   const strip = phraseStripLayout(model.beats.length, stripWidth);
   return (
     <View
-      style={[styles.display, { backgroundColor: theme.phase[model.phase] }]}
+      style={[
+        styles.display,
+        overlay && styles.overlay,
+        // 85% opaque over the camera: the phase color still reads at a glance.
+        { backgroundColor: theme.phase[model.phase] + (overlay ? 'D9' : '') },
+      ]}
       accessible
       accessibilityLabel={displayAccessibilityLabel(model)}
     >
@@ -93,13 +108,15 @@ export function PracticeDisplay({ model }: { model: DisplayModel }) {
           </View>
         ))}
       </View>
-      <View style={styles.legend}>
-        {(['release', 'catch', 'call'] as const).map((marker) => (
-          <Text key={marker} style={styles.legendItem}>
-            <Text style={{ color: theme.marker[marker] }}>●</Text> {marker}
-          </Text>
-        ))}
-      </View>
+      {overlay ? null : (
+        <View style={styles.legend}>
+          {(['release', 'catch', 'call'] as const).map((marker) => (
+            <Text key={marker} style={styles.legendItem}>
+              <Text style={{ color: theme.marker[marker] }}>●</Text> {marker}
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -115,6 +132,7 @@ const getStyles = themed((t: Theme) =>
       paddingHorizontal: 16,
       borderRadius: 16,
     },
+    overlay: { marginTop: 0, paddingVertical: 14 },
     callRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
