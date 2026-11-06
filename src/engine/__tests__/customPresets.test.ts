@@ -56,6 +56,15 @@ describe('describeToss', () => {
     expect(describeToss({ ...drill.toss, allowedTossCounts: [2, 4, 6, 8] })).toBe(
       'Even calls 2–8 · 8 counts · called 4 early · no repeats',
     );
+    expect(
+      describeToss({
+        ...drill.toss,
+        allowedTossCounts: [1, 3, 3.5, 5, 5.5, 7, 7.5],
+      }),
+    ).toBe('Odd calls 1–7 with ands · 8 counts · called 4 early · no repeats');
+    expect(describeToss({ ...drill.toss, allowedTossCounts: [2, 2.5, 4, 4.5, 6, 6.5, 8] })).toBe(
+      'Even calls 2–8 with ands · 8 counts · called 4 early · no repeats',
+    );
     expect(describeToss({ ...drill.toss, allowedTossCounts: [5] })).toBe(
       'Only 5 · 8 counts · called 4 early · no repeats',
     );

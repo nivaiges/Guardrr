@@ -36,7 +36,11 @@ export function describeToss(toss: TossSettings): string {
   const calls = callSetSummary(toss);
   const shortcut = isCallRange(toss) ? null : callShortcutOf(toss);
   const sorted = [...toss.allowedTossCounts].sort((a, b) => a - b);
-  const span = `${callLabel(sorted[0])}–${callLabel(sorted[sorted.length - 1])}`;
+  // Odd/even sets name their whole counts; with "and" calls on, each count's
+  // "and" is in the set too ("Odd calls 1–15 with ands", not "1–15 and").
+  const whole = sorted.filter(Number.isInteger);
+  const withAnds = whole.length < sorted.length ? ' with ands' : '';
+  const span = `${callLabel(whole[0])}–${callLabel(whole[whole.length - 1])}${withAnds}`;
   const what =
     shortcut === 'odd' || shortcut === 'even'
       ? `${shortcut === 'odd' ? 'Odd' : 'Even'} calls ${span}`
