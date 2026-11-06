@@ -179,6 +179,13 @@ async function main() {
     await page.getByTestId('preset-delete').waitFor();
     await page.waitForTimeout(200);
     await shot(page, '10-my-preset');
+
+    // Tweak the preset's calls: Presets offers to update it or save a new one.
+    await page.getByTestId('call-shortcut-even').click();
+    await page.getByTestId('preset-update').waitFor();
+    await scrollTo(exact(page, 'Presets'));
+    await page.waitForTimeout(200);
+    await shot(page, '11-update-preset');
     await context.close();
 
     // Dark theme, mid-toss.

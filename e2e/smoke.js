@@ -296,6 +296,45 @@ async function main() {
       'a saved preset survives a reload and applies its calls',
       await page.getByText('Calls: 1–16').isVisible(),
     );
+    // Rename it, then write a new tempo and new calls back to it.
+    const renamed = page.getByRole('radio', { name: 'Everything, your preset' });
+    await page.getByTestId('preset-rename').click();
+    await page.getByTestId('preset-name').fill('Everything');
+    await page.getByTestId('preset-save-confirm').click();
+    check(
+      'renaming a preset keeps it selected',
+      (await renamed.getAttribute('aria-checked')) === 'true' && (await mine.count()) === 0,
+    );
+    await page.getByRole('button', { name: 'BPM plus 1' }).click();
+    const update = page.getByTestId('preset-update');
+    const tempoOffer = (await update.textContent()) ?? '';
+    await update.click();
+    check(
+      'a new tempo can be saved to the preset',
+      /^Save \d+ BPM to “Everything”$/.test(tempoOffer) && (await update.count()) === 0,
+      tempoOffer,
+    );
+    await page.getByTestId('call-shortcut-odd').click();
+    const settingsOffer = (await update.textContent()) ?? '';
+    await update.click();
+    check(
+      'changed calls can be written back to the preset',
+      settingsOffer === 'Update “Everything”' &&
+        (await renamed.getAttribute('aria-checked')) === 'true',
+      settingsOffer,
+    );
+    await page.waitForTimeout(500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    await page.getByRole('radio', { name: 'Standard 16' }).click();
+    await renamed.click();
+    check(
+      'the rename and the update survive a reload',
+      await page.getByText(/^Odd calls 1–15 · 16 counts/).isVisible(),
+    );
+    await page.getByTestId('preset-rename').click();
+    await page.getByTestId('preset-name').fill('Full range');
+    await page.getByTestId('preset-save-confirm').click();
     await page.getByTestId('preset-delete').click();
     check(
       'deleting a preset offers Undo',

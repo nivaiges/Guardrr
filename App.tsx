@@ -73,7 +73,14 @@ export default function App() {
       voice: preview === undefined ? voice : (preview ?? undefined),
     }).say(VOICE_TEST_PHRASE);
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
-  const { presets: customPresets, savePreset, deletePreset, restorePreset } = useCustomPresets();
+  const {
+    presets: customPresets,
+    savePreset,
+    deletePreset,
+    restorePreset,
+    renamePreset,
+    updatePreset,
+  } = useCustomPresets();
   const { running, cue, stats, startedAt, start, stop, toggleDrop } = usePracticeSession(
     bpm,
     settings,
@@ -272,6 +279,8 @@ export default function App() {
             onSave={(name) => savePreset(saved, name)}
             onDelete={deletePreset}
             onRestore={restorePreset}
+            onRename={renamePreset}
+            onUpdate={(id) => updatePreset(id, saved)}
             disabled={running}
           />
 

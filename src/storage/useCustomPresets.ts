@@ -2,13 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  ChangePresetResult,
   DeletedPreset,
   PracticePreset,
   PracticeSettings,
   SavePresetResult,
   deleteCustomPreset,
+  renameCustomPreset,
   restoreCustomPreset,
   saveCustomPreset,
+  updateCustomPreset,
 } from '../engine';
 import { CustomPresetStore, createCustomPresetStore } from './customPresetStore';
 
@@ -20,6 +23,10 @@ export interface CustomPresets {
   /** Delete a preset; returns what Undo (`restorePreset`) needs, or null. */
   deletePreset: (id: string) => DeletedPreset | null;
   restorePreset: (deleted: DeletedPreset) => void;
+  /** Give a preset a new name; saved right away when it works. */
+  renamePreset: (id: string, name: string) => ChangePresetResult;
+  /** Overwrite a preset with these settings (tempo + toss). */
+  updatePreset: (id: string, settings: PracticeSettings) => ChangePresetResult;
   /** False until the saved presets have been read. */
   loaded: boolean;
 }
@@ -78,5 +85,23 @@ export function useCustomPresets(): CustomPresets {
     [commit],
   );
 
-  return { presets, savePreset, deletePreset, restorePreset, loaded };
+  const renamePreset = useCallback(
+    (id: string, name: string) => {
+      const result = renameCustomPreset(current.current, id, name);
+      if (result.changed) commit(result.presets);
+      return result;
+    },
+    [commit],
+  );
+
+  const updatePreset = useCallback(
+    (id: string, settings: PracticeSettings) => {
+      const result = updateCustomPreset(current.current, id, settings);
+      if (result.changed) commit(result.presets);
+      return result;
+    },
+    [commit],
+  );
+
+  return { presets, savePreset, deletePreset, restorePreset, renamePreset, updatePreset, loaded };
 }

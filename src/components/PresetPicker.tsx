@@ -3,6 +3,7 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from 
 
 import { Theme, themed, useTheme } from '../theme';
 import {
+  ChangePresetResult,
   DeletedPreset,
   MAX_CUSTOM_PRESETS,
   MAX_PRESET_NAME_LENGTH,
@@ -14,6 +15,7 @@ import {
   isCustomPreset,
   matchingAnyPreset,
   presetNameMessage,
+  presetUpdateOffer,
   suggestPresetName,
 } from '../engine';
 
@@ -25,6 +27,9 @@ export interface PresetPickerProps {
   onSave: (name: string) => SavePresetResult;
   onDelete: (id: string) => DeletedPreset | null;
   onRestore: (deleted: DeletedPreset) => void;
+  onRename: (id: string, name: string) => ChangePresetResult;
+  /** Overwrite a custom preset with the current tempo and toss settings. */
+  onUpdate: (id: string) => ChangePresetResult;
   /**
    * Presets change the phrase and calls, so applying one is locked while
    * practicing. Saving and deleting don't touch the running settings and
@@ -36,7 +41,10 @@ export interface PresetPickerProps {
 /**
  * One-tap practice setups, built-in and the performer's own. The preset the
  * settings still match is highlighted; settings that match none can be
- * saved under a name, and a selected custom preset can be deleted (with Undo).
+ * saved under a name, and a selected custom preset can be renamed or deleted
+ * (with Undo). A custom preset can be updated in place: with a new tempo
+ * while its settings still match, or with tweaked settings after it was
+ * applied here.
  */
 export function PresetPicker({
   settings,
@@ -45,44 +53,81 @@ export function PresetPicker({
   onSave,
   onDelete,
   onRestore,
+  onRename,
+  onUpdate,
   disabled = false,
 }: PresetPickerProps) {
   const styles = getStyles(useTheme());
   const theme = useTheme();
   const current = matchingAnyPreset(settings, customPresets);
-  const [naming, setNaming] = useState(false);
+  // The open name form: saving the settings as a new preset, or renaming one.
+  const [form, setForm] = useState<{ mode: 'save' } | { mode: 'rename'; id: string } | null>(null);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [deleted, setDeleted] = useState<DeletedPreset | null>(null);
+  // The custom preset applied (or saved) last, so tweaks can be written back to it.
+  const [lastCustomId, setLastCustomId] = useState<string | null>(null);
   const savable = canSavePreset(settings, customPresets);
+  const offer = presetUpdateOffer(settings, customPresets, lastCustomId);
+  const naming = form?.mode === 'save' && !current;
+  const renaming = form?.mode === 'rename' && current?.id === form.id;
 
-  const startNaming = () => {
-    setName(suggestPresetName(customPresets));
-    setError(null);
-    setNaming(true);
+  const apply = (preset: PracticePreset) => {
+    setLastCustomId(isCustomPreset(preset) ? preset.id : null);
+    setForm(null);
+    onApply(preset);
   };
-  const cancelNaming = () => {
-    setNaming(false);
+  const openForm = (next: { mode: 'save' } | { mode: 'rename'; id: string }, prefill: string) => {
+    setName(prefill);
     setError(null);
+    setForm(next);
+  };
+  const closeForm = () => {
+    setForm(null);
+    setError(null);
+  };
+  const showNameError = (problem: string | null) => {
+    if (problem === 'empty' || problem === 'taken') {
+      setError(presetNameMessage(problem));
+      return true;
+    }
+    return false;
   };
   const save = () => {
     const result = onSave(name);
     if (result.saved) {
-      setNaming(false);
-      setError(null);
+      closeForm();
       setDeleted(null);
+      setLastCustomId(result.saved.id);
       AccessibilityInfo.announceForAccessibility(`Saved preset ${result.saved.name}`);
-    } else if (result.problem === 'empty' || result.problem === 'taken') {
-      setError(presetNameMessage(result.problem));
-    } else {
+    } else if (!showNameError(result.problem)) {
       // The settings changed or the list filled up meanwhile; nothing to save.
-      setNaming(false);
+      closeForm();
+    }
+  };
+  const rename = () => {
+    if (form?.mode !== 'rename') return;
+    const result = onRename(form.id, name);
+    if (result.changed) {
+      closeForm();
+      AccessibilityInfo.announceForAccessibility(`Renamed preset to ${result.changed.name}`);
+    } else if (!showNameError(result.problem)) {
+      closeForm();
+    }
+  };
+  const update = () => {
+    if (!offer) return;
+    const result = onUpdate(offer.preset.id);
+    if (result.changed) {
+      setLastCustomId(result.changed.id);
+      AccessibilityInfo.announceForAccessibility(`Updated preset ${result.changed.name}`);
     }
   };
   const remove = (preset: PracticePreset) => {
     const gone = onDelete(preset.id);
     if (!gone) return;
     setDeleted(gone);
+    closeForm();
     AccessibilityInfo.announceForAccessibility(`Deleted preset ${preset.name}. Undo is available.`);
   };
   const undo = () => {
@@ -92,6 +137,8 @@ export function PresetPicker({
 
   let note: string;
   if (current) note = `${current.description} · ${current.bpm} BPM to start`;
+  else if (offer)
+    note = `Changed from “${offer.preset.name}” — update it, or save these as a new preset.`;
   else if (savable) note = 'Custom settings — save them to come back to them in one tap.';
   else
     note = `Custom settings. You have ${MAX_CUSTOM_PRESETS} presets of your own — delete one to save these.`;
@@ -114,7 +161,7 @@ export function PresetPicker({
                 selected && styles.chipSelected,
                 disabled && styles.disabled,
               ]}
-              onPress={() => onApply(preset)}
+              onPress={() => apply(preset)}
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected, disabled }}
@@ -131,33 +178,68 @@ export function PresetPicker({
       </View>
       <Text style={styles.description}>{note}</Text>
 
-      {current && isCustomPreset(current) ? (
-        <Pressable
-          style={styles.linkButton}
-          testID="preset-delete"
-          onPress={() => remove(current)}
-          accessibilityRole="button"
-          accessibilityLabel={`Delete preset ${current.name}`}
-          hitSlop={8}
-        >
-          <Text style={styles.deleteText}>Delete “{current.name}”</Text>
-        </Pressable>
+      {current && isCustomPreset(current) && !renaming ? (
+        <View style={styles.linkRow}>
+          <Pressable
+            style={styles.linkButton}
+            testID="preset-rename"
+            onPress={() => openForm({ mode: 'rename', id: current.id }, current.name)}
+            accessibilityRole="button"
+            accessibilityLabel={`Rename preset ${current.name}`}
+            hitSlop={8}
+          >
+            <Text style={styles.linkText}>Rename</Text>
+          </Pressable>
+          <Pressable
+            style={styles.linkButton}
+            testID="preset-delete"
+            onPress={() => remove(current)}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete preset ${current.name}`}
+            hitSlop={8}
+          >
+            <Text style={styles.deleteText}>Delete “{current.name}”</Text>
+          </Pressable>
+        </View>
       ) : null}
 
-      {!current && savable && !naming ? (
-        <Pressable
-          style={styles.button}
-          testID="preset-save"
-          onPress={startNaming}
-          accessibilityRole="button"
-          accessibilityLabel="Save as preset"
-          accessibilityHint="Saves the tempo, phrase and calls under a name"
-        >
-          <Text style={styles.buttonText}>Save as preset…</Text>
-        </Pressable>
+      {(offer || (!current && savable)) && !naming && !renaming ? (
+        <View style={styles.buttonRow}>
+          {offer ? (
+            <Pressable
+              style={styles.button}
+              testID="preset-update"
+              onPress={update}
+              accessibilityRole="button"
+              accessibilityLabel={
+                offer.kind === 'tempo'
+                  ? `Save ${settings.bpm} BPM to preset ${offer.preset.name}`
+                  : `Update preset ${offer.preset.name} with these settings`
+              }
+            >
+              <Text style={styles.buttonText} numberOfLines={1}>
+                {offer.kind === 'tempo'
+                  ? `Save ${settings.bpm} BPM to “${offer.preset.name}”`
+                  : `Update “${offer.preset.name}”`}
+              </Text>
+            </Pressable>
+          ) : null}
+          {!current && savable ? (
+            <Pressable
+              style={styles.button}
+              testID="preset-save"
+              onPress={() => openForm({ mode: 'save' }, suggestPresetName(customPresets))}
+              accessibilityRole="button"
+              accessibilityLabel="Save as preset"
+              accessibilityHint="Saves the tempo, phrase and calls under a name"
+            >
+              <Text style={styles.buttonText}>{offer ? 'Save as new…' : 'Save as preset…'}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
 
-      {naming && !current ? (
+      {naming || renaming ? (
         <View style={styles.form}>
           <TextInput
             style={[styles.input, error ? styles.inputError : null]}
@@ -167,31 +249,33 @@ export function PresetPicker({
               setError(null);
             }}
             testID="preset-name"
-            onSubmitEditing={save}
+            onSubmitEditing={renaming ? rename : save}
             maxLength={MAX_PRESET_NAME_LENGTH}
             autoFocus
             selectTextOnFocus
             returnKeyType="done"
             placeholder="Preset name"
             placeholderTextColor={theme.textMuted}
-            accessibilityLabel="Preset name"
+            accessibilityLabel={renaming ? 'New preset name' : 'Preset name'}
           />
           {error ? (
             <Text style={styles.error} accessibilityLiveRegion="polite">
               {error}
             </Text>
           ) : null}
-          <View style={styles.formButtons}>
+          <View style={styles.buttonRow}>
             <Pressable
               style={[styles.button, styles.primaryButton]}
               testID="preset-save-confirm"
-              onPress={save}
+              onPress={renaming ? rename : save}
               accessibilityRole="button"
-              accessibilityLabel="Save preset"
+              accessibilityLabel={renaming ? 'Rename preset' : 'Save preset'}
             >
-              <Text style={[styles.buttonText, styles.primaryButtonText]}>Save</Text>
+              <Text style={[styles.buttonText, styles.primaryButtonText]}>
+                {renaming ? 'Rename' : 'Save'}
+              </Text>
             </Pressable>
-            <Pressable style={styles.button} onPress={cancelNaming} accessibilityRole="button">
+            <Pressable style={styles.button} onPress={closeForm} accessibilityRole="button">
               <Text style={styles.buttonText}>Cancel</Text>
             </Pressable>
           </View>
@@ -245,10 +329,12 @@ const getStyles = themed((t: Theme) =>
     chipTextSelected: { color: t.onPrimary },
     disabled: { opacity: 0.4 },
     description: { fontSize: 14, color: t.textMuted, marginTop: 8 },
-    linkButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 4 },
+    linkRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginTop: 8 },
+    linkButton: { paddingVertical: 4 },
+    linkText: { fontSize: 15, fontWeight: '600', color: t.text, textDecorationLine: 'underline' },
     deleteText: { fontSize: 15, fontWeight: '600', color: t.dangerText },
     button: {
-      alignSelf: 'flex-start',
+      flexShrink: 1,
       marginTop: 10,
       paddingVertical: 10,
       paddingHorizontal: 16,
@@ -271,7 +357,7 @@ const getStyles = themed((t: Theme) =>
     },
     inputError: { borderColor: t.dangerText },
     error: { fontSize: 14, color: t.dangerText, marginTop: 6 },
-    formButtons: { flexDirection: 'row', gap: 8 },
+    buttonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     undoBar: {
       flexDirection: 'row',
       alignItems: 'center',
