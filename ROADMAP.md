@@ -34,7 +34,7 @@
 - [ ] Camera: check on device that the preview doesn't add audio/haptic latency or drain the
       battery too fast in a long session; consider a "dim display" option.
 - [ ] Camera: optional recording of a session (needs microphone permission decision, storage).
-- [ ] Practice page: page dots / a swipe hint the first time the app opens.
+- [x] Practice page: page dots / a swipe hint the first time the app opens.
 
 ## Discovered along the way
 
@@ -82,6 +82,8 @@
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
 - [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
-- [ ] Custom presets: rename, reorder, and "update preset with current settings".
+- [x] Custom presets: rename, and "update preset with current settings" (also "Save N BPM to …").
+- [ ] Custom presets: reorder (drag, or move up/down).
+- [ ] Page dots: tap a dot to switch pages; check on device they don't sit under the iOS home indicator (safe-area insets).
 - [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
 - [ ] Show which preset a History session used (needs the preset id saved with the session).

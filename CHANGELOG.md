@@ -1,5 +1,50 @@
 # Changelog
 
+## 2026-11-06
+
+### Added
+
+- **Rename your presets.** Select one of your own presets: **Rename** sits next to **Delete**.
+  The name form opens with the current name; the same rules as saving apply (no empty names, no
+  name another preset already has; changing only the letter case is fine).
+- **Update a preset with new settings** (roadmap: "update preset with current settings"). Apply
+  one of your presets and change its calls, phrase or lead counts: Presets says _Changed from
+  "name"_ and offers **Update "name"** next to **Save as new…**. Change only the tempo and it
+  offers **Save 150 BPM to "name"**. Built-in presets are never changed.
+  - Engine: `renameCustomPreset`, `renameProblem`, `updateCustomPreset`, `presetUpdateOffer`;
+    the `useCustomPresets` hook gains `renamePreset` / `updatePreset`.
+- **Page dots** at the bottom of both pages, and a first-open hint: the practice link reads
+  **Swipe left for settings & stats ›** until you've opened the settings page once (remembered).
+  Page math lives in `src/engine/pages.ts` and clamps iOS overscroll to a real page.
+- Smoke test: 7 new checks (46 total). Screenshot `11-update-preset` added to the README gallery.
+- 15 new unit tests (367 total).
+
+### Fixed
+
+- An Odd/Even preset saved with "and" calls was described as "Odd calls 1–15 and"; it now reads
+  "Odd calls 1–15 with ands". Spotted in today's screenshots.
+
+### Decisions
+
+- **Update** is offered for the custom preset you applied (or saved) last on the settings page,
+  remembered until you apply another preset; it isn't remembered across app restarts (after a
+  restart, apply the preset again first). This keeps the button from guessing which preset a
+  random tweak belongs to.
+- Update is refused if the new settings already match another preset, so there are still never
+  two chips for one drill.
+- Rename, Update and Delete stay available while practicing; they don't touch the running drill.
+- The "seen the settings page" flag lives in the stored settings blob (`swipeHintSeen`) rather
+  than a new storage key; settings saved before today show the hint once.
+
+### To test on your phone
+
+- First open after `git pull`: the link under Start should say "Swipe left for settings &
+  stats ›"; swipe left once and it goes back to "Settings & stats ›", also after a restart.
+- Check the two dots sit clear of the iPhone home indicator on the practice page and don't cover
+  anything important at the bottom of the settings page.
+- Save a preset, rename it, change its calls and tap **Update**; tap another preset and back:
+  the update should stick.
+
 ## 2026-11-05
 
 ### Changed (Niv's feedback, same day)

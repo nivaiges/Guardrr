@@ -20,7 +20,7 @@ The app opens on the **practice screen**: the **front camera** fills the screen 
 a mirror) so you can watch your toss, with the count display and **Start** / **Drop** over it. The
 round button at the top right **flips** to the back camera, for propping the phone up facing you.
 Nothing is recorded. **Swipe left** (or tap **Settings & stats ›**) for everything else: stats,
-History, presets, camera options and settings.
+History, presets, camera options and settings. Two dots at the bottom show which page you're on.
 
 Press **Start** and practice. The display shows the current count, the toss being
 thrown and the next call once it's spoken, flashes **Release!** and **Catch!**, counts down to the
@@ -39,7 +39,8 @@ or clear the whole history (it asks first); every delete can be undone right aft
 **Presets** set up a whole drill in one tap: _Standard 16_, _Quick 8_, _Singles & doubles_
 (short tosses with "and" catches), _Big tosses_ (5–8, called 8 counts early) and _Slow 32_. Set
 things up your own way and tap **Save as preset…** to keep it as a chip of your own (up to 12;
-select one to delete it, with Undo).
+select one to rename or delete it, with Undo). Tweak one of your presets and **Update "name"**
+writes the change back to it; change only the tempo and it offers **Save 150 BPM to "name"**.
 
 Below that you can fine-tune:
 
@@ -81,9 +82,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![Stats and history after Stop](docs/screenshots/05-stats-history.png) | ![History in edit mode](docs/screenshots/06-history-edit.png) | ![Settings → Calls with Odd picked](docs/screenshots/07-settings-calls.png) | ![Dark theme on the release](docs/screenshots/08-dark-release.png) |
 
-| Saving a preset                                             | Your preset                                                      |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) |
+| Saving a preset                                             | Your preset                                                      | Updating it                                                                                  |
+| ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) |
 
 ## Tech
 
