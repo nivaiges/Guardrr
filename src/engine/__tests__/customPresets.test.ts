@@ -12,6 +12,10 @@ import {
   parseStoredCustomPresets,
   presetNameMessage,
   presetNameProblem,
+  presetUpdateOffer,
+  renameCustomPreset,
+  renameProblem,
+  updateCustomPreset,
   restoreCustomPreset,
   saveCustomPreset,
   serializeCustomPresets,
@@ -269,5 +273,105 @@ describe('storing custom presets', () => {
     }));
     const parsed = parseStoredCustomPresets(JSON.stringify({ version: 1, presets: many }));
     expect(parsed).toHaveLength(MAX_CUSTOM_PRESETS);
+  });
+});
+
+describe('renameCustomPreset', () => {
+  it('renames in place, keeping id, settings and order', () => {
+    const two = saveCustomPreset(
+      withOne(),
+      { ...drill, toss: { ...drill.toss, leadCounts: 2 } },
+      'B',
+      2000,
+    ).presets;
+    const { presets, changed, problem } = renameCustomPreset(two, two[0].id, '  Odd   drill 2 ');
+    expect(problem).toBeNull();
+    expect(changed).toEqual({ ...two[0], name: 'Odd drill 2' });
+    expect(presets.map((p) => p.name)).toEqual(['Odd drill 2', 'B']);
+    expect(presets[1]).toBe(two[1]);
+  });
+
+  it('allows changing only the letter case of its own name', () => {
+    const one = withOne();
+    expect(renameProblem(one, one[0].id, 'ODD DRILL')).toBeNull();
+    expect(renameCustomPreset(one, one[0].id, 'ODD DRILL').changed?.name).toBe('ODD DRILL');
+  });
+
+  it('refuses empty names, names of other presets and unknown ids', () => {
+    const two = saveCustomPreset(
+      withOne(),
+      { ...drill, toss: { ...drill.toss, leadCounts: 2 } },
+      'B',
+      2000,
+    ).presets;
+    expect(renameCustomPreset(two, two[0].id, '   ').problem).toBe('empty');
+    expect(renameCustomPreset(two, two[0].id, 'b').problem).toBe('taken');
+    expect(renameCustomPreset(two, two[0].id, PRACTICE_PRESETS[0].name).problem).toBe('taken');
+    const missing = renameCustomPreset(two, 'custom-nope', 'X');
+    expect(missing.problem).toBe('missing');
+    expect(missing.presets).toEqual(two);
+  });
+});
+
+describe('updateCustomPreset', () => {
+  it('overwrites tempo, toss and description, keeping name, id and place', () => {
+    const one = withOne();
+    const tweaked: PracticeSettings = {
+      ...drill,
+      bpm: 140,
+      toss: { ...drill.toss, allowedTossCounts: [5, 3], allowRepeats: true },
+    };
+    const { presets, changed, problem } = updateCustomPreset(one, one[0].id, tweaked);
+    expect(problem).toBeNull();
+    expect(changed).toEqual({
+      id: one[0].id,
+      name: 'Odd drill',
+      bpm: 140,
+      toss: { ...tweaked.toss, allowedTossCounts: [3, 5] },
+      description: 'Calls 3, 5 · 8 counts · called 4 early',
+    });
+    expect(presets).toEqual([changed]);
+    expect(matchingAnyPreset(tweaked, presets)?.id).toBe(one[0].id);
+  });
+
+  it('refuses settings that already match another preset', () => {
+    const one = withOne();
+    const builtIn = applyPreset(drill, PRACTICE_PRESETS[1]);
+    expect(updateCustomPreset(one, one[0].id, builtIn).problem).toBe('duplicate');
+    expect(updateCustomPreset(one, 'custom-nope', drill).problem).toBe('missing');
+  });
+
+  it('round-trips through storage', () => {
+    const one = withOne();
+    const { presets } = updateCustomPreset(one, one[0].id, { ...drill, bpm: 99 });
+    expect(parseStoredCustomPresets(serializeCustomPresets(presets))).toEqual(presets);
+  });
+});
+
+describe('presetUpdateOffer', () => {
+  it('offers the tempo when a custom preset matches but the tempo moved', () => {
+    const one = withOne();
+    expect(presetUpdateOffer(drill, one, null)).toBeNull();
+    expect(presetUpdateOffer({ ...drill, bpm: 150 }, one, null)).toEqual({
+      preset: one[0],
+      kind: 'tempo',
+    });
+  });
+
+  it('never offers to change a built-in preset', () => {
+    const builtIn = applyPreset(drill, PRACTICE_PRESETS[1]);
+    expect(presetUpdateOffer({ ...builtIn, bpm: builtIn.bpm + 10 }, withOne(), null)).toBeNull();
+  });
+
+  it('offers the last applied custom preset once its settings were changed', () => {
+    const one = withOne();
+    const changed = { ...drill, toss: { ...drill.toss, leadCounts: 3 } };
+    expect(presetUpdateOffer(changed, one, null)).toBeNull();
+    expect(presetUpdateOffer(changed, one, one[0].id)).toEqual({
+      preset: one[0],
+      kind: 'settings',
+    });
+    // Deleted since: nothing to update.
+    expect(presetUpdateOffer(changed, [], one[0].id)).toBeNull();
   });
 });

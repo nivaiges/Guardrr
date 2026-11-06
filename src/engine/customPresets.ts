@@ -146,6 +146,100 @@ export function saveCustomPreset(
   return { presets: [...custom, saved], saved, problem: null };
 }
 
+/** Why a preset name can't change to `name` (keeping its own name, in any case, is fine). */
+export function renameProblem(
+  custom: readonly PracticePreset[],
+  id: string,
+  name: string,
+): PresetNameProblem | null {
+  return presetNameProblem(
+    name,
+    custom.filter((p) => p.id !== id),
+  );
+}
+
+export interface ChangePresetResult {
+  presets: PracticePreset[];
+  /** The changed preset, or null when nothing changed (see `problem`). */
+  changed: PracticePreset | null;
+  problem: PresetNameProblem | 'missing' | 'duplicate' | null;
+}
+
+/** Give a custom preset a new name; it keeps its id, settings and place in the list. */
+export function renameCustomPreset(
+  custom: readonly PracticePreset[],
+  id: string,
+  name: string,
+): ChangePresetResult {
+  const index = custom.findIndex((p) => p.id === id);
+  if (index < 0) return { presets: [...custom], changed: null, problem: 'missing' };
+  const problem = renameProblem(custom, id, name);
+  if (problem) return { presets: [...custom], changed: null, problem };
+  const changed = { ...custom[index], name: normalizePresetName(name) };
+  return { presets: custom.map((p, i) => (i === index ? changed : p)), changed, problem: null };
+}
+
+/**
+ * Overwrite a custom preset with the current tempo and toss settings (same
+ * name, id and place). Refused when the settings already match a different
+ * preset, so the list never holds two copies of one setup.
+ */
+export function updateCustomPreset(
+  custom: readonly PracticePreset[],
+  id: string,
+  settings: PracticeSettings,
+): ChangePresetResult {
+  const index = custom.findIndex((p) => p.id === id);
+  if (index < 0) return { presets: [...custom], changed: null, problem: 'missing' };
+  const other = matchingAnyPreset(
+    settings,
+    custom.filter((p) => p.id !== id),
+  );
+  if (other) return { presets: [...custom], changed: null, problem: 'duplicate' };
+  const toss: TossSettings = {
+    ...settings.toss,
+    allowedTossCounts: [...settings.toss.allowedTossCounts].sort((a, b) => a - b),
+  };
+  const changed: PracticePreset = {
+    ...custom[index],
+    description: describeToss(toss),
+    bpm: clampBpm(settings.bpm),
+    toss,
+  };
+  return { presets: custom.map((p, i) => (i === index ? changed : p)), changed, problem: null };
+}
+
+export type PresetUpdateKind = 'tempo' | 'settings';
+
+export interface PresetUpdateOffer {
+  preset: PracticePreset;
+  /**
+   * 'tempo': the settings still match the preset but the tempo moved
+   * ("Save 150 BPM to …"); 'settings': the settings were changed after the
+   * preset was applied and now match no preset ("Update … with these").
+   */
+  kind: PresetUpdateKind;
+}
+
+/**
+ * Which custom preset the performer could update, if any. `lastCustomId` is
+ * the custom preset applied (or saved) most recently on this screen, so a
+ * tweaked drill can be written back to the preset it came from.
+ */
+export function presetUpdateOffer(
+  settings: PracticeSettings,
+  custom: readonly PracticePreset[],
+  lastCustomId: string | null,
+): PresetUpdateOffer | null {
+  const current = matchingAnyPreset(settings, custom);
+  if (current) {
+    if (!isCustomPreset(current) || clampBpm(settings.bpm) === current.bpm) return null;
+    return { preset: current, kind: 'tempo' };
+  }
+  const last = custom.find((p) => p.id === lastCustomId);
+  return last ? { preset: last, kind: 'settings' } : null;
+}
+
 export interface DeletedPreset {
   preset: PracticePreset;
   /** Where it was, so Undo puts it back in the same place. */
