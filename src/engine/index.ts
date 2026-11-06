@@ -18,3 +18,4 @@ export * from './voices';
 export * from './stripLayout';
 export * from './history';
 export * from './customPresets';
+export * from './pages';

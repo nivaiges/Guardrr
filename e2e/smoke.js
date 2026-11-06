@@ -123,9 +123,21 @@ async function main() {
       await page.getByTestId('camera-preview-back').isVisible(),
     );
     await page.getByTestId('camera-flip').click();
+    const dots = page.getByTestId('page-dots');
+    const link = page.getByTestId('go-to-settings');
+    check(
+      'first open: page dots and a swipe hint',
+      (await dots.getAttribute('aria-label')) === 'Page 1 of 2: Practice' &&
+        (await link.textContent()) === 'Swipe left for settings & stats ›',
+    );
     // The rest of the test runs at Standard 16 (120 BPM, calls 1–7) on the settings page.
-    await page.getByTestId('go-to-settings').click();
+    await link.click();
     await page.getByRole('radio', { name: 'Standard 16' }).click();
+    check(
+      'the dots follow the page and the hint goes away',
+      (await dots.getAttribute('aria-label')) === 'Page 2 of 2: Settings & stats' &&
+        (await link.textContent()) === 'Settings & stats ›',
+    );
     await page.getByTestId('go-to-practice').click();
     check('Standard 16 sets 120 BPM', await page.getByText(`${BPM} BPM`).first().isVisible());
     const stripRows = await page.locator('[data-testid="phrase-strip-row"]').count();
@@ -215,6 +227,10 @@ async function main() {
     );
     const historyRow = page.getByLabel(/^Today .*: 1 toss, 1 dropped, 0% caught/);
     check('the session is in History after a reload', await historyRow.isVisible());
+    check(
+      'the swipe hint stays gone after a reload',
+      (await link.textContent()) === 'Settings & stats ›',
+    );
 
     // 5b. Hand-pick calls 3, 5 and 7: only those are called, and the set is saved.
     for (const call of [1, 2, 4, 6]) await page.getByTestId(`call-chip-${call}`).click();

@@ -18,6 +18,7 @@ import {
 import { createVoice, useCallVoices } from './src/audio';
 import { CameraBackdrop } from './src/components/CameraBackdrop';
 import { CameraSettings } from './src/components/CameraSettings';
+import { PageDots } from './src/components/PageDots';
 import { PracticeDisplay } from './src/components/PracticeDisplay';
 import { PresetPicker } from './src/components/PresetPicker';
 import { SessionHistoryCard } from './src/components/SessionHistoryCard';
@@ -26,16 +27,19 @@ import { SettingsPanel } from './src/components/SettingsPanel';
 import {
   CameraSettings as CameraSettingsValue,
   CueOptions,
+  PageIndex,
   PracticePreset,
   TossSettings,
   VOICE_TEST_PHRASE,
   applyPreset,
   latestTossDropped,
+  pageFromOffset,
   practiceDisplay,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
   resolveVoice,
   sessionRecord,
+  settingsLinkLabel,
   summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
@@ -138,14 +142,18 @@ export default function App() {
   // Two pages side by side: practice (camera) and settings & stats.
   const { width, height } = useWindowDimensions();
   const pager = useRef<ScrollViewInstance>(null);
-  const [page, setPage] = useState(0);
-  const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (width > 0) setPage(Math.round(e.nativeEvent.contentOffset.x / width));
-  };
-  const goToPage = (p: number) => {
+  const [page, setPage] = useState<PageIndex>(0);
+  const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
+    setPage(pageFromOffset(e.nativeEvent.contentOffset.x, width));
+  const goToPage = (p: PageIndex) => {
     pager.current?.scrollTo({ x: p * width, animated: true });
     setPage(p);
   };
+  // The first visit to the settings page retires the "swipe left" hint.
+  const { swipeHintSeen } = saved;
+  useEffect(() => {
+    if (page === 1 && !swipeHintSeen) update((s) => ({ ...s, swipeHintSeen: true }));
+  }, [page, swipeHintSeen, update]);
 
   return (
     <View style={styles.root}>
@@ -235,7 +243,7 @@ export default function App() {
               accessibilityLabel="Settings, stats and history"
               accessibilityHint="Or swipe left"
             >
-              <Text style={styles.pageLinkText}>Settings & stats ›</Text>
+              <Text style={styles.pageLinkText}>{settingsLinkLabel(swipeHintSeen)}</Text>
             </Pressable>
           </View>
         </View>
@@ -306,6 +314,9 @@ export default function App() {
           />
         </ScrollView>
       </ScrollView>
+      <View style={styles.dots} pointerEvents="box-none">
+        <PageDots page={page} />
+      </View>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
     </View>
   );
@@ -349,7 +360,8 @@ const getStyles = themed((t: Theme) =>
       justifyContent: 'center',
       paddingHorizontal: 16,
     },
-    controls: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 32, gap: 10 },
+    controls: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 40, gap: 10 },
+    dots: { position: 'absolute', left: 0, right: 0, bottom: 12, alignItems: 'center' },
     buttonRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
     startButton: {
       paddingVertical: 18,

@@ -19,6 +19,7 @@ const custom: PracticeSettings = {
   voiceRate: 0.8,
   voice: 'com.apple.voice.enhanced.Ava',
   camera: { enabled: false, facing: 'back' },
+  swipeHintSeen: true,
 };
 
 describe('stored settings', () => {
@@ -137,5 +138,14 @@ describe('stored settings', () => {
     expect(parse(null)).toEqual({ enabled: true, facing: 'front' });
     // Settings saved before the camera existed get the camera on.
     expect(parseStoredSettings(JSON.stringify({ bpm: 120 })).camera.enabled).toBe(true);
+  });
+
+  it('shows the swipe hint until the settings page has been seen', () => {
+    expect(DEFAULT_PRACTICE_SETTINGS.swipeHintSeen).toBe(false);
+    const parse = (swipeHintSeen: unknown) =>
+      parseStoredSettings(JSON.stringify({ swipeHintSeen })).swipeHintSeen;
+    expect(parse(true)).toBe(true);
+    expect(parse('yes')).toBe(false);
+    expect(parse(undefined)).toBe(false);
   });
 });

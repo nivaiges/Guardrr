@@ -65,6 +65,11 @@ export interface PracticeSettings {
   voice: string | null;
   /** Camera preview on the practice screen. */
   camera: CameraSettings;
+  /**
+   * Whether the performer has opened the settings page once; until then the
+   * practice page says it's a swipe away (see pages.ts).
+   */
+  swipeHintSeen: boolean;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -75,6 +80,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   voiceRate: DEFAULT_VOICE_RATE,
   voice: null,
   camera: DEFAULT_CAMERA_SETTINGS,
+  swipeHintSeen: false,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -148,5 +154,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,
     voice: isStoredVoiceId(raw.voice) ? raw.voice : null,
     camera: parseCamera(raw.camera),
+    swipeHintSeen: bool(raw.swipeHintSeen, false),
   };
 }
