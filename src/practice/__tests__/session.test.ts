@@ -160,4 +160,65 @@ describe('createPracticeSession', () => {
     expect(() => session.start()).toThrow(RangeError);
     expect(clicks.play).not.toHaveBeenCalled();
   });
+
+  describe('changing settings while running', () => {
+    const EIGHT = { ...DEFAULT_TOSS_SETTINGS, phraseLength: 8, leadCounts: 2 };
+
+    it('keeps the toss in the air, then plays the new phrase length', () => {
+      const { session, cues } = setup();
+      session.start();
+      jest.advanceTimersByTime(18 * 500); // count 3 of toss 1
+      session.setSettings(EIGHT);
+      expect(session.pendingChange()).toMatchObject({ phrase: 2, committed: false });
+      expect(session.activeSettings()).toBe(DEFAULT_TOSS_SETTINGS);
+      jest.advanceTimersByTime(14 * 500 + 8 * 500 * 2);
+      const releases = cues.filter((c) => c.release).map((c) => c.countIndex);
+      expect(releases).toEqual([16, 32, 40, 48]);
+      expect(session.activeSettings()).toBe(EIGHT);
+      expect(session.pendingChange()).toBeNull();
+      session.stop();
+    });
+
+    it('applies new click options from the next tick', () => {
+      const { session, clicks } = setup();
+      session.start();
+      jest.advanceTimersByTime(16 * 500 - 1);
+      session.setCueOptions({ accentDownbeat: false });
+      clicks.play.mockClear();
+      jest.advanceTimersByTime(1);
+      expect(clicks.play).toHaveBeenLastCalledWith('count');
+      session.stop();
+    });
+
+    it('speaks the next call in a new voice', () => {
+      const { session, voice } = setup();
+      const other = { say: jest.fn(), stop: jest.fn() };
+      session.start();
+      session.setVoice(other);
+      jest.advanceTimersByTime(13 * 500);
+      expect(voice.say).not.toHaveBeenCalled();
+      expect(other.say).toHaveBeenCalledTimes(1);
+      session.stop();
+      expect(other.stop).toHaveBeenCalled();
+    });
+
+    it('rejects invalid settings, running or not', () => {
+      const { session } = setup();
+      const bad = { ...DEFAULT_TOSS_SETTINGS, allowedTossCounts: [] };
+      expect(() => session.setSettings(bad)).toThrow();
+      session.start();
+      expect(() => session.setSettings(bad)).toThrow();
+      expect(session.activeSettings()).toBe(DEFAULT_TOSS_SETTINGS);
+      session.stop();
+    });
+
+    it('uses settings changed while stopped on the next start', () => {
+      const { session, cues } = setup();
+      session.setSettings(EIGHT);
+      session.start();
+      jest.advanceTimersByTime(8 * 500 * 2 - 1);
+      expect(cues.filter((c) => c.release).map((c) => c.countIndex)).toEqual([8]);
+      session.stop();
+    });
+  });
 });
