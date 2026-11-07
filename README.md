@@ -58,7 +58,10 @@ Below that you can fine-tune:
   it's spoken (Slow / Normal / Fast / Faster) and a **Test voice** button to check speed and
   volume before you start.
 
-Phrase, call and sound settings apply on the next Start. Combinations that work but may be
+Everything can be changed while practicing, without pressing Stop: tempo, sounds and voice speed
+apply right away; phrase, lead counts and calls (or a preset) start with the next toss that
+hasn't been called yet — the toss in the air finishes its phrase first, and Settings says which
+toss the change starts with. Only choosing and testing voices waits for Stop. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
 settings. Settings are saved on the phone and come back the next time you open the app.
 The screen stays on while practicing, and the app follows the phone's light/dark appearance.
@@ -82,9 +85,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![Stats and history after Stop](docs/screenshots/05-stats-history.png) | ![History in edit mode](docs/screenshots/06-history-edit.png) | ![Settings → Calls with Odd picked](docs/screenshots/07-settings-calls.png) | ![Dark theme on the release](docs/screenshots/08-dark-release.png) |
 
-| Saving a preset                                             | Your preset                                                      | Updating it                                                                                  |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) |
+| Saving a preset                                             | Your preset                                                      | Updating it                                                                                  | Changing while practicing                                                                              |
+| ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2"](docs/screenshots/12-live-change.png) |
 
 ## Tech
 

@@ -31,9 +31,9 @@ export interface PresetPickerProps {
   /** Overwrite a custom preset with the current tempo and toss settings. */
   onUpdate: (id: string) => ChangePresetResult;
   /**
-   * Presets change the phrase and calls, so applying one is locked while
-   * practicing. Saving and deleting don't touch the running settings and
-   * stay available.
+   * Lock applying presets (saving, renaming and deleting stay available).
+   * Not used while practicing any more: a preset applied mid-practice starts
+   * with the next toss that hasn't been called, like any settings change.
    */
   disabled?: boolean;
 }

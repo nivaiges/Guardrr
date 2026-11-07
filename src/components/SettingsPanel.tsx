@@ -7,6 +7,7 @@ import {
   MAX_BPM,
   MIN_BPM,
   PHRASE_LENGTH_OPTIONS,
+  PendingSettingsChange,
   TossSettings,
   VOICE_RATE_OPTIONS,
   VoiceInfo,
@@ -16,6 +17,7 @@ import {
   countInLabel,
   describeWarning,
   effectiveCountIn,
+  liveSettingsNote,
   settingsWarnings,
   tapTempoBpm,
   tossRangeOf,
@@ -51,8 +53,14 @@ export interface SettingsPanelProps {
   onReloadVoices?: () => void;
   /** Speak a sample call at the chosen speed, with `voice` if given (else the chosen one). */
   onTestVoice: (voice?: string | null) => void;
-  /** While practicing only the tempo can change; the rest applies on the next start. */
+  /**
+   * While practicing everything can change: tempo, sounds and voice speed
+   * right away, phrase and calls from the next toss not yet called (see
+   * `pendingChange`). Only voice previews wait for Stop (they'd talk over the calls).
+   */
   running: boolean;
+  /** Phrase/call changes waiting for their toss while practicing. */
+  pendingChange?: PendingSettingsChange | null;
 }
 
 function TapTempoButton({ onBpm }: { onBpm: (bpm: number) => void }) {
@@ -123,13 +131,16 @@ export function SettingsPanel({
   onReloadVoices,
   onTestVoice,
   running,
+  pendingChange = null,
 }: SettingsPanelProps) {
   const styles = getStyles(useTheme());
   const range = tossRangeOf(settings);
   const callNote = callSetNote(settings);
   const announceCount = announceCountInPhrase(settings.phraseLength, settings.leadCounts);
   const warnings = settingsWarnings(settings);
-  const locked = running;
+  // Previews speak, so they'd talk over the practice calls.
+  const previewLocked = running;
+  const liveNote = liveSettingsNote(running, pendingChange);
   const countInUsed = effectiveCountIn(countIn, settings);
 
   return (
@@ -150,13 +161,16 @@ export function SettingsPanel({
       <Text style={styles.heading} accessibilityRole="header">
         Phrase
       </Text>
-      {locked ? <Text style={styles.note}>Stop to change these.</Text> : null}
+      {liveNote ? (
+        <Text style={styles.note} accessibilityLiveRegion="polite" testID="live-settings-note">
+          {liveNote}
+        </Text>
+      ) : null}
       <Segmented
         label="Counts per phrase"
         options={PHRASE_LENGTH_OPTIONS}
         value={settings.phraseLength}
         onChange={(n) => onSettingsChange(withPhraseLength(settings, n))}
-        disabled={locked}
       />
       <Stepper
         label={`Call ${settings.leadCounts} before release (on count ${announceCount})`}
@@ -164,14 +178,12 @@ export function SettingsPanel({
         min={1}
         max={settings.phraseLength}
         onChange={(n) => onSettingsChange(withLeadCounts(settings, n))}
-        disabled={locked}
       />
       <Segmented
         label={`Count-in before the first toss (${countInUsed} counts)`}
         options={COUNT_IN_OPTIONS}
         value={countIn}
         onChange={onCountInChange}
-        disabled={locked}
         optionLabel={countInLabel}
         optionAccessibilityLabel={(n) => (n === 0 ? 'A full phrase' : `${n} counts`)}
       />
@@ -185,7 +197,6 @@ export function SettingsPanel({
         min={1}
         max={range.max}
         onChange={(min) => onSettingsChange(withTossRange(settings, { ...range, min }))}
-        disabled={locked}
       />
       <Stepper
         label="Longest toss"
@@ -193,21 +204,18 @@ export function SettingsPanel({
         min={range.min}
         max={settings.phraseLength}
         onChange={(max) => onSettingsChange(withTossRange(settings, { ...range, max }))}
-        disabled={locked}
       />
       <Toggle
         label={'Include "and" calls (e.g. "2 and")'}
         value={range.andCounts}
         onChange={(andCounts) => onSettingsChange(withAndCalls(settings, andCounts))}
-        disabled={locked}
       />
-      <CallPicker settings={settings} onChange={onSettingsChange} disabled={locked} />
+      <CallPicker settings={settings} onChange={onSettingsChange} />
       {callNote ? <Text style={styles.note}>{callNote}</Text> : null}
       <Toggle
         label="Allow the same call twice in a row"
         value={settings.allowRepeats}
         onChange={(v) => onSettingsChange(withAllowRepeats(settings, v))}
-        disabled={locked}
       />
 
       <Text style={styles.heading} accessibilityRole="header">
@@ -217,25 +225,21 @@ export function SettingsPanel({
         label="Accent count 1"
         value={cueOptions.accentDownbeat ?? true}
         onChange={(accentDownbeat) => onCueOptionsChange({ ...cueOptions, accentDownbeat })}
-        disabled={locked}
       />
       <Toggle
         label={'Quiet click on the "and"s'}
         value={cueOptions.andClicks ?? false}
         onChange={(andClicks) => onCueOptionsChange({ ...cueOptions, andClicks })}
-        disabled={locked}
       />
       <Toggle
         label="Vibrate on the release (count 1)"
         value={cueOptions.haptics ?? true}
         onChange={(haptics) => onCueOptionsChange({ ...cueOptions, haptics })}
-        disabled={locked}
       />
       <Toggle
         label="Light tap on the catch"
         value={cueOptions.catchHaptics ?? false}
         onChange={(catchHaptics) => onCueOptionsChange({ ...cueOptions, catchHaptics })}
-        disabled={locked}
       />
 
       <Text style={styles.heading} accessibilityRole="header">
@@ -247,20 +251,21 @@ export function SettingsPanel({
         onChange={onVoiceChange}
         onPreview={onTestVoice}
         onOpen={onReloadVoices}
-        disabled={locked}
+        disabled={previewLocked}
       />
-      <VoiceRatePicker value={voiceRate} onChange={onVoiceRateChange} disabled={locked} />
+      <VoiceRatePicker value={voiceRate} onChange={onVoiceRateChange} disabled={false} />
       <Pressable
         style={({ pressed }) => [styles.tap, pressed && styles.tapPressed]}
         onPress={() => onTestVoice()}
-        disabled={locked}
+        disabled={previewLocked}
         accessibilityRole="button"
         accessibilityLabel="Test voice"
         accessibilityHint="Speaks a sample call with the chosen voice and speed"
-        accessibilityState={{ disabled: locked }}
+        accessibilityState={{ disabled: previewLocked }}
       >
-        <Text style={[styles.tapText, locked && styles.dimmed]}>Test voice</Text>
+        <Text style={[styles.tapText, previewLocked && styles.dimmed]}>Test voice</Text>
       </Pressable>
+      {previewLocked ? <Text style={styles.note}>Stop to choose or test a voice.</Text> : null}
 
       {warnings.length > 0 ? (
         <View style={styles.warnings} accessibilityRole="summary" accessibilityLiveRegion="polite">

@@ -4,6 +4,7 @@ import { ClickPlayer, configurePracticeAudio, createClickPlayer, createVoice } f
 import {
   CueOptions,
   EMPTY_STATS,
+  PendingSettingsChange,
   PracticeCue,
   SessionStats,
   TossSettings,
@@ -21,6 +22,10 @@ export interface PracticeSessionState {
   stats: SessionStats;
   /** Wall-clock time (epoch ms) of the latest Start, or null before the first. */
   startedAt: number | null;
+  /** Toss settings of the phrase being played (the given settings when stopped). */
+  activeSettings: TossSettings;
+  /** Settings changed while practicing that wait for their phrase, or null. */
+  pendingChange: PendingSettingsChange | null;
   start(): void;
   stop(): void;
   /** Mark (or un-mark) the latest toss as dropped; also works after Stop. */
@@ -29,7 +34,8 @@ export interface PracticeSessionState {
 
 /**
  * React wrapper around createPracticeSession. Changing `bpm` while running
- * re-tempos smoothly; changing settings takes effect on the next start.
+ * re-tempos smoothly; click options and the voice apply right away; toss
+ * settings start at the next phrase whose call hasn't been spoken.
  */
 export function usePracticeSession(
   bpm: number,
@@ -47,7 +53,22 @@ export function usePracticeSession(
   const session = useRef<PracticeSession | null>(null);
   const clicks = useRef<ClickPlayer | null>(null);
   const bpmRef = useRef(bpm);
+  const [activeSettings, setActiveSettings] = useState(settings);
+  const [pendingChange, setPendingChange] = useState<PendingSettingsChange | null>(null);
   useKeepAwakeWhile(running);
+
+  // Keep the latest pending change object only when it differs, so ticks don't re-render.
+  const syncFromSession = useCallback((s: PracticeSession) => {
+    setActiveSettings(s.activeSettings());
+    const next = s.pendingChange();
+    setPendingChange((prev) =>
+      prev?.phrase === next?.phrase &&
+      prev?.committed === next?.committed &&
+      prev?.settings === next?.settings
+        ? prev
+        : next,
+    );
+  }, []);
 
   useEffect(() => {
     void configurePracticeAudio();
@@ -64,11 +85,34 @@ export function usePracticeSession(
     session.current?.setBpm(bpm);
   }, [bpm]);
 
+  useEffect(() => {
+    const s = session.current;
+    if (!s) {
+      setActiveSettings(settings);
+      return;
+    }
+    try {
+      s.setSettings(settings);
+    } catch {
+      // The settings screen only produces valid settings; keep playing the old ones.
+    }
+    syncFromSession(s);
+  }, [settings, syncFromSession]);
+
+  useEffect(() => {
+    session.current?.setCueOptions(cueOptions);
+  }, [cueOptions]);
+
+  useEffect(() => {
+    session.current?.setVoice(createVoice({ rate: voiceRate, voice }));
+  }, [voiceRate, voice]);
+
   const stop = useCallback(() => {
     session.current?.stop();
     session.current = null;
     setRunning(false);
     setCue(null);
+    setPendingChange(null);
   }, []);
 
   const start = useCallback(() => {
@@ -90,14 +134,26 @@ export function usePracticeSession(
         setStats((prev) => recordCue(prev, c, now));
         // Re-render on counts, and on an "and" only when a catch lands there.
         if (c.subdivision === 0 || c.catch) setCue(c);
+        if (c.subdivision === 0) syncFromSession(s);
       },
     });
     session.current = s;
     s.start();
     setRunning(true);
-  }, [settings, cueOptions, countIn, voiceRate, voice]);
+    syncFromSession(s);
+  }, [settings, cueOptions, countIn, voiceRate, voice, syncFromSession]);
 
   const toggleLatestDrop = useCallback(() => setStats((prev) => toggleDrop(prev)), []);
 
-  return { running, cue, stats, startedAt, start, stop, toggleDrop: toggleLatestDrop };
+  return {
+    running,
+    cue,
+    stats,
+    startedAt,
+    activeSettings: running ? activeSettings : settings,
+    pendingChange,
+    start,
+    stop,
+    toggleDrop: toggleLatestDrop,
+  };
 }

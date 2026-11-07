@@ -221,3 +221,18 @@ export class LiveCueTimeline {
     };
   }
 }
+
+/**
+ * Note under the Phrase settings while practicing: when changes to the
+ * phrase and calls will be heard. Null when stopped (changes apply on Start).
+ */
+export function liveSettingsNote(
+  running: boolean,
+  pending: PendingSettingsChange | null,
+): string | null {
+  if (!running) return null;
+  if (!pending) return 'Changes start with the next toss that hasn’t been called yet.';
+  return pending.committed
+    ? `Your changes start with toss ${pending.phrase} — its call is in.`
+    : `Your changes start with toss ${pending.phrase}.`;
+}

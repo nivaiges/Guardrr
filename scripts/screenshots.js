@@ -186,6 +186,23 @@ async function main() {
     await scrollTo(exact(page, 'Presets'));
     await page.waitForTimeout(200);
     await shot(page, '11-update-preset');
+
+    // Change the phrase while practicing: the note says which toss it starts with.
+    await page.getByTestId('go-to-practice').click();
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    await page.waitForTimeout(1_500);
+    await page.getByTestId('go-to-settings').click();
+    await page.waitForTimeout(600);
+    await page
+      .getByRole('radiogroup', { name: 'Counts per phrase' })
+      .getByRole('radio', { name: '8 counts', exact: true })
+      .click();
+    await page.getByTestId('live-settings-note').waitFor();
+    await scrollTo(exact(page, 'Tempo'));
+    await page.waitForTimeout(200);
+    await shot(page, '12-live-change');
+    await page.getByTestId('go-to-practice').click();
+    await page.getByRole('button', { name: 'Stop practice' }).click();
     await context.close();
 
     // Dark theme, mid-toss.

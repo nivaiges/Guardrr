@@ -364,6 +364,53 @@ async function main() {
     await page.getByRole('button', { name: 'Start practice' }).waitFor();
     check('a deleted preset stays deleted after a reload', (await mine.count()) === 0);
 
+    // 5f. Change the phrase length while practicing: the toss in the air finishes its
+    // 16-count phrase, then 8-count phrases follow without pressing Stop.
+    const live = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      permissions: ['camera'],
+    });
+    await live.addInitScript(instrument);
+    const livePage = await live.newPage();
+    livePage.on('pageerror', (e) => errors.push(`pageerror (live): ${e.message}`));
+    await livePage.goto(base);
+    await livePage.getByTestId('go-to-settings').click();
+    await livePage.getByRole('radio', { name: 'Standard 16' }).click();
+    await livePage.getByTestId('go-to-practice').click();
+    await livePage.getByRole('button', { name: 'Start practice' }).click();
+    await livePage.waitForTimeout(5.5 * MS_PER_COUNT); // count-in click 6
+    await livePage.getByTestId('go-to-settings').click();
+    await livePage
+      .getByRole('radiogroup', { name: 'Counts per phrase' })
+      .getByRole('radio', { name: '8 counts', exact: true })
+      .click();
+    const liveNote = await livePage.getByTestId('live-settings-note').textContent();
+    check(
+      'changing the phrase while practicing says which toss it starts with',
+      liveNote === 'Your changes start with toss 2.',
+      `"${liveNote}"`,
+    );
+    await livePage.screenshot({ path: path.join(outDir, 'live-change.png'), fullPage: true });
+    // Releases: click 9 (toss 1, 16 counts), then 25 (toss 2) and 33 (toss 3, 8 counts).
+    await livePage.waitForTimeout(29 * MS_PER_COUNT);
+    const liveClicks = (await livePage.evaluate(() => window.__plays)).filter(
+      (p) => p.kind !== 'and',
+    );
+    const accents = liveClicks.flatMap((p, i) => (p.kind === 'accent' ? [i + 1] : []));
+    check(
+      'new phrase length starts at the next free toss (releases on clicks 9, 25, 33)',
+      accents.join(',') === '9,25,33',
+      `accents on clicks ${accents.join(', ')}`,
+    );
+    check(
+      'the metronome kept going through the change',
+      liveClicks.length >= 34,
+      `${liveClicks.length} clicks`,
+    );
+    await livePage.getByTestId('go-to-practice').click();
+    await livePage.getByRole('button', { name: 'Stop practice' }).click();
+    await live.close();
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',

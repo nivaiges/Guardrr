@@ -85,14 +85,8 @@ export default function App() {
     renamePreset,
     updatePreset,
   } = useCustomPresets();
-  const { running, cue, stats, startedAt, start, stop, toggleDrop } = usePracticeSession(
-    bpm,
-    settings,
-    cueOptions,
-    countIn,
-    voiceRate,
-    voice,
-  );
+  const { running, cue, stats, startedAt, activeSettings, pendingChange, start, stop, toggleDrop } =
+    usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
   const {
     history,
     saveSession,
@@ -109,8 +103,8 @@ export default function App() {
     () =>
       startedAt === null
         ? null
-        : sessionRecord(stats, { startedAt, bpm, phraseLength: settings.phraseLength }),
-    [stats, startedAt, bpm, settings.phraseLength],
+        : sessionRecord(stats, { startedAt, bpm, phraseLength: activeSettings.phraseLength }),
+    [stats, startedAt, bpm, activeSettings.phraseLength],
   );
   const latestRecord = useRef(record);
   useEffect(() => {
@@ -137,7 +131,8 @@ export default function App() {
     AccessibilityInfo.announceForAccessibility(practiceStoppedAnnouncement(summarizeStats(stats)));
   };
 
-  const display = practiceDisplay(cue, settings);
+  // While practicing, show what is playing: changed settings wait for their toss.
+  const display = practiceDisplay(cue, activeSettings);
 
   // Two pages side by side: practice (camera) and settings & stats.
   const { width, height } = useWindowDimensions();
@@ -175,8 +170,8 @@ export default function App() {
                 Guardrr
               </Text>
               <Text style={styles.subtitle}>
-                {bpm} BPM · {settings.phraseLength} counts · call on{' '}
-                {settings.phraseLength - settings.leadCounts + 1}
+                {bpm} BPM · {activeSettings.phraseLength} counts · call on{' '}
+                {activeSettings.phraseLength - activeSettings.leadCounts + 1}
               </Text>
             </View>
             {camera.enabled ? (
@@ -289,7 +284,6 @@ export default function App() {
             onRestore={restorePreset}
             onRename={renamePreset}
             onUpdate={(id) => updatePreset(id, saved)}
-            disabled={running}
           />
 
           <CameraSettings camera={camera} onChange={setCamera} />
@@ -311,6 +305,7 @@ export default function App() {
             onReloadVoices={reloadVoices}
             onTestVoice={testVoice}
             running={running}
+            pendingChange={pendingChange}
           />
         </ScrollView>
       </ScrollView>

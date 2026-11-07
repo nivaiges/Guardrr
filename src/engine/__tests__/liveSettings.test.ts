@@ -1,5 +1,5 @@
 import { CallSequence, DEFAULT_TOSS_SETTINGS, TossSettings } from '../announce';
-import { LiveCueTimeline } from '../liveSettings';
+import { LiveCueTimeline, liveSettingsNote } from '../liveSettings';
 import { PracticeCue, cueForTick, speechTextForCall } from '../practice';
 import { createRng } from '../random';
 
@@ -184,5 +184,24 @@ describe('LiveCueTimeline.scheduleSettings', () => {
         allowedTossCounts: [...SIXTEEN.allowedTossCounts].reverse(),
       }),
     ).toBeNull();
+  });
+});
+
+describe('liveSettingsNote', () => {
+  const pending = { settings: EIGHT, phrase: 3, startsAtCountIndex: 48, committed: false };
+
+  it('says nothing when stopped', () => {
+    expect(liveSettingsNote(false, null)).toBeNull();
+    expect(liveSettingsNote(false, pending)).toBeNull();
+  });
+
+  it('explains when changes will be heard while practicing', () => {
+    expect(liveSettingsNote(true, null)).toBe(
+      'Changes start with the next toss that hasn’t been called yet.',
+    );
+    expect(liveSettingsNote(true, pending)).toBe('Your changes start with toss 3.');
+    expect(liveSettingsNote(true, { ...pending, committed: true })).toBe(
+      'Your changes start with toss 3 — its call is in.',
+    );
   });
 });
