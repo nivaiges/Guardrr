@@ -121,6 +121,12 @@ export class CallSequence {
   constructor(
     private readonly settings: TossSettings,
     private readonly rng: Rng,
+    /**
+     * The call made just before this sequence's first one (e.g. the last toss
+     * under the previous settings), so the no-repeat option holds across a
+     * settings change.
+     */
+    private readonly previous?: number,
   ) {
     this.allowed = validateTossSettings(settings);
   }
@@ -132,7 +138,7 @@ export class CallSequence {
     }
     const slot = phrase - FIRST_TOSS_PHRASE;
     while (this.calls.length <= slot) {
-      const previous = this.calls[this.calls.length - 1];
+      const previous = this.calls.length > 0 ? this.calls[this.calls.length - 1] : this.previous;
       this.calls.push(
         pickTossCount(this.allowed, this.rng, {
           previous,

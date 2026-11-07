@@ -109,15 +109,19 @@ function sameCalls(a: readonly number[], b: readonly number[]): boolean {
   return sa.length === sb.length && sa.every((n, i) => n === sb[i]);
 }
 
+/** True when two toss settings describe the same drill (call order doesn't matter). */
+export function sameTossSettings(a: TossSettings, b: TossSettings): boolean {
+  return (
+    a.phraseLength === b.phraseLength &&
+    a.leadCounts === b.leadCounts &&
+    a.allowRepeats === b.allowRepeats &&
+    sameCalls(a.allowedTossCounts, b.allowedTossCounts)
+  );
+}
+
 /** True when the toss settings equal the preset's (call order doesn't matter). */
 export function tossMatchesPreset(toss: TossSettings, preset: PracticePreset): boolean {
-  const p = preset.toss;
-  return (
-    toss.phraseLength === p.phraseLength &&
-    toss.leadCounts === p.leadCounts &&
-    toss.allowRepeats === p.allowRepeats &&
-    sameCalls(toss.allowedTossCounts, p.allowedTossCounts)
-  );
+  return sameTossSettings(toss, preset.toss);
 }
 
 /**

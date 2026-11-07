@@ -19,3 +19,4 @@ export * from './stripLayout';
 export * from './history';
 export * from './customPresets';
 export * from './pages';
+export * from './liveSettings';
