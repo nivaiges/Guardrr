@@ -138,7 +138,17 @@ async function main() {
       (await dots.getAttribute('aria-label')) === 'Page 2 of 2: Settings & stats' &&
         (await link.textContent()) === 'Settings & stats ›',
     );
-    await page.getByTestId('go-to-practice').click();
+    await dots.click();
+    await page.waitForTimeout(800); // the pager scrolls (animated)
+    const startBox = await startButton.boundingBox();
+    check(
+      'tapping the page dots goes back to practice',
+      (await dots.getAttribute('aria-label')) === 'Page 1 of 2: Practice' &&
+        startBox !== null &&
+        startBox.x >= 0 &&
+        startBox.x < 390,
+      startBox ? `Start at x=${Math.round(startBox.x)}` : 'Start not found',
+    );
     check('Standard 16 sets 120 BPM', await page.getByText(`${BPM} BPM`).first().isVisible());
     const stripRows = await page.locator('[data-testid="phrase-strip-row"]').count();
     check('16-count phrase strip fits on one row', stripRows === 1, `${stripRows} row(s)`);

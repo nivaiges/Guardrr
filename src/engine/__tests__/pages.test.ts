@@ -1,4 +1,11 @@
-import { PAGES, pageDotsLabel, pageFromOffset, settingsLinkLabel } from '../pages';
+import {
+  PAGES,
+  otherPage,
+  pageDotsHint,
+  pageDotsLabel,
+  pageFromOffset,
+  settingsLinkLabel,
+} from '../pages';
 
 describe('pageFromOffset', () => {
   it('rounds to the nearest page', () => {
@@ -30,5 +37,17 @@ describe('labels', () => {
   it('mentions the swipe until the settings page has been seen', () => {
     expect(settingsLinkLabel(false)).toBe('Swipe left for settings & stats ›');
     expect(settingsLinkLabel(true)).toBe('Settings & stats ›');
+  });
+});
+
+describe('tapping the page dots', () => {
+  it('goes to the other page', () => {
+    expect(otherPage(0)).toBe(1);
+    expect(otherPage(1)).toBe(0);
+  });
+
+  it('says where a tap goes', () => {
+    expect(pageDotsHint(0)).toBe('Shows Settings & stats');
+    expect(pageDotsHint(1)).toBe('Shows Practice');
   });
 });

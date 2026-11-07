@@ -33,6 +33,7 @@ import {
   VOICE_TEST_PHRASE,
   applyPreset,
   latestTossDropped,
+  otherPage,
   pageFromOffset,
   practiceDisplay,
   practiceStartedAnnouncement,
@@ -310,7 +311,7 @@ export default function App() {
         </ScrollView>
       </ScrollView>
       <View style={styles.dots} pointerEvents="box-none">
-        <PageDots page={page} />
+        <PageDots page={page} onPress={() => goToPage(otherPage(page))} />
       </View>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
     </View>

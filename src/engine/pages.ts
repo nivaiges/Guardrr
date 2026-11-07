@@ -31,3 +31,13 @@ export function pageDotsLabel(page: PageIndex): string {
 export function settingsLinkLabel(swipeHintSeen: boolean): string {
   return swipeHintSeen ? 'Settings & stats ›' : 'Swipe left for settings & stats ›';
 }
+
+/** The page a tap on the page dots goes to: with two pages, the other one. */
+export function otherPage(page: PageIndex): PageIndex {
+  return page === 0 ? 1 : 0;
+}
+
+/** Screen-reader hint for the page dots button: "Shows Settings & stats". */
+export function pageDotsHint(page: PageIndex): string {
+  return `Shows ${PAGES[otherPage(page)]}`;
+}
