@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-11-07
+
+### Added
+
+- **Change settings without stopping** (roadmap: "apply phrase/call settings changes while
+  practicing at the next phrase boundary"). Every setting stays tappable while practicing:
+  - Tempo, the accent, "and" clicks, release/catch vibration and voice speed apply right away.
+  - Phrase length, lead counts, calls, repeats and presets start with **the next toss that hasn't
+    been called yet**: the toss in the air finishes its old phrase, and the first new call is
+    spoken with the new lead counts. Settings → Phrase says _Your changes start with toss 2._
+  - The count display and the title show what is playing until then.
+  - Only choosing and testing voices waits for Stop — the previews would talk over the calls.
+  - Engine: `LiveCueTimeline` (segments of settings with continuous phrase numbers),
+    `liveSettingsNote`, `sameTossSettings`; `CallSequence` takes the previous call so "no
+    repeats" holds across a change. Session: `setSettings`, `setCueOptions`, `setVoice`,
+    `activeSettings`, `pendingChange`.
+- **Tap the page dots** to switch between practice and settings (a screen reader hears "Page 1 of
+  2: Practice — Shows Settings & stats").
+- Smoke test: 4 new checks (50 total), including a real 18-second run that switches from 16 to 8
+  counts mid-practice and checks the releases land on clicks 9, 25 and 33. Screenshot
+  `12-live-change` added to the README gallery.
+- 22 new unit tests (389 total).
+
+### Decisions
+
+- **When a change starts:** at the first release whose call neither the old nor the new settings
+  would have spoken yet (the larger of the two lead counts decides). Example at 16 counts,
+  called 4 early: change to 8 counts on count 3 of toss 1 → toss 2 (16 counts later) is the first
+  8-count phrase, called 2 early on count 15 of toss 1's phrase instead of count 13.
+- Changing again before that call is spoken replaces the pending change; going back to what's
+  playing cancels it. After the call is spoken it can't be taken back, so a further change queues
+  behind it.
+- A new voice speed applies from the next call (the current call finishes at the old speed).
+- History saves a session with the phrase length that was playing at Stop.
+- The page dots are one target that flips pages (not one per dot): with two pages that's the same
+  thing, and an 8-pt dot is too small to aim at. Its tap area is small (8 pt around the pill), but
+  note it now catches taps where it overlaps the settings page while scrolling.
+
+### To test on your phone
+
+- Start practicing, swipe to Settings, change the phrase from 16 to 8 (or tap another preset):
+  the toss in the air should finish normally, the next call should come at the new lead, and
+  the count display should switch to 8 dots on that release — no hiccup in the clicks.
+- Toggle "Accent count 1" and the "and" clicks while practicing: they should change on the next
+  click. Change "Call speed": the next call should use it.
+- Tap the two dots at the bottom: they should switch pages; check they're not under the home
+  indicator.
+- Audio, speech and vibration can't be heard here; the timing of the switch was checked in a
+  headless browser (clicks and accents recorded).
+
 ## 2026-11-06
 
 ### Added

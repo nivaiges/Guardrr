@@ -53,7 +53,7 @@
 - [ ] Measure click latency on device; if expo-audio player start jitter is audible, move clicks to react-native-audio-api with lookahead scheduling (the scheduler already supports `lookaheadMs`).
 - [ ] Optional preset mapping rotation names (single/double/triple/quad) to count calls.
 - [x] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7) — call chips in Settings → Calls.
-- [ ] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start.
+- [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
 - [ ] UI component tests (needs `@testing-library/react-native`); today only the pure logic behind the UI is tested.
 - [ ] Display: optional full-screen "practice mode" (hide settings, larger count) for propping the phone up across the floor.
@@ -84,6 +84,10 @@
 - [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
 - [x] Custom presets: rename, and "update preset with current settings" (also "Save N BPM to …").
 - [ ] Custom presets: reorder (drag, or move up/down).
-- [ ] Page dots: tap a dot to switch pages; check on device they don't sit under the iOS home indicator (safe-area insets).
+- [x] Page dots: tap to switch pages.
+- [ ] Page dots: check on device they don't sit under the iOS home indicator (safe-area insets).
 - [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
 - [ ] Show which preset a History session used (needs the preset id saved with the session).
+- [ ] History: a session whose phrase length changed mid-practice is saved with the last phrase length; consider saving each segment.
+- [ ] Live changes: choose a voice while practicing (today voice previews wait for Stop because they'd talk over the calls) — e.g. pick without previewing.
+- [ ] Live changes: optional "apply now" that restarts the phrase immediately, for a performer who wants the new drill without finishing the current toss.
