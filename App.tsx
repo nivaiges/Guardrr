@@ -29,6 +29,7 @@ import {
   CueOptions,
   PageIndex,
   PracticePreset,
+  SessionContext,
   TossSettings,
   VOICE_TEST_PHRASE,
   applyPreset,
@@ -47,6 +48,9 @@ import {
 import { usePracticeSession } from './src/practice';
 import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
 import { Theme, themed, useTheme } from './src/theme';
+
+/** What a saved session is labelled with besides its start time. */
+type SessionLabel = Omit<SessionContext, 'startedAt'>;
 
 export default function App() {
   const theme = useTheme();
@@ -101,18 +105,21 @@ export default function App() {
   // drop is marked (or undone) after Stop. While practicing, it is saved when
   // the app goes to the background, so a session isn't lost if the app is
   // closed from there.
-  // The session is labelled with the preset its drill matched when saved.
+  // The session is labelled with the tempo, phrase and preset playing at Stop;
+  // changing settings after Stop doesn't relabel it (only a late drop re-saves).
+  const playing = useMemo<SessionLabel>(
+    () => ({
+      bpm,
+      phraseLength: activeSettings.phraseLength,
+      preset: presetForToss(activeSettings, customPresets)?.name ?? null,
+    }),
+    [bpm, activeSettings, customPresets],
+  );
+  const [stoppedWith, setStoppedWith] = useState<SessionLabel | null>(null);
+  const label = running || stoppedWith === null ? playing : stoppedWith;
   const record = useMemo(
-    () =>
-      startedAt === null
-        ? null
-        : sessionRecord(stats, {
-            startedAt,
-            bpm,
-            phraseLength: activeSettings.phraseLength,
-            preset: presetForToss(activeSettings, customPresets)?.name,
-          }),
-    [stats, startedAt, bpm, activeSettings, customPresets],
+    () => (startedAt === null ? null : sessionRecord(stats, { startedAt, ...label })),
+    [stats, startedAt, label],
   );
   const latestRecord = useRef(record);
   useEffect(() => {
@@ -131,10 +138,12 @@ export default function App() {
   }, [saveSession]);
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
+    setStoppedWith(null);
     start();
     AccessibilityInfo.announceForAccessibility(practiceStartedAnnouncement(bpm, settings));
   };
   const onStop = () => {
+    setStoppedWith(playing);
     stop();
     AccessibilityInfo.announceForAccessibility(practiceStoppedAnnouncement(summarizeStats(stats)));
   };
