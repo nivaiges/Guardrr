@@ -5,6 +5,7 @@ import {
   formatSessionDate,
   parseStoredHistory,
   serializeHistory,
+  sessionRowDetail,
   sessionRecord,
   summarizeHistory,
   upsertSession,
@@ -283,5 +284,19 @@ describe('preset names in records', () => {
       NOW,
     ).rows;
     expect(rows.map((r) => r.preset)).toEqual(['Quick 8', null]);
+  });
+});
+
+describe('sessionRowDetail', () => {
+  it('names the preset and tempo', () => {
+    expect(sessionRowDetail({ preset: 'Quads 155', bpm: 155, phraseLength: 16 })).toBe(
+      'Quads 155 · 155 BPM',
+    );
+  });
+
+  it('falls back to tempo and phrase length for hand-tuned settings', () => {
+    expect(sessionRowDetail({ preset: null, bpm: 120, phraseLength: 8 })).toBe(
+      '120 BPM · 8 counts',
+    );
   });
 });

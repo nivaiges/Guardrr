@@ -238,6 +238,12 @@ async function main() {
     const historyRow = page.getByLabel(/^Today .*: 1 toss, 1 dropped, 0% caught/);
     check('the session is in History after a reload', await historyRow.isVisible());
     check(
+      'the History row names the preset and the tempo it was practiced at (not the new tempo)',
+      (await historyRow.getAttribute('aria-label'))?.includes(`Standard 16, ${BPM} BPM`) &&
+        (await page.getByText(`Standard 16 · ${BPM} BPM`).first().isVisible()),
+      await historyRow.getAttribute('aria-label'),
+    );
+    check(
       'the swipe hint stays gone after a reload',
       (await link.textContent()) === 'Settings & stats ›',
     );

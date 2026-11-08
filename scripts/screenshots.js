@@ -66,7 +66,7 @@ function setUp(history) {
 /** A few past sessions so the History card has something to show. */
 function sampleHistory(now) {
   const hour = 3_600_000;
-  const session = (hoursAgo, tosses, dropped) => {
+  const session = (hoursAgo, tosses, dropped, preset) => {
     const timesCalled = {};
     const timesDropped = {};
     for (let i = 0; i < tosses; i++) {
@@ -83,9 +83,15 @@ function sampleHistory(now) {
       drops: Object.values(dropped).reduce((a, b) => a + b, 0),
       timesCalled,
       timesDropped,
+      // The oldest session predates preset names (shows tempo and phrase instead).
+      ...(preset ? { preset } : {}),
     };
   };
-  const sessions = [session(2, 24, { 7: 2, 5: 1 }), session(26, 40, { 7: 3 }), session(50, 16, {})];
+  const sessions = [
+    session(2, 24, { 7: 2, 5: 1 }, 'Standard 16'),
+    session(26, 40, { 7: 3 }, 'Standard 16'),
+    session(50, 16, {}),
+  ];
   return JSON.stringify({ version: 1, sessions });
 }
 

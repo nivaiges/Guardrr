@@ -204,6 +204,17 @@ export interface SessionRow {
   preset: string | null;
 }
 
+/**
+ * The line under a session's date: the preset and tempo ("Quads 155 · 155
+ * BPM"), or tempo and phrase length for hand-tuned settings ("120 BPM · 16
+ * counts").
+ */
+export function sessionRowDetail(row: Pick<SessionRow, 'preset' | 'bpm' | 'phraseLength'>): string {
+  return row.preset
+    ? `${row.preset} · ${row.bpm} BPM`
+    : `${row.bpm} BPM · ${row.phraseLength} counts`;
+}
+
 export interface CallHistory {
   call: number;
   label: string;

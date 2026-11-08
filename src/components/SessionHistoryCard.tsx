@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { SessionRecord, SessionRow, deletionMessage, summarizeHistory } from '../engine';
+import {
+  SessionRecord,
+  SessionRow,
+  deletionMessage,
+  sessionRowDetail,
+  summarizeHistory,
+} from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 
 /** Rows shown before "Show more", and after it. */
@@ -28,7 +34,8 @@ interface PendingUndo {
 function rowLabel(row: SessionRow): string {
   const tosses = `${row.tosses} ${row.tosses === 1 ? 'toss' : 'tosses'}`;
   const drops = row.drops ? `, ${row.drops} dropped, ${row.caught} caught` : '';
-  return `${row.date}: ${tosses}${drops}, ${row.duration}, ${row.bpm} BPM, ${row.phraseLength}-count phrase`;
+  const drill = row.preset ? `${row.preset}, ` : '';
+  return `${row.date}: ${tosses}${drops}, ${row.duration}, ${drill}${row.bpm} BPM, ${row.phraseLength}-count phrase`;
 }
 
 /**
@@ -152,9 +159,14 @@ export function SessionHistoryCard({
             {summary.rows.map((row) => (
               <View key={row.startedAt} style={styles.row}>
                 <View style={styles.rowInfo} accessible accessibilityLabel={rowLabel(row)}>
-                  <Text style={styles.date} numberOfLines={1}>
-                    {row.date}
-                  </Text>
+                  <View style={styles.dateColumn}>
+                    <Text style={styles.date} numberOfLines={1}>
+                      {row.date}
+                    </Text>
+                    <Text style={styles.detail} numberOfLines={1}>
+                      {sessionRowDetail(row)}
+                    </Text>
+                  </View>
                   <Text style={styles.cell}>{row.tosses}</Text>
                   <Text style={[styles.cell, row.drops > 0 && styles.dropped]}>
                     {row.drops ? row.caught : '–'}
@@ -258,9 +270,9 @@ const getStyles = themed((t: Theme) =>
     totals: { fontSize: 16, fontWeight: '600', color: t.text, marginTop: 8 },
     hardest: { fontSize: 14, color: t.textMuted, marginTop: 4 },
     hardestCall: { fontWeight: '700', color: t.dangerText },
-    rows: { marginTop: 4, gap: 4 },
+    rows: { marginTop: 4, gap: 8 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    rowInfo: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+    rowInfo: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
     deleteSpace: { width: 36 },
     deleteButton: {
       width: 36,
@@ -311,6 +323,8 @@ const getStyles = themed((t: Theme) =>
     dangerButtonText: { fontSize: 15, fontWeight: '700', color: t.onPrimary },
     clearText: { color: t.dangerText },
     date: { flex: 1, fontSize: 14, color: t.text },
+    dateColumn: { flex: 1 },
+    detail: { fontSize: 12, color: t.textMuted, marginTop: 1 },
     cell: {
       width: 52,
       fontSize: 14,
