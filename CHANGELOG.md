@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-11-08
+
+### Added
+
+- **History shows the preset of each session** (roadmap: "show which preset a History session
+  used"). A small line under each date reads _Quads 155 · 155 BPM_, or _120 BPM · 16 counts_
+  for hand-tuned settings and for sessions saved before today. A screen reader hears the preset
+  too.
+- **Share your history as CSV** (roadmap: "export/share sessions (CSV) for a coach"). History →
+  **Share** opens the phone's share sheet with every saved session as CSV text — one row per
+  session, newest first: date, time, preset, BPM, counts per phrase, minutes, tosses, dropped,
+  caught %, calls and drops by call (`3: 3; 3&: 2`). It pastes straight into Numbers / Sheets /
+  Excel. On the web (no share sheet) it downloads `guardrr-history-YYYY-MM-DD.csv`.
+  - Engine: `presetForToss`, `SessionRecord.preset`, `sessionRowDetail`, `historyCsv`,
+    `csvCell`; `src/sharing/shareHistory.ts` wraps React Native's `Share`.
+- Smoke test: 3 new checks (53 total), including the downloaded CSV's contents. Screenshot
+  `13-history-share` added to the README gallery.
+- 27 new unit tests (416 total).
+
+### Fixed
+
+- Changing the tempo (or tapping another preset) after Stop relabelled the finished session the
+  next time it was re-saved — after a late Drop, or when the app went to the background. The
+  smoke test caught it: a session practiced at 120 BPM was saved as 121 after a BPM + 1 and a
+  reload. A session now keeps the tempo, phrase and preset that were playing at Stop.
+
+### Decisions
+
+- A session stores the preset's **name at save time**, not its id: renaming or deleting a preset
+  later doesn't rewrite history, and nothing breaks when a custom preset is gone. Sessions keep
+  the preset matched by what was playing at Stop (like the phrase length), ignoring tempo — the
+  tempo is shown next to it.
+- Sharing sends the CSV as **text** through React Native's built-in `Share` rather than a file
+  attachment: no new native module (works in Expo Go), and the text pastes into a spreadsheet.
+  A real `.csv` attachment would need `expo-sharing` + `expo-file-system`; added to the roadmap
+  in case a coach needs one.
+- CSV details: local, sortable dates (`2026-11-08`, `18:05`), minutes with one decimal, "&" for
+  an "and" call, CRLF line endings. Preset names are typed by the performer, so a leading
+  `= + - @` is defused (prefixed with `'`) so it can't run as a spreadsheet formula.
+
+### To test on your phone
+
+- Practice a few tosses with Quads 155, Stop, and swipe to History: the new row should say
+  _Quads 155 · 155 BPM_. Change the tempo afterwards: the row shouldn't change.
+- Tap **Share** in History and send it to yourself in Messages or Mail, then paste it into a
+  spreadsheet: one column per field. Tell me if your coach would rather get a file attachment.
+- The share sheet can't be opened here; on the web build the CSV download was checked in a
+  headless browser.
+
 ## 2026-11-07
 
 ### Added

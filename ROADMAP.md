@@ -78,7 +78,7 @@
 - [ ] Localized calls (speak the numbers in the phone's language) — today calls are always English words.
 - [x] History: delete one session / clear all (Edit → Delete per session, "Clear all history" with an inline confirm; Undo after every delete).
 - [ ] History: catch-rate trend per call over time (e.g. a small chart per call, last 10 sessions).
-- [ ] History: export/share sessions (CSV) for a coach.
+- [x] History: export/share sessions (CSV) for a coach — History → Share (share sheet; a .csv download on the web).
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
 - [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
@@ -87,7 +87,12 @@
 - [x] Page dots: tap to switch pages.
 - [ ] Page dots: check on device they don't sit under the iOS home indicator (safe-area insets).
 - [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
-- [ ] Show which preset a History session used (needs the preset id saved with the session).
+- [x] Show which preset a History session used (the preset's name at save time, under each session's date).
 - [ ] History: a session whose phrase length changed mid-practice is saved with the last phrase length; consider saving each segment.
 - [ ] Live changes: choose a voice while practicing (today voice previews wait for Stop because they'd talk over the calls) — e.g. pick without previewing.
 - [ ] Live changes: optional "apply now" that restarts the phrase immediately, for a performer who wants the new drill without finishing the current toss.
+- [x] History: changing the tempo or preset after Stop no longer relabels the finished session.
+- [ ] History share: check on device what Messages/Mail/Notes do with the CSV text; if a coach
+      needs a real attachment, share a .csv file instead (needs `expo-sharing` + `expo-file-system`).
+- [ ] History: filter or total by preset (e.g. catch rate on Quads 155 only), now that sessions
+      record their preset.
