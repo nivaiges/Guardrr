@@ -46,6 +46,7 @@ import {
   summarizeStats,
 } from './src/engine';
 import { usePracticeSession } from './src/practice';
+import { shareHistory, shareOutcomeMessage } from './src/sharing';
 import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
 import { Theme, themed, useTheme } from './src/theme';
 
@@ -290,6 +291,7 @@ export default function App() {
             onDelete={deleteSession}
             onClear={clearHistory}
             onRestore={restoreSessions}
+            onShare={async () => shareOutcomeMessage(await shareHistory(history))}
           />
 
           <PresetPicker

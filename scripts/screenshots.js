@@ -2,8 +2,8 @@
  * Screenshots of the app for the README and for Niv to see what changed:
  * runs the web build in headless Chromium at phone size (390 x 844 pt, 2x)
  * and captures the main screens — ready (over a fake camera), the call, the release, the catch,
- * stats and history, History in edit mode, the call picker, dark theme and
- * saving a preset of your own.
+ * stats and history, History in edit mode and shared as CSV, the call
+ * picker, dark theme and saving a preset of your own.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -168,6 +168,10 @@ async function main() {
     await shot(historyCard, '06-history-edit');
     await page.getByTestId('history-clear-cancel').click();
     await page.getByTestId('history-edit').click();
+    // Share: headless Chromium has no share sheet, so the CSV downloads.
+    await Promise.all([page.waitForEvent('download'), page.getByTestId('history-share').click()]);
+    await page.getByTestId('history-share-note').waitFor();
+    await shot(historyCard, '13-history-share');
 
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();

@@ -89,6 +89,10 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2"](docs/screenshots/12-live-change.png) |
 
+| Sharing History                                                        |
+| ---------------------------------------------------------------------- |
+| ![History shared as a CSV file](docs/screenshots/13-history-share.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript

@@ -24,6 +24,8 @@ export interface SessionHistoryCardProps {
   onClear?: () => SessionRecord[];
   /** Put deleted sessions back. */
   onRestore?: (records: readonly SessionRecord[]) => void;
+  /** Share the history (CSV); resolves to a note to show, or null. */
+  onShare?: () => Promise<string | null>;
 }
 
 interface PendingUndo {
@@ -49,6 +51,7 @@ export function SessionHistoryCard({
   onDelete,
   onClear,
   onRestore,
+  onShare,
 }: SessionHistoryCardProps) {
   const theme = useTheme();
   const styles = getStyles(theme);
@@ -56,6 +59,8 @@ export function SessionHistoryCard({
   const [editing, setEditing] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [undo, setUndo] = useState<PendingUndo | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   const summary = useMemo(
     () => summarizeHistory(history, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
     [history, nowMs, expanded],
@@ -70,6 +75,18 @@ export function SessionHistoryCard({
     const message = deletionMessage(records, nowMs);
     setUndo({ message, records });
     AccessibilityInfo.announceForAccessibility(`${message}. Undo is available.`);
+  };
+  const share = async () => {
+    if (!onShare || sharing) return;
+    setSharing(true);
+    setShareNote(null);
+    try {
+      const note = await onShare();
+      setShareNote(note);
+      if (note) AccessibilityInfo.announceForAccessibility(note);
+    } finally {
+      setSharing(false);
+    }
   };
   const finishEditing = () => {
     setEditing(false);
@@ -89,19 +106,41 @@ export function SessionHistoryCard({
         <Text style={styles.heading} accessibilityRole="header">
           History
         </Text>
-        {editable ? (
-          <Pressable
-            testID="history-edit"
-            onPress={editing ? finishEditing : () => setEditing(true)}
-            accessibilityRole="button"
-            accessibilityLabel={editing ? 'Done editing history' : 'Edit history'}
-            hitSlop={8}
-            style={({ pressed }) => [styles.headerButton, pressed && styles.morePressed]}
-          >
-            <Text style={styles.headerButtonText}>{editing ? 'Done' : 'Edit'}</Text>
-          </Pressable>
-        ) : null}
+        <View style={styles.headerButtons}>
+          {onShare && !editing && history.length > 0 ? (
+            <Pressable
+              testID="history-share"
+              onPress={share}
+              disabled={sharing}
+              accessibilityRole="button"
+              accessibilityLabel="Share history"
+              accessibilityHint="Shares every saved session as a spreadsheet (CSV)"
+              hitSlop={8}
+              style={({ pressed }) => [styles.headerButton, pressed && styles.morePressed]}
+            >
+              <Text style={styles.headerButtonText}>Share</Text>
+            </Pressable>
+          ) : null}
+          {editable ? (
+            <Pressable
+              testID="history-edit"
+              onPress={editing ? finishEditing : () => setEditing(true)}
+              accessibilityRole="button"
+              accessibilityLabel={editing ? 'Done editing history' : 'Edit history'}
+              hitSlop={8}
+              style={({ pressed }) => [styles.headerButton, pressed && styles.morePressed]}
+            >
+              <Text style={styles.headerButtonText}>{editing ? 'Done' : 'Edit'}</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
+
+      {shareNote && !editing ? (
+        <Text style={styles.shareNote} testID="history-share-note">
+          {shareNote}
+        </Text>
+      ) : null}
 
       {undo ? (
         <View style={styles.undoBar}>
@@ -258,7 +297,9 @@ const getStyles = themed((t: Theme) =>
       alignItems: 'center',
       justifyContent: 'space-between',
     },
+    headerButtons: { flexDirection: 'row', gap: 4 },
     headerButton: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12 },
+    shareNote: { fontSize: 14, color: t.textMuted, marginTop: 6 },
     headerButtonText: { fontSize: 15, fontWeight: '600', color: t.text },
     heading: {
       fontSize: 13,

@@ -243,6 +243,25 @@ async function main() {
         (await page.getByText(`Standard 16 · ${BPM} BPM`).first().isVisible()),
       await historyRow.getAttribute('aria-label'),
     );
+    // Share: no share sheet in headless Chromium, so the CSV downloads.
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 5000 }),
+      page.getByTestId('history-share').click(),
+    ]);
+    const csv = fs.readFileSync(await download.path(), 'utf8').split('\r\n');
+    check(
+      'Share history downloads a CSV with the session',
+      /^guardrr-history-\d{4}-\d{2}-\d{2}\.csv$/.test(download.suggestedFilename()) &&
+        csv[0].startsWith('Date,Time,Preset,BPM') &&
+        new RegExp(`^\\d{4}-\\d{2}-\\d{2},\\d{2}:\\d{2},Standard 16,${BPM},16,`).test(csv[1]),
+      `${download.suggestedFilename()}: ${csv[1]}`,
+    );
+    check(
+      'History says where the CSV went',
+      (await page.getByTestId('history-share-note').textContent())?.startsWith(
+        'Saved guardrr-history-',
+      ),
+    );
     check(
       'the swipe hint stays gone after a reload',
       (await link.textContent()) === 'Settings & stats ›',
