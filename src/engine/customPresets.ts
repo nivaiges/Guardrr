@@ -99,6 +99,17 @@ export function matchingAnyPreset(
   return allPresets(custom).find((p) => tossMatchesPreset(settings.toss, p)) ?? null;
 }
 
+/**
+ * The preset (built-in or custom) a drill matches, ignoring tempo, if any —
+ * e.g. to label a saved session with the preset it was practiced with.
+ */
+export function presetForToss(
+  toss: TossSettings,
+  custom: readonly PracticePreset[],
+): PracticePreset | null {
+  return allPresets(custom).find((p) => tossMatchesPreset(toss, p)) ?? null;
+}
+
 /** Whether "Save as preset" makes sense: the settings are new and there's room. */
 export function canSavePreset(
   settings: PracticeSettings,

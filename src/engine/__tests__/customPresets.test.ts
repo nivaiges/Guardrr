@@ -8,6 +8,7 @@ import {
   describeToss,
   isCustomPreset,
   matchingAnyPreset,
+  presetForToss,
   normalizePresetName,
   parseStoredCustomPresets,
   presetNameMessage,
@@ -382,5 +383,22 @@ describe('presetUpdateOffer', () => {
     });
     // Deleted since: nothing to update.
     expect(presetUpdateOffer(changed, [], one[0].id)).toBeNull();
+  });
+});
+
+describe('presetForToss', () => {
+  it('finds a built-in preset by its toss settings, whatever the call order', () => {
+    const quads = PRACTICE_PRESETS[0];
+    const shuffled = {
+      ...quads.toss,
+      allowedTossCounts: [...quads.toss.allowedTossCounts].reverse(),
+    };
+    expect(presetForToss(shuffled, [])).toBe(quads);
+  });
+
+  it('finds a custom preset, and nothing for a hand-tuned drill', () => {
+    const presets = withOne('Odd drill');
+    expect(presetForToss(drill.toss, presets)?.name).toBe('Odd drill');
+    expect(presetForToss(drill.toss, [])).toBeNull();
   });
 });

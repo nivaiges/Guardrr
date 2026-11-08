@@ -29,14 +29,39 @@ export interface SessionRecord {
   drops: number;
   timesCalled: Readonly<Record<string, number>>;
   timesDropped: Readonly<Record<string, number>>;
+  /**
+   * Name of the preset the drill matched when the session was saved (the
+   * name at that time: renaming a preset later doesn't rewrite history).
+   * Absent for hand-tuned settings and for sessions saved before presets
+   * were recorded.
+   */
+  preset?: string;
 }
+
+/** Longest preset name kept in a record (custom names are capped at 24). */
+export const MAX_RECORD_PRESET_LENGTH = 40;
 
 export interface SessionContext {
   /** Wall-clock time Start was pressed (epoch ms). */
   startedAt: number;
   bpm: number;
   phraseLength: number;
+  /** Name of the preset the drill matches, if any. */
+  preset?: string | null;
 }
+
+/** A trimmed preset name, or undefined when there is none worth keeping. */
+function presetName(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const name = raw.trim().replace(/\s+/g, ' ');
+  if (name === '') return undefined;
+  return name.slice(0, MAX_RECORD_PRESET_LENGTH);
+}
+
+const withPreset = (raw: unknown): { preset?: string } => {
+  const preset = presetName(raw);
+  return preset === undefined ? {} : { preset };
+};
 
 /** The record for a session, or null when nothing was tossed (not worth keeping). */
 export function sessionRecord(stats: SessionStats, context: SessionContext): SessionRecord | null {
@@ -54,6 +79,7 @@ export function sessionRecord(stats: SessionStats, context: SessionContext): Ses
     drops: stats.drops,
     timesCalled: { ...stats.timesCalled },
     timesDropped: { ...stats.timesDropped },
+    ...withPreset(context.preset),
   };
 }
 
@@ -117,6 +143,7 @@ function parseRecord(raw: unknown): SessionRecord | null {
     drops,
     timesCalled,
     timesDropped,
+    ...withPreset(raw.preset),
   };
 }
 
@@ -173,6 +200,8 @@ export interface SessionRow {
   caught: string;
   bpm: number;
   phraseLength: number;
+  /** Preset name, or null for hand-tuned settings / older sessions. */
+  preset: string | null;
 }
 
 export interface CallHistory {
@@ -254,6 +283,7 @@ export function summarizeHistory(
       caught: percent(catchRate(r.tosses, r.drops)),
       bpm: r.bpm,
       phraseLength: r.phraseLength,
+      preset: r.preset ?? null,
     })),
   };
 }

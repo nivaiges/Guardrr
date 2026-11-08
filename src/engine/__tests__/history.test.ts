@@ -1,5 +1,6 @@
 import {
   HISTORY_LIMIT,
+  MAX_RECORD_PRESET_LENGTH,
   SessionRecord,
   formatSessionDate,
   parseStoredHistory,
@@ -230,5 +231,57 @@ describe('summarizeHistory', () => {
     expect(s.rows[0].startedAt).toBe(NOW);
     expect(s.sessions).toBe(15);
     expect(s.tosses).toBe(60);
+  });
+});
+
+describe('preset names in records', () => {
+  const stats: SessionStats = {
+    ...EMPTY_STATS,
+    startedAtMs: 0,
+    lastCueAtMs: 10_000,
+    tosses: 2,
+    catches: 2,
+    timesCalled: { '4': 2 },
+  };
+  const context = { startedAt: 5, bpm: 155, phraseLength: 16 };
+
+  it('keeps the preset the drill matched', () => {
+    expect(sessionRecord(stats, { ...context, preset: 'Quads 155' })?.preset).toBe('Quads 155');
+  });
+
+  it('leaves the preset out for hand-tuned settings', () => {
+    for (const preset of [undefined, null, '', '   ']) {
+      const r = sessionRecord(stats, { ...context, preset });
+      expect(r).not.toHaveProperty('preset');
+    }
+  });
+
+  it('tidies whitespace and caps very long names', () => {
+    expect(sessionRecord(stats, { ...context, preset: '  My   drill ' })?.preset).toBe('My drill');
+    expect(sessionRecord(stats, { ...context, preset: 'x'.repeat(100) })?.preset).toHaveLength(
+      MAX_RECORD_PRESET_LENGTH,
+    );
+  });
+
+  it('survives a save and load, and older records without one still load', () => {
+    const withPreset = record({ startedAt: 2, preset: 'Quick 8' });
+    const without = record({ startedAt: 1 });
+    const loaded = parseStoredHistory(serializeHistory([withPreset, without]));
+    expect(loaded).toEqual([withPreset, without]);
+    expect(loaded[1]).not.toHaveProperty('preset');
+  });
+
+  it('ignores a stored preset that is not a name instead of dropping the session', () => {
+    const json = JSON.stringify({ version: 1, sessions: [{ ...record(), preset: 42 }] });
+    const [loaded] = parseStoredHistory(json);
+    expect(loaded).toEqual(record());
+  });
+
+  it('shows the preset on history rows (null when there is none)', () => {
+    const rows = summarizeHistory(
+      [record({ startedAt: 2, preset: 'Quick 8' }), record({ startedAt: 1 })],
+      NOW,
+    ).rows;
+    expect(rows.map((r) => r.preset)).toEqual(['Quick 8', null]);
   });
 });

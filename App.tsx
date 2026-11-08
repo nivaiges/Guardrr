@@ -38,6 +38,7 @@ import {
   practiceDisplay,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
+  presetForToss,
   resolveVoice,
   sessionRecord,
   settingsLinkLabel,
@@ -100,12 +101,18 @@ export default function App() {
   // drop is marked (or undone) after Stop. While practicing, it is saved when
   // the app goes to the background, so a session isn't lost if the app is
   // closed from there.
+  // The session is labelled with the preset its drill matched when saved.
   const record = useMemo(
     () =>
       startedAt === null
         ? null
-        : sessionRecord(stats, { startedAt, bpm, phraseLength: activeSettings.phraseLength }),
-    [stats, startedAt, bpm, activeSettings.phraseLength],
+        : sessionRecord(stats, {
+            startedAt,
+            bpm,
+            phraseLength: activeSettings.phraseLength,
+            preset: presetForToss(activeSettings, customPresets)?.name,
+          }),
+    [stats, startedAt, bpm, activeSettings, customPresets],
   );
   const latestRecord = useRef(record);
   useEffect(() => {
