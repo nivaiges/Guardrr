@@ -17,6 +17,7 @@ export * from './voiceRate';
 export * from './voices';
 export * from './stripLayout';
 export * from './history';
+export * from './historyExport';
 export * from './customPresets';
 export * from './pages';
 export * from './liveSettings';
