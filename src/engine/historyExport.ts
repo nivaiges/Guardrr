@@ -83,8 +83,15 @@ export function historyCsv(history: readonly SessionRecord[]): string {
   return [HISTORY_CSV_HEADER.map(csvCell).join(','), ...rows].join('\r\n') + '\r\n';
 }
 
-/** Title for the share sheet: "Guardrr history (12 sessions)". */
-export function historyShareTitle(history: readonly SessionRecord[]): string {
+/**
+ * Title for the share sheet: "Guardrr history (12 sessions)", or with the
+ * History filter's label: "Guardrr history: Quads 155 (4 sessions)".
+ */
+export function historyShareTitle(
+  history: readonly SessionRecord[],
+  filterLabel?: string | null,
+): string {
   const n = history.length;
-  return `Guardrr history (${n} ${n === 1 ? 'session' : 'sessions'})`;
+  const what = filterLabel ? `Guardrr history: ${filterLabel}` : 'Guardrr history';
+  return `${what} (${n} ${n === 1 ? 'session' : 'sessions'})`;
 }

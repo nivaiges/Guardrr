@@ -111,4 +111,11 @@ describe('historyShareTitle', () => {
       'Guardrr history (2 sessions)',
     );
   });
+
+  it('names the History filter when one is chosen', () => {
+    expect(historyShareTitle([record()], 'Quads 155')).toBe(
+      'Guardrr history: Quads 155 (1 session)',
+    );
+    expect(historyShareTitle([record()], null)).toBe('Guardrr history (1 session)');
+  });
 });
