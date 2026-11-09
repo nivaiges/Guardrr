@@ -2,9 +2,15 @@ import { useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  ALL_SESSIONS,
+  HistoryFilterKey,
   SessionRecord,
   SessionRow,
   deletionMessage,
+  filterHistory,
+  historyFilterLabel,
+  historyFilters,
+  resolveHistoryFilter,
   sessionRowDetail,
   summarizeHistory,
 } from '../engine';
@@ -24,8 +30,14 @@ export interface SessionHistoryCardProps {
   onClear?: () => SessionRecord[];
   /** Put deleted sessions back. */
   onRestore?: (records: readonly SessionRecord[]) => void;
-  /** Share the history (CSV); resolves to a note to show, or null. */
-  onShare?: () => Promise<string | null>;
+  /**
+   * Share these sessions (CSV) — the ones the filter shows — with the
+   * filter's label (null for All); resolves to a note to show, or null.
+   */
+  onShare?: (
+    sessions: readonly SessionRecord[],
+    filterLabel: string | null,
+  ) => Promise<string | null>;
 }
 
 interface PendingUndo {
@@ -41,7 +53,8 @@ function rowLabel(row: SessionRow): string {
 }
 
 /**
- * All-time totals, the calls dropped most and the latest sessions. "Edit"
+ * All-time totals, the calls dropped most and the latest sessions; chips
+ * above them narrow everything (and Share) to one preset. "Edit"
  * shows a Delete button per session and "Clear all history" (which asks
  * first); every delete can be undone until the next one or "Done".
  */
@@ -61,13 +74,19 @@ export function SessionHistoryCard({
   const [undo, setUndo] = useState<PendingUndo | null>(null);
   const [shareNote, setShareNote] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [filterKey, setFilterKey] = useState<HistoryFilterKey>(ALL_SESSIONS);
+  const filters = useMemo(() => historyFilters(history), [history]);
+  // A preset whose sessions were all deleted falls back to All.
+  const activeFilter = resolveHistoryFilter(history, filterKey);
+  const shown = useMemo(() => filterHistory(history, activeFilter), [history, activeFilter]);
   const summary = useMemo(
-    () => summarizeHistory(history, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
-    [history, nowMs, expanded],
+    () => summarizeHistory(shown, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
+    [shown, nowMs, expanded],
   );
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
-  const more = Math.min(history.length, MANY_ROWS) - summary.rows.length;
+  const more = Math.min(shown.length, MANY_ROWS) - summary.rows.length;
+  const filterLabel = historyFilterLabel(activeFilter);
 
   const removed = (records: SessionRecord[]) => {
     setConfirmingClear(false);
@@ -81,7 +100,7 @@ export function SessionHistoryCard({
     setSharing(true);
     setShareNote(null);
     try {
-      const note = await onShare();
+      const note = await onShare(shown, filterLabel);
       setShareNote(note);
       if (note) AccessibilityInfo.announceForAccessibility(note);
     } finally {
@@ -113,8 +132,12 @@ export function SessionHistoryCard({
               onPress={share}
               disabled={sharing}
               accessibilityRole="button"
-              accessibilityLabel="Share history"
-              accessibilityHint="Shares every saved session as a spreadsheet (CSV)"
+              accessibilityLabel={filterLabel ? `Share ${filterLabel} history` : 'Share history'}
+              accessibilityHint={
+                filterLabel
+                  ? `Shares the ${filterLabel} sessions as a spreadsheet (CSV)`
+                  : 'Shares every saved session as a spreadsheet (CSV)'
+              }
               hitSlop={8}
               style={({ pressed }) => [styles.headerButton, pressed && styles.morePressed]}
             >
@@ -163,6 +186,43 @@ export function SessionHistoryCard({
         <Text style={styles.empty}>No sessions saved.</Text>
       ) : (
         <>
+          {filters.length > 0 ? (
+            <View
+              style={styles.filters}
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Show sessions from"
+            >
+              {filters.map((f) => {
+                const checked = f.key === activeFilter;
+                return (
+                  <Pressable
+                    key={f.key}
+                    testID={`history-filter-${f.key}`}
+                    onPress={() => {
+                      setFilterKey(f.key);
+                      setShareNote(null);
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked }}
+                    aria-checked={checked}
+                    accessibilityLabel={`${f.label}, ${f.sessions} ${f.sessions === 1 ? 'session' : 'sessions'}`}
+                    style={({ pressed }) => [
+                      styles.filter,
+                      checked && styles.filterChecked,
+                      pressed && !checked && styles.morePressed,
+                    ]}
+                  >
+                    <Text
+                      style={[styles.filterText, checked && styles.filterTextChecked]}
+                      numberOfLines={1}
+                    >
+                      {f.label} <Text style={styles.filterCount}>{f.sessions}</Text>
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
           <Text
             style={styles.totals}
             accessibilityLabel={`${summary.sessions} ${summary.sessions === 1 ? 'session' : 'sessions'}, ${summary.tosses} ${summary.tosses === 1 ? 'toss' : 'tosses'}${summary.drops ? `, ${summary.caught} caught` : ''}, ${summary.totalDuration} in total`}
@@ -309,6 +369,20 @@ const getStyles = themed((t: Theme) =>
       color: t.textMuted,
     },
     totals: { fontSize: 16, fontWeight: '600', color: t.text, marginTop: 8 },
+    filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+    filter: {
+      minHeight: 36,
+      maxWidth: '100%',
+      paddingHorizontal: 12,
+      borderRadius: 18,
+      backgroundColor: t.control,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    filterChecked: { backgroundColor: t.primary },
+    filterText: { fontSize: 14, fontWeight: '600', color: t.text },
+    filterTextChecked: { color: t.onPrimary },
+    filterCount: { fontWeight: '400', fontVariant: ['tabular-nums'] },
     hardest: { fontSize: 14, color: t.textMuted, marginTop: 4 },
     hardestCall: { fontWeight: '700', color: t.dangerText },
     rows: { marginTop: 4, gap: 8 },

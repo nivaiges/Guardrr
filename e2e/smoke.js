@@ -299,7 +299,62 @@ async function main() {
     await page.getByTestId('call-shortcut-all').click();
     check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
 
-    // 5d. History: delete a session, undo it, then clear all (asks first) and reload.
+    // 5d. History filters: with an older hand-tuned session added, chips narrow
+    // the totals and rows to one preset.
+    await page.evaluate(() => {
+      const stored = JSON.parse(localStorage.getItem('guardrr.history'));
+      stored.sessions.push({
+        startedAt: Date.now() - 3 * 86_400_000,
+        durationMs: 90_000,
+        bpm: 100,
+        phraseLength: 8,
+        tosses: 3,
+        drops: 0,
+        timesCalled: { 2: 3 },
+        timesDropped: {},
+      });
+      localStorage.setItem('guardrr.history', JSON.stringify(stored));
+    });
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    const filterChip = (key) => page.getByTestId(`history-filter-${key}`);
+    check(
+      'History offers All / Standard 16 / No preset filters',
+      (await filterChip('all').getAttribute('aria-checked')) === 'true' &&
+        (await filterChip('preset:Standard 16').isVisible()) &&
+        (await filterChip('none').isVisible()) &&
+        (await page.getByText(/^2 sessions · 4 tosses/).isVisible()),
+    );
+    await filterChip('none').click();
+    check(
+      'the No preset filter shows only the hand-tuned session',
+      (await page.getByText(/^1 session · 3 tosses/).isVisible()) &&
+        (await page.getByText('100 BPM · 8 counts').isVisible()) &&
+        !(await historyRow.isVisible()),
+    );
+    await filterChip('preset:Standard 16').click();
+    check(
+      'the Standard 16 filter shows only its session',
+      (await page.getByText(/^1 session · 1 toss · 0% caught/).isVisible()) &&
+        (await historyRow.isVisible()) &&
+        !(await page.getByText('100 BPM · 8 counts').isVisible()),
+    );
+    const [filtered] = await Promise.all([
+      page.waitForEvent('download', { timeout: 5000 }),
+      page.getByTestId('history-share').click(),
+    ]);
+    const filteredCsv = fs
+      .readFileSync(await filtered.path(), 'utf8')
+      .trim()
+      .split('\r\n');
+    check(
+      'Share with a filter sends only the filtered sessions',
+      filteredCsv.length === 2 && filteredCsv[1].includes(',Standard 16,'),
+      `${filteredCsv.length - 1} row(s)`,
+    );
+    await filterChip('all').click();
+
+    // 5e. History: delete a session, undo it, then clear all (asks first) and reload.
     await page.getByTestId('history-edit').click();
     await page.getByRole('button', { name: /^Delete session Today/ }).click();
     check(
@@ -320,7 +375,7 @@ async function main() {
       (await page.getByText('History', { exact: true }).count()) === 0,
     );
 
-    // 5e. Presets of your own: save, name clash, survive a reload, delete with Undo.
+    // 5f. Presets of your own: save, name clash, survive a reload, delete with Undo.
     const mine = page.getByRole('radio', { name: 'Full range, your preset' });
     await page.getByTestId('preset-save').click();
     await page.getByTestId('preset-name').fill('Full range');
@@ -399,7 +454,7 @@ async function main() {
     await page.getByRole('button', { name: 'Start practice' }).waitFor();
     check('a deleted preset stays deleted after a reload', (await mine.count()) === 0);
 
-    // 5f. Change the phrase length while practicing: the toss in the air finishes its
+    // 5g. Change the phrase length while practicing: the toss in the air finishes its
     // 16-count phrase, then 8-count phrases follow without pressing Stop.
     const live = await browser.newContext({
       viewport: { width: 390, height: 844 },

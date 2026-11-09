@@ -2,7 +2,8 @@
  * Screenshots of the app for the README and for Niv to see what changed:
  * runs the web build in headless Chromium at phone size (390 x 844 pt, 2x)
  * and captures the main screens — ready (over a fake camera), the call, the release, the catch,
- * stats and history, History in edit mode and shared as CSV, the call
+ * stats and history, History in edit mode, shared as CSV and filtered to
+ * one preset, the call
  * picker, dark theme and saving a preset of your own.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
@@ -66,7 +67,7 @@ function setUp(history) {
 /** A few past sessions so the History card has something to show. */
 function sampleHistory(now) {
   const hour = 3_600_000;
-  const session = (hoursAgo, tosses, dropped, preset) => {
+  const session = (hoursAgo, tosses, dropped, preset, bpm = 120) => {
     const timesCalled = {};
     const timesDropped = {};
     for (let i = 0; i < tosses; i++) {
@@ -77,7 +78,7 @@ function sampleHistory(now) {
     return {
       startedAt: now - hoursAgo * hour,
       durationMs: tosses * 8_000,
-      bpm: 120,
+      bpm,
       phraseLength: 16,
       tosses,
       drops: Object.values(dropped).reduce((a, b) => a + b, 0),
@@ -90,6 +91,7 @@ function sampleHistory(now) {
   const sessions = [
     session(2, 24, { 7: 2, 5: 1 }, 'Standard 16'),
     session(26, 40, { 7: 3 }, 'Standard 16'),
+    session(30, 20, { 5: 2, 6: 1 }, 'Quads 155', 155),
     session(50, 16, {}),
   ];
   return JSON.stringify({ version: 1, sessions });
@@ -172,6 +174,11 @@ async function main() {
     await Promise.all([page.waitForEvent('download'), page.getByTestId('history-share').click()]);
     await page.getByTestId('history-share-note').waitFor();
     await shot(historyCard, '13-history-share');
+    // Filter History to one preset.
+    await page.getByTestId('history-filter-preset:Standard 16').click();
+    await page.waitForTimeout(200);
+    await shot(historyCard, '14-history-filter');
+    await page.getByTestId('history-filter-all').click();
 
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();

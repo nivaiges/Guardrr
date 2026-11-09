@@ -33,9 +33,10 @@ function download(csv: string, fileName: string): boolean {
 export async function shareHistory(
   history: readonly SessionRecord[],
   nowMs = Date.now(),
+  filterLabel: string | null = null,
 ): Promise<ShareOutcome> {
   const csv = historyCsv(history);
-  const title = historyShareTitle(history);
+  const title = historyShareTitle(history, filterLabel);
   const canShareOnWeb =
     Platform.OS !== 'web' || (typeof navigator !== 'undefined' && 'share' in navigator);
   if (canShareOnWeb) {

@@ -291,7 +291,9 @@ export default function App() {
             onDelete={deleteSession}
             onClear={clearHistory}
             onRestore={restoreSessions}
-            onShare={async () => shareOutcomeMessage(await shareHistory(history))}
+            onShare={async (sessions, filterLabel) =>
+              shareOutcomeMessage(await shareHistory(sessions, Date.now(), filterLabel))
+            }
           />
 
           <PresetPicker
