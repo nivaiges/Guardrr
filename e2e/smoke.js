@@ -375,7 +375,7 @@ async function main() {
       (await page.getByText('History', { exact: true }).count()) === 0,
     );
 
-    // 5f. Presets of your own: save, name clash, survive a reload, delete with Undo.
+    // 5f. Presets of your own: save, name clash, survive a reload, reorder, delete with Undo.
     const mine = page.getByRole('radio', { name: 'Full range, your preset' });
     await page.getByTestId('preset-save').click();
     await page.getByTestId('preset-name').fill('Full range');
@@ -448,6 +448,30 @@ async function main() {
     );
     await page.getByTestId('preset-undo').click();
     check('Undo puts the preset back', await mine.isVisible());
+    // Move it after a second preset of your own; the order survives a reload.
+    await page.getByRole('radio', { name: 'Standard 16' }).click();
+    await page.getByTestId('call-shortcut-even').click();
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('Evens');
+    await page.getByTestId('preset-save-confirm').click();
+    await mine.click();
+    check(
+      'the first of your presets can only move later',
+      (await page.getByTestId('preset-move-later').isVisible()) &&
+        (await page.getByTestId('preset-move-earlier').count()) === 0,
+    );
+    await page.getByTestId('preset-move-later').click();
+    const yours = page.getByRole('radio', { name: /, your preset$/ });
+    await page.waitForTimeout(1500);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    const order = await yours.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+    check(
+      'moving a preset later reorders the chips, after a reload too',
+      order.join(' | ') === 'Evens, your preset | Full range, your preset' &&
+        (await page.getByTestId('preset-move-earlier').isVisible()),
+      order.join(' | '),
+    );
     await page.getByTestId('preset-delete').click();
     await page.waitForTimeout(500);
     await page.reload();

@@ -1,10 +1,10 @@
 /**
  * Screenshots of the app for the README and for Niv to see what changed:
  * runs the web build in headless Chromium at phone size (390 x 844 pt, 2x)
- * and captures the main screens — ready (over a fake camera), the call, the release, the catch,
- * stats and history, History in edit mode, shared as CSV and filtered to
- * one preset, the call
- * picker, dark theme and saving a preset of your own.
+ * and captures the main screens — ready (over a fake camera), the call,
+ * the release, the catch, stats and history, History in edit mode, shared
+ * as CSV and filtered to one preset, the call picker, dark theme, and
+ * saving, updating and moving a preset of your own.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -220,6 +220,17 @@ async function main() {
     await shot(page, '12-live-change');
     await page.getByTestId('go-to-practice').click();
     await page.getByRole('button', { name: 'Stop practice' }).click();
+
+    // A second preset of your own: it can move earlier, past "Odd drill".
+    await page.getByTestId('go-to-settings').click();
+    await page.waitForTimeout(600);
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('Even 8');
+    await page.getByTestId('preset-save-confirm').click();
+    await page.getByTestId('preset-move-earlier').waitFor();
+    await scrollTo(exact(page, 'Presets'));
+    await page.waitForTimeout(200);
+    await shot(page, '15-move-preset');
     await context.close();
 
     // Dark theme, mid-toss.

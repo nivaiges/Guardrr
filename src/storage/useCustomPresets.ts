@@ -6,8 +6,10 @@ import {
   DeletedPreset,
   PracticePreset,
   PracticeSettings,
+  PresetMove,
   SavePresetResult,
   deleteCustomPreset,
+  moveCustomPreset,
   renameCustomPreset,
   restoreCustomPreset,
   saveCustomPreset,
@@ -16,7 +18,7 @@ import {
 import { CustomPresetStore, createCustomPresetStore } from './customPresetStore';
 
 export interface CustomPresets {
-  /** The performer's presets, in the order they were saved. */
+  /** The performer's presets, in the order they were saved (or moved to). */
   presets: readonly PracticePreset[];
   /** Save the settings under a name; saved right away when it works. */
   savePreset: (settings: PracticeSettings, name: string) => SavePresetResult;
@@ -27,6 +29,8 @@ export interface CustomPresets {
   renamePreset: (id: string, name: string) => ChangePresetResult;
   /** Overwrite a preset with these settings (tempo + toss). */
   updatePreset: (id: string, settings: PracticeSettings) => ChangePresetResult;
+  /** Swap a preset with its neighbour; saved right away. */
+  movePreset: (id: string, direction: PresetMove) => void;
   /** False until the saved presets have been read. */
   loaded: boolean;
 }
@@ -103,5 +107,22 @@ export function useCustomPresets(): CustomPresets {
     [commit],
   );
 
-  return { presets, savePreset, deletePreset, restorePreset, renamePreset, updatePreset, loaded };
+  const movePreset = useCallback(
+    (id: string, direction: PresetMove) => {
+      const result = moveCustomPreset(current.current, id, direction);
+      if (result.moved) commit(result.presets);
+    },
+    [commit],
+  );
+
+  return {
+    presets,
+    savePreset,
+    deletePreset,
+    restorePreset,
+    renamePreset,
+    updatePreset,
+    movePreset,
+    loaded,
+  };
 }

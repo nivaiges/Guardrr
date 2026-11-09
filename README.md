@@ -89,9 +89,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2"](docs/screenshots/12-live-change.png) |
 
-| Sharing History                                                        | History of one preset                                                      |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) |
+| Sharing History                                                        | History of one preset                                                      | Moving a preset                                                                          |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) | ![A second preset of your own, with "Move earlier"](docs/screenshots/15-move-preset.png) |
 
 ## Tech
 

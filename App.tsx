@@ -91,6 +91,7 @@ export default function App() {
     restorePreset,
     renamePreset,
     updatePreset,
+    movePreset,
   } = useCustomPresets();
   const { running, cue, stats, startedAt, activeSettings, pendingChange, start, stop, toggleDrop } =
     usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
@@ -305,6 +306,7 @@ export default function App() {
             onRestore={restorePreset}
             onRename={renamePreset}
             onUpdate={(id) => updatePreset(id, saved)}
+            onMove={movePreset}
           />
 
           <CameraSettings camera={camera} onChange={setCamera} />

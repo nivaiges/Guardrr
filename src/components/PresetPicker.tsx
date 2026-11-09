@@ -9,11 +9,13 @@ import {
   MAX_PRESET_NAME_LENGTH,
   PracticePreset,
   PracticeSettings,
+  PresetMove,
   SavePresetResult,
   allPresets,
   canSavePreset,
   isCustomPreset,
   matchingAnyPreset,
+  presetMoves,
   presetNameMessage,
   presetUpdateOffer,
   suggestPresetName,
@@ -30,6 +32,8 @@ export interface PresetPickerProps {
   onRename: (id: string, name: string) => ChangePresetResult;
   /** Overwrite a custom preset with the current tempo and toss settings. */
   onUpdate: (id: string) => ChangePresetResult;
+  /** Swap a custom preset with its neighbour in the chip row. */
+  onMove?: (id: string, direction: PresetMove) => void;
   /**
    * Lock applying presets (saving, renaming and deleting stay available).
    * Not used while practicing any more: a preset applied mid-practice starts
@@ -41,8 +45,8 @@ export interface PresetPickerProps {
 /**
  * One-tap practice setups, built-in and the performer's own. The preset the
  * settings still match is highlighted; settings that match none can be
- * saved under a name, and a selected custom preset can be renamed or deleted
- * (with Undo). A custom preset can be updated in place: with a new tempo
+ * saved under a name, and a selected custom preset can be renamed, moved
+ * earlier or later, or deleted (with Undo). A custom preset can be updated in place: with a new tempo
  * while its settings still match, or with tweaked settings after it was
  * applied here.
  */
@@ -55,6 +59,7 @@ export function PresetPicker({
   onRestore,
   onRename,
   onUpdate,
+  onMove,
   disabled = false,
 }: PresetPickerProps) {
   const styles = getStyles(useTheme());
@@ -130,6 +135,16 @@ export function PresetPicker({
     closeForm();
     AccessibilityInfo.announceForAccessibility(`Deleted preset ${preset.name}. Undo is available.`);
   };
+  const move = (preset: PracticePreset, direction: PresetMove) => {
+    if (!onMove) return;
+    onMove(preset.id, direction);
+    const index = customPresets.findIndex((p) => p.id === preset.id);
+    const place = index + (direction === 'earlier' ? 0 : 2);
+    AccessibilityInfo.announceForAccessibility(
+      `Moved ${preset.name} ${direction}: ${place} of ${customPresets.length} of your presets`,
+    );
+  };
+  const moves = current && onMove ? presetMoves(customPresets, current.id) : [];
   const undo = () => {
     if (deleted) onRestore(deleted);
     setDeleted(null);
@@ -190,6 +205,21 @@ export function PresetPicker({
           >
             <Text style={styles.linkText}>Rename</Text>
           </Pressable>
+          {moves.map((direction) => (
+            <Pressable
+              key={direction}
+              style={styles.linkButton}
+              testID={`preset-move-${direction}`}
+              onPress={() => move(current, direction)}
+              accessibilityRole="button"
+              accessibilityLabel={`Move preset ${current.name} ${direction}`}
+              hitSlop={8}
+            >
+              <Text style={styles.linkText}>
+                {direction === 'earlier' ? '‹ Move earlier' : 'Move later ›'}
+              </Text>
+            </Pressable>
+          ))}
           <Pressable
             style={styles.linkButton}
             testID="preset-delete"
