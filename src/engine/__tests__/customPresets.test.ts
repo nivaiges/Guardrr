@@ -8,6 +8,8 @@ import {
   describeToss,
   isCustomPreset,
   matchingAnyPreset,
+  moveCustomPreset,
+  presetMoves,
   presetForToss,
   normalizePresetName,
   parseStoredCustomPresets,
@@ -400,5 +402,61 @@ describe('presetForToss', () => {
     const presets = withOne('Odd drill');
     expect(presetForToss(drill.toss, presets)?.name).toBe('Odd drill');
     expect(presetForToss(drill.toss, [])).toBeNull();
+  });
+});
+
+describe('moving custom presets', () => {
+  const three = (() => {
+    let p: PracticePreset[] = [];
+    [[3], [5], [7]].forEach((calls, i) => {
+      p = saveCustomPreset(
+        p,
+        { ...drill, toss: { ...drill.toss, allowedTossCounts: calls } },
+        `N${i}`,
+        i,
+      ).presets;
+    });
+    return p;
+  })();
+  const names = (p: readonly PracticePreset[]) => p.map((x) => x.name);
+
+  it('offers only the moves that exist', () => {
+    expect(presetMoves(three, three[0].id)).toEqual(['later']);
+    expect(presetMoves(three, three[1].id)).toEqual(['earlier', 'later']);
+    expect(presetMoves(three, three[2].id)).toEqual(['earlier']);
+    expect(presetMoves(three.slice(0, 1), three[0].id)).toEqual([]);
+    expect(presetMoves(three, 'standard-16')).toEqual([]);
+  });
+
+  it('swaps a preset with its neighbour', () => {
+    const later = moveCustomPreset(three, three[0].id, 'later');
+    expect(later.moved).toBe(true);
+    expect(names(later.presets)).toEqual(['N1', 'N0', 'N2']);
+    const earlier = moveCustomPreset(three, three[2].id, 'earlier');
+    expect(names(earlier.presets)).toEqual(['N0', 'N2', 'N1']);
+  });
+
+  it('does nothing past either end or for an unknown id', () => {
+    expect(moveCustomPreset(three, three[0].id, 'earlier')).toEqual({
+      presets: three,
+      moved: false,
+    });
+    expect(moveCustomPreset(three, three[2].id, 'later').moved).toBe(false);
+    expect(moveCustomPreset(three, 'quads-155', 'later').moved).toBe(false);
+  });
+
+  it("doesn't change the input", () => {
+    const before = names(three);
+    moveCustomPreset(three, three[1].id, 'earlier');
+    expect(names(three)).toEqual(before);
+  });
+
+  it('keeps built-ins first and the new order after a save and reload', () => {
+    const { presets } = moveCustomPreset(three, three[2].id, 'earlier');
+    const reloaded = parseStoredCustomPresets(serializeCustomPresets(presets));
+    expect(names(reloaded)).toEqual(['N0', 'N2', 'N1']);
+    expect(names(allPresets(reloaded)).slice(0, PRACTICE_PRESETS.length)).toEqual(
+      names(PRACTICE_PRESETS),
+    );
   });
 });

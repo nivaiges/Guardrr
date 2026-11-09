@@ -286,6 +286,37 @@ export function restoreCustomPreset(
   return next;
 }
 
+export type PresetMove = 'earlier' | 'later';
+
+/** Which ways a custom preset can move in the chip row (none for an unknown id). */
+export function presetMoves(custom: readonly PracticePreset[], id: string): PresetMove[] {
+  const index = custom.findIndex((p) => p.id === id);
+  if (index < 0) return [];
+  return [
+    ...(index > 0 ? (['earlier'] as const) : []),
+    ...(index < custom.length - 1 ? (['later'] as const) : []),
+  ];
+}
+
+/**
+ * Swap a custom preset with its neighbour, so the performer can put the
+ * drills they use most first. Built-ins always come before custom presets.
+ * Returns the same order (and `moved: false`) at either end or for an
+ * unknown id.
+ */
+export function moveCustomPreset(
+  custom: readonly PracticePreset[],
+  id: string,
+  direction: PresetMove,
+): { presets: PracticePreset[]; moved: boolean } {
+  if (!presetMoves(custom, id).includes(direction)) return { presets: [...custom], moved: false };
+  const index = custom.findIndex((p) => p.id === id);
+  const other = direction === 'earlier' ? index - 1 : index + 1;
+  const next = [...custom];
+  [next[index], next[other]] = [next[other], next[index]];
+  return { presets: next, moved: true };
+}
+
 export function serializeCustomPresets(custom: readonly PracticePreset[]): string {
   return JSON.stringify({
     version: CUSTOM_PRESETS_VERSION,
