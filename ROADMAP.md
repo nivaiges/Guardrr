@@ -83,7 +83,8 @@
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
 - [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
 - [x] Custom presets: rename, and "update preset with current settings" (also "Save N BPM to …").
-- [ ] Custom presets: reorder (drag, or move up/down).
+- [x] Custom presets: reorder — Move earlier / Move later on a selected preset of your own.
+- [ ] Custom presets: drag to reorder, if Move earlier / later feels slow with many presets.
 - [x] Page dots: tap to switch pages.
 - [ ] Page dots: check on device they don't sit under the iOS home indicator (safe-area insets).
 - [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
@@ -94,5 +95,9 @@
 - [x] History: changing the tempo or preset after Stop no longer relabels the finished session.
 - [ ] History share: check on device what Messages/Mail/Notes do with the CSV text; if a coach
       needs a real attachment, share a .csv file instead (needs `expo-sharing` + `expo-file-system`).
-- [ ] History: filter or total by preset (e.g. catch rate on Quads 155 only), now that sessions
-      record their preset.
+- [x] History: filter by preset (e.g. catch rate on Quads 155 only) — chips above the totals;
+      Share sends only the filtered sessions.
+- [ ] History: remember the chosen filter across app restarts (today it resets to All).
+- [ ] Smoke test: the live-change check ("changes start with toss 2") failed once on a busy
+      machine (the 8-count tap landed in a different count than planned) and passed on a re-run;
+      make it wait for a known count instead of a fixed delay.

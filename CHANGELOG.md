@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-11-09
+
+### Added
+
+- **Filter History by preset** (roadmap: "History: filter or total by preset"). When your
+  history spans more than one preset, chips appear above the totals — _All 5 · Quads 155 2 ·
+  Standard 16 2 · No preset 1_. Tap one and the totals, catch rate, "Dropped most" and the
+  session list cover only that drill. **Share** sends what you're looking at: with a filter on,
+  only those sessions, titled _Guardrr history: Quads 155 (2 sessions)_.
+  - Engine: `historyFilters`, `filterHistory`, `resolveHistoryFilter`, `historyFilterLabel`;
+    `historyShareTitle` takes the filter's label.
+- **Reorder your presets** (roadmap: "Custom presets: reorder"). Select one of your own presets
+  and **‹ Move earlier** / **Move later ›** appear next to Rename, so the drills you use most
+  come first. Saved right away. Built-in presets always stay first.
+  - Engine: `presetMoves`, `moveCustomPreset`; `useCustomPresets().movePreset`.
+- Smoke test: 6 new checks (59 total) — the three filters and a filtered Share on a history with
+  an older hand-tuned session; moving a preset and the order surviving a reload. Screenshots
+  `14-history-filter` and `15-move-preset` added to the README gallery (the sample history now
+  has a Quads 155 session too).
+- 20 new unit tests (436 total).
+
+### Decisions
+
+- Filters group sessions by the **preset name saved with them**, most recently practiced first,
+  then "No preset" (hand-tuned settings and sessions from before presets were recorded). Names
+  that differ only in case stay apart — they were different presets when saved.
+- The chips only show when there's something to choose (two groups or more), and a filter whose
+  sessions are all deleted falls back to All. The choice isn't saved yet; it resets to All when
+  the app reopens (roadmap item added).
+- Edit → **Clear all history** still clears everything, not just the filtered sessions — its
+  confirm already says how many ("Delete all 5 sessions?").
+- Reordering uses **Move earlier / Move later** buttons rather than drag-and-drop: no new native
+  module (drag needs a gesture library), works with a screen reader ("Moved Odd drill earlier: 1
+  of 2 of your presets"), and with at most 12 presets a few taps is enough. Drag stays on the
+  roadmap.
+
+### To test on your phone
+
+- Practice a few tosses with two different presets, Stop, and swipe to History: tap a preset
+  chip and check the totals and rows only cover that preset. Tap **Share** with a filter on and
+  check the CSV only has those sessions.
+- Save two presets of your own, select one and tap **Move earlier / Move later**; restart the
+  app and check the order stuck.
+- The smoke test's live-change check failed once on the first run here (a timing check on a busy
+  machine) and passed on a re-run; nothing in today's change touches it. Noted in the roadmap.
+
 ## 2026-11-08
 
 ### Added
