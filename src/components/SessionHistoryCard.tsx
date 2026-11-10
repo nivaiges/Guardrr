@@ -38,6 +38,10 @@ export interface SessionHistoryCardProps {
     sessions: readonly SessionRecord[],
     filterLabel: string | null,
   ) => Promise<string | null>;
+  /** The chosen filter, when the parent keeps it (e.g. saved across restarts). */
+  filterKey?: HistoryFilterKey;
+  /** Called when a filter chip is tapped. */
+  onFilterChange?: (key: HistoryFilterKey) => void;
 }
 
 interface PendingUndo {
@@ -65,6 +69,8 @@ export function SessionHistoryCard({
   onClear,
   onRestore,
   onShare,
+  filterKey: savedFilterKey,
+  onFilterChange,
 }: SessionHistoryCardProps) {
   const theme = useTheme();
   const styles = getStyles(theme);
@@ -74,7 +80,12 @@ export function SessionHistoryCard({
   const [undo, setUndo] = useState<PendingUndo | null>(null);
   const [shareNote, setShareNote] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
-  const [filterKey, setFilterKey] = useState<HistoryFilterKey>(ALL_SESSIONS);
+  const [ownFilterKey, setOwnFilterKey] = useState<HistoryFilterKey>(ALL_SESSIONS);
+  const filterKey = savedFilterKey ?? ownFilterKey;
+  const setFilterKey = (key: HistoryFilterKey) => {
+    setOwnFilterKey(key);
+    onFilterChange?.(key);
+  };
   const filters = useMemo(() => historyFilters(history), [history]);
   // A preset whose sessions were all deleted falls back to All.
   const activeFilter = resolveHistoryFilter(history, filterKey);

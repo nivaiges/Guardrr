@@ -11,6 +11,7 @@ import { TossSettings, validateTossSettings } from './announce';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN } from './countIn';
+import { ALL_SESSIONS, HistoryFilterKey, parseHistoryFilterKey } from './historyFilter';
 import { CueOptions } from './practice';
 import { DEFAULT_VOICE_RATE, isVoiceRateOption } from './voiceRate';
 import { isStoredVoiceId } from './voices';
@@ -71,6 +72,8 @@ export interface PracticeSettings {
    * practice page says it's a swipe away (see pages.ts).
    */
   swipeHintSeen: boolean;
+  /** The History filter last chosen (see historyFilter.ts); "all" by default. */
+  historyFilter: HistoryFilterKey;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -82,6 +85,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   voice: null,
   camera: DEFAULT_CAMERA_SETTINGS,
   swipeHintSeen: false,
+  historyFilter: ALL_SESSIONS,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -157,5 +161,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     voice: isStoredVoiceId(raw.voice) ? raw.voice : null,
     camera: parseCamera(raw.camera),
     swipeHintSeen: bool(raw.swipeHintSeen, false),
+    historyFilter: parseHistoryFilterKey(raw.historyFilter),
   };
 }

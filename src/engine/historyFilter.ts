@@ -80,3 +80,24 @@ export function historyFilterLabel(key: HistoryFilterKey): string | null {
   if (key === NO_PRESET) return 'No preset';
   return key.startsWith('preset:') ? key.slice('preset:'.length) : null;
 }
+
+/** Longest stored filter key accepted (preset names are far shorter). */
+const MAX_FILTER_KEY_LENGTH = 80;
+
+/**
+ * A filter key read back from storage, or "All" when it isn't one. The key
+ * is kept even when no session matches it today: History loads after the
+ * settings, and `resolveHistoryFilter` already shows All until it matches.
+ */
+export function parseHistoryFilterKey(raw: unknown): HistoryFilterKey {
+  if (raw === ALL_SESSIONS || raw === NO_PRESET) return raw;
+  if (
+    typeof raw === 'string' &&
+    raw.length <= MAX_FILTER_KEY_LENGTH &&
+    raw.startsWith('preset:') &&
+    raw.slice('preset:'.length).trim().length > 0
+  ) {
+    return raw;
+  }
+  return ALL_SESSIONS;
+}

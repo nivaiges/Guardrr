@@ -26,6 +26,7 @@ const custom: PracticeSettings = {
   voice: 'com.apple.voice.enhanced.Ava',
   camera: { enabled: false, facing: 'back' },
   swipeHintSeen: true,
+  historyFilter: 'preset:Quads 155',
 };
 
 describe('stored settings', () => {
@@ -82,6 +83,16 @@ describe('stored settings', () => {
       catchHaptics: false,
       countOff: false,
     });
+  });
+
+  it('keeps the History filter and repairs a bad one', () => {
+    const parse = (historyFilter: unknown) =>
+      parseStoredSettings(JSON.stringify({ historyFilter })).historyFilter;
+    expect(parse('preset:Odd drill')).toBe('preset:Odd drill');
+    expect(parse('none')).toBe('none');
+    expect(parse('preset:')).toBe('all');
+    expect(parse(42)).toBe('all');
+    expect(parseStoredSettings(JSON.stringify({})).historyFilter).toBe('all');
   });
 
   it('keeps a saved haptics choice and repairs a bad one', () => {

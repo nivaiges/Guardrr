@@ -352,6 +352,13 @@ async function main() {
       filteredCsv.length === 2 && filteredCsv[1].includes(',Standard 16,'),
       `${filteredCsv.length - 1} row(s)`,
     );
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    check(
+      'the chosen History filter survives a reload',
+      (await filterChip('preset:Standard 16').getAttribute('aria-checked')) === 'true' &&
+        (await page.getByText(/^1 session · 1 toss · 0% caught/).isVisible()),
+    );
     await filterChip('all').click();
 
     // 5e. History: delete a session, undo it, then clear all (asks first) and reload.

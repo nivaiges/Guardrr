@@ -295,6 +295,8 @@ export default function App() {
             onShare={async (sessions, filterLabel) =>
               shareOutcomeMessage(await shareHistory(sessions, Date.now(), filterLabel))
             }
+            filterKey={saved.historyFilter}
+            onFilterChange={(historyFilter) => update((s) => ({ ...s, historyFilter }))}
           />
 
           <PresetPicker

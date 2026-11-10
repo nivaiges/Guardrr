@@ -1,5 +1,6 @@
 import { SessionRecord } from '../history';
 import {
+  parseHistoryFilterKey,
   ALL_SESSIONS,
   NO_PRESET,
   filterHistory,
@@ -111,5 +112,35 @@ describe('historyFilterLabel', () => {
     expect(historyFilterLabel(NO_PRESET)).toBe('No preset');
     expect(historyFilterLabel('preset:Quads 155')).toBe('Quads 155');
     expect(historyFilterLabel('nonsense')).toBeNull();
+  });
+});
+
+describe('parseHistoryFilterKey', () => {
+  it('keeps All, No preset and preset keys', () => {
+    expect(parseHistoryFilterKey(ALL_SESSIONS)).toBe(ALL_SESSIONS);
+    expect(parseHistoryFilterKey(NO_PRESET)).toBe(NO_PRESET);
+    expect(parseHistoryFilterKey('preset:Quads 155')).toBe('preset:Quads 155');
+  });
+
+  it('keeps a preset key with no sessions yet (History loads later)', () => {
+    const key = parseHistoryFilterKey('preset:Gone');
+    expect(key).toBe('preset:Gone');
+    expect(resolveHistoryFilter([], key)).toBe(ALL_SESSIONS);
+  });
+
+  it('falls back to All for anything else', () => {
+    for (const raw of [
+      undefined,
+      null,
+      3,
+      '',
+      'preset:',
+      'preset:   ',
+      'Quads',
+      {},
+      'preset:' + 'x'.repeat(100),
+    ]) {
+      expect(parseHistoryFilterKey(raw)).toBe(ALL_SESSIONS);
+    }
   });
 });
