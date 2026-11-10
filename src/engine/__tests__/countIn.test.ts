@@ -4,6 +4,9 @@ import {
   DEFAULT_COUNT_IN,
   FULL_PHRASE_COUNT_IN,
   countInLabel,
+  countOffSummary,
+  countOffWord,
+  countOffWords,
   effectiveCountIn,
   firstCountIndex,
 } from '../countIn';
@@ -66,5 +69,70 @@ describe('count-in', () => {
 
   it('labels the options', () => {
     expect(COUNT_IN_OPTIONS.map(countInLabel)).toEqual(['4', '8', 'Phrase']);
+  });
+});
+
+describe('spoken count-off', () => {
+  // DEFAULT_TOSS_SETTINGS: 16 counts; lead counts vary per test.
+  const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
+
+  it('counts "5 6, 5 6 7 8" over an 8-count count-in, ending on the last count', () => {
+    expect(countOffWords(8, lead(1))).toEqual([
+      { count: 9, word: 'five' },
+      { count: 11, word: 'six' },
+      { count: 13, word: 'five' },
+      { count: 14, word: 'six' },
+      { count: 15, word: 'seven' },
+    ]);
+    expect(countOffSummary(8, lead(1))).toBe('5 6, 5 6 7');
+  });
+
+  it('stops before the call so it never talks over it', () => {
+    // Lead 2: the call is on count 15, so the count-off is "5 6, 5 6".
+    expect(countOffWord(14, 8, lead(2))).toBe('six');
+    expect(countOffWord(15, 8, lead(2))).toBeNull();
+    expect(countOffWord(16, 8, lead(2))).toBeNull();
+    expect(countOffSummary(8, lead(2))).toBe('5 6, 5 6');
+  });
+
+  it('speaks the 8 only when the lead leaves room for it', () => {
+    // A 1-count lead still announces on count 16; count-off words end on 15.
+    expect(countOffWord(16, 8, lead(1))).toBeNull();
+    // A lead of 0 isn't allowed, so the full "5 6, 5 6 7 8" is never spoken
+    // in practice; the pattern itself still ends on "eight".
+    expect(countOffSummary(8, lead(1))).not.toContain('8');
+  });
+
+  it('uses the quick "5 6 7 8" for a 4-count count-in', () => {
+    expect(countOffWords(4, lead(1))).toEqual([
+      { count: 13, word: 'five' },
+      { count: 14, word: 'six' },
+      { count: 15, word: 'seven' },
+    ]);
+  });
+
+  it('counts only the last 8 counts of a full-phrase count-in', () => {
+    expect(countOffWord(1, FULL_PHRASE_COUNT_IN, lead(2))).toBeNull();
+    expect(countOffWord(8, FULL_PHRASE_COUNT_IN, lead(2))).toBeNull();
+    expect(countOffWord(9, FULL_PHRASE_COUNT_IN, lead(2))).toBe('five');
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(2))).toBe('5 6, 5 6');
+  });
+
+  it('lines up with the end of any phrase length', () => {
+    expect(countOffWords(8, lead(2, 32)).map((w) => w.count)).toEqual([25, 27, 29, 30]);
+    // An 8-count phrase with a full-phrase count-in is the whole phrase.
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(2, 8))).toBe('5 6, 5 6');
+    // A 6-count phrase is too short for the long pattern: quick count-off.
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(1, 6))).toBe('5 6 7');
+  });
+
+  it('has nothing to say when the lead covers the whole count-off', () => {
+    expect(countOffSummary(4, lead(4))).toBeNull();
+    expect(countOffWords(4, lead(4))).toEqual([]);
+  });
+
+  it('rejects counts outside the phrase', () => {
+    expect(() => countOffWord(0, 8, lead(2))).toThrow(RangeError);
+    expect(() => countOffWord(17, 8, lead(2))).toThrow(RangeError);
   });
 });
