@@ -180,6 +180,12 @@ async function main() {
     await shot(historyCard, '14-history-filter');
     await page.getByTestId('history-filter-all').click();
 
+    // Settings → Practice: the spoken count-off over the count-in.
+    await page.getByRole('switch', { name: /Speak the count-off/ }).click();
+    await scrollTo(page.getByText(/^Call \d+ before release/).first());
+    await page.waitForTimeout(200);
+    await shot(page, '16-count-off');
+
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();
     await scrollTo(page.getByText(/^Calls: /).first());

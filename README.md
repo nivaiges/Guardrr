@@ -46,7 +46,7 @@ Below that you can fine-tune:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32), how many counts before the release
-  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase).
+  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase), optionally with the voice counting it off ("5 6, 5 6 7 8") up to the first call.
 - **Calls** — shortest and longest toss, optional "and" calls, a chip per call to **hand-pick**
   exactly which ones come up (e.g. only 3, 5 and 7), **All / Odd / Even** shortcuts to pick a
   whole group in one tap, and whether the same call may come twice in a
@@ -89,9 +89,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2"](docs/screenshots/12-live-change.png) |
 
-| Sharing History                                                        | History of one preset                                                      | Moving a preset                                                                          |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) | ![A second preset of your own, with "Move earlier"](docs/screenshots/15-move-preset.png) |
+| Sharing History                                                        | History of one preset                                                      | Moving a preset                                                                          | Spoken count-off                                                                |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) | ![A second preset of your own, with "Move earlier"](docs/screenshots/15-move-preset.png) | ![Speak the count-off: "5 6, then the call"](docs/screenshots/16-count-off.png) |
 
 ## Tech
 

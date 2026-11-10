@@ -1,4 +1,4 @@
-import { DEFAULT_TOSS_SETTINGS, PracticeCue, speechTextForCall } from '../../engine';
+import { CueOptions, DEFAULT_TOSS_SETTINGS, PracticeCue, speechTextForCall } from '../../engine';
 import { createPracticeSession } from '../session';
 
 jest.mock('expo-audio', () => ({}));
@@ -13,7 +13,7 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-function setup(bpm = 120, countIn?: number) {
+function setup(bpm = 120, countIn?: number, cueOptions?: CueOptions) {
   const clicks = { play: jest.fn() };
   const voice = { say: jest.fn(), stop: jest.fn() };
   const haptics = { play: jest.fn() };
@@ -26,6 +26,7 @@ function setup(bpm = 120, countIn?: number) {
     haptics,
     seed: 42,
     countIn,
+    cueOptions,
     onCue: (c) => cues.push(c),
     schedulerOverrides: { now: () => Date.now() },
   });
@@ -120,6 +121,42 @@ describe('createPracticeSession', () => {
       expect(voice.say).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(voice.say).toHaveBeenCalledWith(speechTextForCall(session.callHistory()[0]));
+      session.stop();
+    });
+
+    it('speaks the count-off over the count-in, then the call', () => {
+      // 16 counts, lead 4: the call is on count 13, so the count-off is "5 6," on 9 and 11.
+      const { session, voice } = setup(120, 8, { countOff: true });
+      session.start();
+      expect(voice.say).toHaveBeenNthCalledWith(1, 'five');
+      jest.advanceTimersByTime(2 * 500);
+      expect(voice.say).toHaveBeenNthCalledWith(2, 'six');
+      jest.advanceTimersByTime(2 * 500);
+      expect(voice.say).toHaveBeenNthCalledWith(3, speechTextForCall(session.callHistory()[0]));
+      // Nothing else is said until the next call: no count-off after the first toss.
+      jest.advanceTimersByTime(16 * 500 - 1);
+      expect(voice.say).toHaveBeenCalledTimes(3);
+      jest.advanceTimersByTime(1);
+      expect(voice.say).toHaveBeenCalledTimes(4);
+      session.stop();
+    });
+
+    it('counts off again on the next start', () => {
+      const { session, voice } = setup(120, 8, { countOff: true });
+      session.start();
+      jest.advanceTimersByTime(10 * 500);
+      session.stop();
+      voice.say.mockClear();
+      session.start();
+      expect(voice.say).toHaveBeenCalledWith('five');
+      session.stop();
+    });
+
+    it('stays silent on the count-in when the count-off is off', () => {
+      const { session, voice } = setup(120, 8);
+      session.start();
+      jest.advanceTimersByTime(4 * 500 - 1);
+      expect(voice.say).not.toHaveBeenCalled();
       session.stop();
     });
 

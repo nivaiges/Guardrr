@@ -21,6 +21,11 @@ export interface CueOptions {
   haptics?: boolean;
   /** A lighter tap on every catch (the called count, or its "and"). Default false. */
   catchHaptics?: boolean;
+  /**
+   * Speak the prep count-off ("5 6, 5 6 7 8") over the count-in clicks, up to
+   * the first call (see countOffWord). Default false.
+   */
+  countOff?: boolean;
 }
 
 /** Vibration to play on a tick: a firm tap on the release, a light one on the catch. */

@@ -15,6 +15,7 @@ import {
   announceCountInPhrase,
   callSetNote,
   countInLabel,
+  countOffSummary,
   describeWarning,
   effectiveCountIn,
   liveSettingsNote,
@@ -142,6 +143,7 @@ export function SettingsPanel({
   const previewLocked = running;
   const liveNote = liveSettingsNote(running, pendingChange);
   const countInUsed = effectiveCountIn(countIn, settings);
+  const countOff = countOffSummary(countIn, settings);
 
   return (
     <View style={styles.panel}>
@@ -186,6 +188,15 @@ export function SettingsPanel({
         onChange={onCountInChange}
         optionLabel={countInLabel}
         optionAccessibilityLabel={(n) => (n === 0 ? 'A full phrase' : `${n} counts`)}
+      />
+      <Toggle
+        label={
+          countOff
+            ? `Speak the count-off (${countOff}, then the call)`
+            : 'Speak the count-off (no room before the call: shorten the lead)'
+        }
+        value={cueOptions.countOff ?? false}
+        onChange={(v) => onCueOptionsChange({ ...cueOptions, countOff: v })}
       />
 
       <Text style={styles.heading} accessibilityRole="header">

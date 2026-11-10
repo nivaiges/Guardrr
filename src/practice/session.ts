@@ -16,6 +16,7 @@ import {
   TossSettings,
   createRng,
   createScheduler,
+  countOffWord,
   firstCountIndex,
   randomSeed,
 } from '../engine';
@@ -76,13 +77,23 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
   let settings = options.settings;
   let cueOptions = options.cueOptions;
   let voice = options.voice;
+  /** The settings the run started with: the count-in is always their lead-in phrase. */
+  let startSettings = settings;
+  /** Once a call has been spoken the count-off is over (a word would cut the call off). */
+  let callSpoken = false;
 
   function onTick(raw: Parameters<SchedulerOptions['onTick']>[0]): void {
     if (!timeline) return;
     const cue = timeline.cueAt(raw, cueOptions);
     if (cue.click) options.clicks.play(cue.click);
     if (cue.haptic) options.haptics?.play(cue.haptic);
-    if (cue.speak) voice.say(cue.speak);
+    if (cue.speak) {
+      voice.say(cue.speak);
+      callSpoken = true;
+    } else if (cueOptions?.countOff && !callSpoken && cue.phrase === 0 && cue.subdivision === 0) {
+      const word = countOffWord(cue.count, options.countIn ?? 0, startSettings);
+      if (word) voice.say(word);
+    }
     options.onCue?.(cue);
   }
 
@@ -91,6 +102,8 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
   return {
     start() {
       if (scheduler?.running) return;
+      startSettings = settings;
+      callSpoken = false;
       // Validates the settings up front (throws before anything plays).
       // The scheduler counts from 0; a short count-in starts part-way into the lead-in phrase.
       timeline = new LiveCueTimeline(

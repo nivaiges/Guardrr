@@ -14,7 +14,13 @@ const custom: PracticeSettings = {
     max: 6,
     andCounts: true,
   }),
-  cue: { accentDownbeat: false, andClicks: true, haptics: false, catchHaptics: true },
+  cue: {
+    accentDownbeat: false,
+    andClicks: true,
+    haptics: false,
+    catchHaptics: true,
+    countOff: true,
+  },
   countIn: 4,
   voiceRate: 0.8,
   voice: 'com.apple.voice.enhanced.Ava',
@@ -74,6 +80,7 @@ describe('stored settings', () => {
       andClicks: true,
       haptics: true,
       catchHaptics: false,
+      countOff: false,
     });
   });
 

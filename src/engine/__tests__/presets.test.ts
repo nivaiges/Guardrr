@@ -71,7 +71,13 @@ describe('practice presets', () => {
     const settings = {
       ...DEFAULT_PRACTICE_SETTINGS,
       bpm: 150,
-      cue: { accentDownbeat: false, andClicks: true, haptics: false, catchHaptics: true },
+      cue: {
+        accentDownbeat: false,
+        andClicks: true,
+        haptics: false,
+        catchHaptics: true,
+        countOff: true,
+      },
     };
     const quick = presetById('quick-8')!;
     const applied = applyPreset(settings, quick);

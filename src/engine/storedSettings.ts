@@ -48,6 +48,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   andClicks: false,
   haptics: true,
   catchHaptics: false,
+  countOff: false,
 };
 
 export interface PracticeSettings {
@@ -149,6 +150,7 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       andClicks: bool(cue.andClicks, DEFAULT_CUE_OPTIONS.andClicks),
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
       catchHaptics: bool(cue.catchHaptics, DEFAULT_CUE_OPTIONS.catchHaptics),
+      countOff: bool(cue.countOff, DEFAULT_CUE_OPTIONS.countOff),
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,
