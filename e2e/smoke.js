@@ -505,7 +505,20 @@ async function main() {
       .getByRole('radiogroup', { name: 'Counts per phrase' })
       .getByRole('radio', { name: '8 counts', exact: true })
       .click();
-    const liveNote = await livePage.getByTestId('live-settings-note').textContent();
+    // The note updates on the render after the tap: wait for it (up to a count)
+    // rather than reading it straight away, which raced the re-render.
+    const noteEl = livePage.getByTestId('live-settings-note');
+    await livePage
+      .waitForFunction(
+        () =>
+          /toss \d/.test(
+            document.querySelector('[data-testid="live-settings-note"]')?.textContent ?? '',
+          ),
+        null,
+        { timeout: MS_PER_COUNT },
+      )
+      .catch(() => {});
+    const liveNote = await noteEl.textContent();
     check(
       'changing the phrase while practicing says which toss it starts with',
       liveNote === 'Your changes start with toss 2.',
