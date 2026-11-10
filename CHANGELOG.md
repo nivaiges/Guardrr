@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-11-10
+
+### Added
+
+- **Spoken count-off** (roadmap: "Count-in: optionally speak the count-off"). New switch under
+  the count-in in Settings: **Speak the count-off**. The voice counts the guard in over the
+  count-in clicks the way a captain would — "five, six, five six seven eight" over an 8-count
+  (or full-phrase) count-in, the 5 and 6 held for two counts each, or a quick "five six seven
+  eight" over a 4-count one — and stops as soon as the first call is due. The switch's label
+  says what you'll hear with your settings: with Quads 155 (call 4 counts early) it's _"5 6, then
+  the call"_; with a 2-count lead, _"5 6, 5 6, then the call"_. Off by default; saved with the
+  sound options and kept when you switch presets.
+  - Engine: `countOffWord`, `countOffWords`, `countOffSummary` (countIn.ts); `CueOptions.countOff`.
+- **History remembers its filter.** The preset chip you picked in History (e.g. _Quads 155_)
+  comes back after the app restarts instead of resetting to All.
+  - Engine: `parseHistoryFilterKey`; `PracticeSettings.historyFilter`.
+- Smoke test: 60 checks (the History filter surviving a reload is new). Screenshot
+  `16-count-off` added to the README gallery.
+- 15 new unit tests (451 total).
+
+### Fixed
+
+- The flaky smoke check "changes start with toss 2" read the note under Phrase right after the
+  tap, before React re-rendered it, so it sometimes saw the generic "next toss that hasn't been
+  called yet". It now waits (up to one count) for the toss number. The app itself was fine — the
+  accent check in the same run always showed the change landing on toss 2. Passed 3 runs in a row.
+
+### Decisions
+
+- The count-off is lined up with the **end** of the lead-in phrase, so the "8" always falls on
+  the count before the release whatever the phrase length (16, 32, 8…).
+- **The call wins.** Count-off words stop on the count the first call is spoken (lead counts
+  before the release) and never come back that run, so a word can't cut the call off (each new
+  utterance stops the last one). Since the lead is always at least 1, the spoken "eight" is
+  always replaced by the call — you hear "5 6, 5 6 7" then the call with a 1-count lead.
+- Words, not digits, are sent to the speech engine ("five", like the calls), and only during the
+  count-in: later phrases keep their prep silent, since the call is already being spoken there.
+- A count-in of 5–7 counts (possible with a long lead) gets the quick "5 6 7 8" on its last
+  4 counts. If the lead swallows the whole count-off, the switch says so ("no room before the
+  call: shorten the lead") instead of silently doing nothing.
+- A saved History filter whose sessions were all deleted shows All but isn't forgotten:
+  History loads after the settings, so dropping an unmatched key on load would lose a valid
+  choice. It's only replaced when you tap another chip.
+
+### To test on your phone
+
+- Turn on **Speak the count-off**, set the count-in to 8 and press Start: check the "five …
+  six …" lands on the clicks and the call still comes out clean. Try it at 155 BPM with the
+  _Fast_ voice — if the words drag behind the clicks, tell me (speech latency can't be measured
+  here; noted in the roadmap).
+- Pick a preset chip in History, close the app fully and reopen: the same chip should be
+  selected.
+
 ## 2026-11-09
 
 ### Added

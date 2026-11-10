@@ -69,7 +69,9 @@
 - [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
 - [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.
 - [ ] Respect reduce-motion once anything animates (e.g. the "and"-tick flash idea above).
-- [ ] Count-in: optionally speak the count-off ("5 6, 5 6 7 8") over the count-in clicks instead of clicks alone.
+- [x] Count-in: optionally speak the count-off ("5 6, 5 6 7 8") over the count-in clicks instead of clicks alone.
+- [ ] Count-off: check on device that the TTS words land on the clicks at fast tempos (speech-engine
+      latency); if they lag, pre-roll each word by the measured latency or use recorded count words.
 - [ ] Check on device that a "Slow" call still finishes before the release at high tempos with 1–2 lead counts; if not, warn in Settings.
 - [x] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
 - [ ] Drop button: a grace period (or "drop the previous toss") for drops marked just after the next release — today Drop always marks the latest released toss.
@@ -97,7 +99,6 @@
       needs a real attachment, share a .csv file instead (needs `expo-sharing` + `expo-file-system`).
 - [x] History: filter by preset (e.g. catch rate on Quads 155 only) — chips above the totals;
       Share sends only the filtered sessions.
-- [ ] History: remember the chosen filter across app restarts (today it resets to All).
-- [ ] Smoke test: the live-change check ("changes start with toss 2") failed once on a busy
-      machine (the 8-count tap landed in a different count than planned) and passed on a re-run;
-      make it wait for a known count instead of a fixed delay.
+- [x] History: remember the chosen filter across app restarts.
+- [x] Smoke test: the live-change check ("changes start with toss 2") was flaky — it read the note
+      before the re-render after the tap (not a timing problem in the app); it now waits for it.
