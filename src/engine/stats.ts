@@ -19,7 +19,20 @@ export interface TossRecord {
   call: number;
   /** Marked as dropped by the performer (the "Drop" button). */
   dropped?: boolean;
+  /** `countsPlayed` when the toss was released (absent in hand-built records). */
+  releasedAtCount?: number;
+  /** The toss's catch moment was reached. */
+  caught?: boolean;
 }
+
+/**
+ * For this many counts after a release, while the new toss is still in the
+ * air, Drop marks the toss before it: a drop noticed late (e.g. a 7-count toss
+ * in an 8-count phrase, caught one count before the next release) still lands
+ * on the right toss, and nobody can tell yet whether the toss just released
+ * will be dropped.
+ */
+export const DROP_GRACE_COUNTS = 2;
 
 export interface SessionStats {
   /** Time of the first cue, or null before anything happened. */
@@ -62,10 +75,18 @@ export function recordCue(stats: SessionStats, cue: PracticeCue, nowMs: number):
   if (!onCount && !released && !caught) return stats;
 
   let { recent, timesCalled, tosses } = stats;
+  const countsPlayed = stats.countsPlayed + (onCount ? 1 : 0);
+  if (caught && recent.length > 0) {
+    // The catch belongs to the latest toss (a toss is caught before the next release).
+    const last = recent[recent.length - 1];
+    if (!last.caught) recent = [...recent.slice(0, -1), { ...last, caught: true }];
+  }
   if (released) {
     const call = cue.currentCall as number;
     tosses += 1;
-    recent = [...recent, { phrase: cue.phrase, call }].slice(-STATS_HISTORY_LIMIT);
+    recent = [...recent, { phrase: cue.phrase, call, releasedAtCount: countsPlayed }].slice(
+      -STATS_HISTORY_LIMIT,
+    );
     const key = String(call);
     timesCalled = { ...timesCalled, [key]: (timesCalled[key] ?? 0) + 1 };
   }
@@ -73,11 +94,47 @@ export function recordCue(stats: SessionStats, cue: PracticeCue, nowMs: number):
     ...stats,
     startedAtMs: stats.startedAtMs ?? nowMs,
     lastCueAtMs: nowMs,
-    countsPlayed: stats.countsPlayed + (onCount ? 1 : 0),
+    countsPlayed,
     tosses,
     catches: stats.catches + (caught ? 1 : 0),
     recent,
     timesCalled,
+  };
+}
+
+export interface DropTarget {
+  /** Index into `stats.recent`. */
+  index: number;
+  /** Toss number in the session (1 = first toss). */
+  toss: number;
+  call: number;
+  dropped: boolean;
+  /** True when this is the toss before the latest one (see DROP_GRACE_COUNTS). */
+  previous: boolean;
+}
+
+/**
+ * The toss Drop would mark right now: the latest toss, except during the
+ * first DROP_GRACE_COUNTS counts after a release, before that toss is caught,
+ * when it's the toss before it. Null before the first toss.
+ */
+export function dropTarget(stats: SessionStats): DropTarget | null {
+  const n = stats.recent.length;
+  if (n === 0) return null;
+  const latest = stats.recent[n - 1];
+  const inGrace =
+    n >= 2 &&
+    !latest.caught &&
+    latest.releasedAtCount !== undefined &&
+    stats.countsPlayed - latest.releasedAtCount < DROP_GRACE_COUNTS;
+  const index = inGrace ? n - 2 : n - 1;
+  const record = stats.recent[index];
+  return {
+    index,
+    toss: stats.tosses - (n - 1 - index),
+    call: record.call,
+    dropped: record.dropped === true,
+    previous: inGrace,
   };
 }
 
@@ -94,22 +151,41 @@ function bump(counts: Readonly<Record<string, number>>, call: number, by: number
 }
 
 /**
- * Mark the latest released toss as dropped, or un-mark it if it already is
- * (so a mistaken tap can be undone with a second one). Only the latest toss
- * can be marked: press Drop before the next release. Returns the same object
- * before the first toss.
+ * Mark the drop target (see dropTarget) as dropped, or un-mark it if it
+ * already is (so a mistaken tap can be undone with a second one). Returns the
+ * same object before the first toss.
  */
 export function toggleDrop(stats: SessionStats): SessionStats {
-  const last = stats.recent[stats.recent.length - 1];
-  if (!last) return stats;
-  const dropped = !last.dropped;
+  const target = dropTarget(stats);
+  if (!target) return stats;
+  const record = stats.recent[target.index];
+  const dropped = !target.dropped;
   const by = dropped ? 1 : -1;
+  const recent = [...stats.recent];
+  recent[target.index] = { ...record, dropped };
   return {
     ...stats,
-    recent: [...stats.recent.slice(0, -1), { ...last, dropped }],
+    recent,
     drops: stats.drops + by,
-    timesDropped: bump(stats.timesDropped, last.call, by),
+    timesDropped: bump(stats.timesDropped, record.call, by),
   };
+}
+
+/** Button text and screen-reader hint for Drop, for the current target. */
+export function dropButtonText(stats: SessionStats): {
+  label: string;
+  detail: string | null;
+  hint: string;
+} | null {
+  const target = dropTarget(stats);
+  if (!target) return null;
+  const label = target.dropped ? 'Undo drop' : 'Drop';
+  const which = target.previous ? 'the previous toss' : 'the latest toss';
+  const detail = target.previous ? `toss ${target.toss} · ${callLabel(target.call)}` : null;
+  const hint = target.dropped
+    ? `Counts ${which} (${callLabel(target.call)}) as caught again`
+    : `Marks ${which} (${callLabel(target.call)}) as dropped`;
+  return { label, detail, hint };
 }
 
 export interface CallTally {

@@ -2,9 +2,12 @@ import { CallSequence, DEFAULT_TOSS_SETTINGS, TossSettings } from '../announce';
 import { cueForTick } from '../practice';
 import { createRng } from '../random';
 import {
+  DROP_GRACE_COUNTS,
   EMPTY_STATS,
   STATS_HISTORY_LIMIT,
   SessionStats,
+  dropButtonText,
+  dropTarget,
   formatDuration,
   latestTossDropped,
   recordCue,
@@ -50,7 +53,13 @@ describe('session stats', () => {
     expect(stats.tosses).toBe(5);
     expect(stats.catches).toBe(5);
     expect(stats.recent).toEqual(
-      [1, 2, 3, 4, 5].map((phrase) => ({ phrase, call: calls.callFor(phrase) })),
+      [1, 2, 3, 4, 5].map((phrase) => ({
+        phrase,
+        call: calls.callFor(phrase),
+        caught: true,
+        // Count 1 of phrase p is the (16p + 1)th count played.
+        releasedAtCount: 16 * phrase + 1,
+      })),
     );
     const total = Object.values(stats.timesCalled).reduce((a, b) => a + b, 0);
     expect(total).toBe(5);
@@ -86,7 +95,7 @@ describe('session stats', () => {
     expect(stats.tosses).toBe(phrases);
     expect(stats.recent).toHaveLength(STATS_HISTORY_LIMIT);
     expect(stats.recent[0].phrase).toBe(11);
-    expect(stats.recent.at(-1)).toEqual({ phrase: phrases, call: calls.callFor(phrases) });
+    expect(stats.recent.at(-1)).toMatchObject({ phrase: phrases, call: calls.callFor(phrases) });
     const total = Object.values(stats.timesCalled).reduce((a, b) => a + b, 0);
     expect(total).toBe(phrases);
   });
@@ -215,6 +224,129 @@ describe('drops', () => {
       timesDropped: { '5': 1 },
     });
     expect(s.catchRateLabel).toBe('67%');
+  });
+});
+
+describe('drop grace period', () => {
+  // 8-count phrase, 7-count calls: caught on 7, the next release one count later.
+  const settings: TossSettings = {
+    ...DEFAULT_TOSS_SETTINGS,
+    phraseLength: 8,
+    leadCounts: 4,
+    allowedTossCounts: [7],
+    allowRepeats: true,
+  };
+
+  /** Play tick by tick, calling `each` after every count is recorded. */
+  function playCounts(counts: number, each?: (stats: SessionStats) => SessionStats) {
+    const calls = new CallSequence(settings, createRng(1));
+    let stats: SessionStats = EMPTY_STATS;
+    for (let tick = 0; tick < counts * 2; tick++) {
+      const cue = cueForTick(
+        { tick, countIndex: Math.floor(tick / 2), subdivision: tick % 2 },
+        settings,
+        calls,
+      );
+      stats = recordCue(stats, cue, tick * MS_PER_TICK);
+      if (each && tick % 2 === 0) stats = each(stats);
+    }
+    return stats;
+  }
+
+  it('marks the latest toss when there is no earlier one, even in the air', () => {
+    const stats = playCounts(9); // first release on count 9
+    expect(stats.tosses).toBe(1);
+    expect(dropTarget(stats)).toEqual({
+      index: 0,
+      toss: 1,
+      call: 7,
+      dropped: false,
+      previous: false,
+    });
+    expect(latestTossDropped(toggleDrop(stats))).toBe(true);
+  });
+
+  it('marks the previous toss for DROP_GRACE_COUNTS counts after a release', () => {
+    const atRelease = playCounts(17); // second release on count 17
+    expect(atRelease.tosses).toBe(2);
+    expect(dropTarget(atRelease)).toMatchObject({ index: 0, toss: 1, previous: true });
+    const marked = toggleDrop(atRelease);
+    expect(marked.recent.map((r) => r.dropped === true)).toEqual([true, false]);
+    expect(marked.timesDropped).toEqual({ '7': 1 });
+    // A second tap still in the grace period undoes it.
+    expect(toggleDrop(marked).drops).toBe(0);
+
+    const stillGrace = playCounts(16 + DROP_GRACE_COUNTS);
+    expect(dropTarget(stillGrace)).toMatchObject({ toss: 1, previous: true });
+    const after = playCounts(17 + DROP_GRACE_COUNTS);
+    expect(dropTarget(after)).toMatchObject({ index: 1, toss: 2, previous: false });
+  });
+
+  it('ends the grace period as soon as the new toss is caught', () => {
+    const pop: TossSettings = { ...settings, allowedTossCounts: [1] };
+    const calls = new CallSequence(pop, createRng(1));
+    let stats: SessionStats = EMPTY_STATS;
+    // Through the "and" of count 17: the second "1" is caught there.
+    for (let tick = 0; tick < 17 * 2; tick++) {
+      const cue = cueForTick(
+        { tick, countIndex: Math.floor(tick / 2), subdivision: tick % 2 },
+        pop,
+        calls,
+      );
+      stats = recordCue(stats, cue, tick * MS_PER_TICK);
+    }
+    expect(stats.tosses).toBe(2);
+    expect(stats.recent[1].caught).toBe(true);
+    expect(dropTarget(stats)).toMatchObject({ toss: 2, previous: false });
+  });
+
+  it('keeps an earlier mark when the grace period ends', () => {
+    let done = false;
+    const stats = playCounts(32, (s) => {
+      if (!done && s.tosses === 2) {
+        done = true;
+        return toggleDrop(s);
+      }
+      return s;
+    });
+    expect(stats.tosses).toBe(3);
+    expect(stats.recent.map((r) => r.dropped === true)).toEqual([true, false, false]);
+    expect(stats.drops).toBe(1);
+  });
+
+  it('counts the toss number past the kept history', () => {
+    const stats: SessionStats = {
+      ...EMPTY_STATS,
+      countsPlayed: 100,
+      tosses: 60,
+      recent: [
+        { phrase: 59, call: 3, caught: true, releasedAtCount: 90 },
+        { phrase: 60, call: 5, releasedAtCount: 100 },
+      ],
+      timesCalled: { '3': 30, '5': 30 },
+    };
+    expect(dropTarget(stats)).toMatchObject({ index: 0, toss: 59, call: 3, previous: true });
+  });
+
+  it('describes the target on the button', () => {
+    expect(dropButtonText(EMPTY_STATS)).toBeNull();
+    const latest = playCounts(9);
+    expect(dropButtonText(latest)).toEqual({
+      label: 'Drop',
+      detail: null,
+      hint: 'Marks the latest toss (7) as dropped',
+    });
+    const grace = playCounts(17);
+    expect(dropButtonText(grace)).toEqual({
+      label: 'Drop',
+      detail: 'toss 1 · 7',
+      hint: 'Marks the previous toss (7) as dropped',
+    });
+    expect(dropButtonText(toggleDrop(grace))).toEqual({
+      label: 'Undo drop',
+      detail: 'toss 1 · 7',
+      hint: 'Counts the previous toss (7) as caught again',
+    });
   });
 });
 
