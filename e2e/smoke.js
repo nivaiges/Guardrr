@@ -526,7 +526,22 @@ async function main() {
     );
     await livePage.screenshot({ path: path.join(outDir, 'live-change.png'), fullPage: true });
     // Releases: click 9 (toss 1, 16 counts), then 25 (toss 2) and 33 (toss 3, 8 counts).
-    await livePage.waitForTimeout(29 * MS_PER_COUNT);
+    const waitStart = Date.now();
+    // Right after toss 2 is released (and before it can be caught), Drop marks toss 1.
+    const dropTargetText = await livePage
+      .waitForFunction(
+        () => document.querySelector('[data-testid="drop-target"]')?.textContent || null,
+        null,
+        { timeout: 22 * MS_PER_COUNT, polling: 'raf' },
+      )
+      .then((h) => h.jsonValue())
+      .catch(() => null);
+    check(
+      'right after a release, Drop marks the toss before it',
+      /^toss 1 · /.test(dropTargetText ?? ''),
+      `"${dropTargetText}"`,
+    );
+    await livePage.waitForTimeout(Math.max(0, 29 * MS_PER_COUNT - (Date.now() - waitStart)));
     const liveClicks = (await livePage.evaluate(() => window.__plays)).filter(
       (p) => p.kind !== 'and',
     );

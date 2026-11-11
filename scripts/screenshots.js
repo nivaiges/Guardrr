@@ -154,8 +154,11 @@ async function main() {
     await shot(page, '03-release');
     await exact(page, 'Catch!').waitFor({ timeout: 15_000 });
     await shot(page, '04-catch');
+    // Right after the next release Drop still marks the toss just caught (or dropped).
+    await page.getByTestId('drop-target').waitFor({ timeout: 15_000 });
+    await shot(page, '17-drop-previous');
     await page.getByRole('button', { name: 'Drop' }).click();
-    await page.waitForTimeout(1_000);
+    await page.waitForTimeout(300);
     await page.getByRole('button', { name: 'Stop practice' }).click();
 
     // Stats and history after Stop, on the settings page (swipe left / "Settings & stats").

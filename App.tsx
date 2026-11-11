@@ -33,7 +33,7 @@ import {
   TossSettings,
   VOICE_TEST_PHRASE,
   applyPreset,
-  latestTossDropped,
+  dropButtonText,
   otherPage,
   pageFromOffset,
   practiceDisplay,
@@ -95,6 +95,8 @@ export default function App() {
   } = useCustomPresets();
   const { running, cue, stats, startedAt, activeSettings, pendingChange, start, stop, toggleDrop } =
     usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
+  // Right after a release Drop marks the toss before it (see DROP_GRACE_COUNTS).
+  const drop = dropButtonText(stats);
   const {
     history,
     saveSession,
@@ -231,21 +233,20 @@ export default function App() {
               >
                 <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
               </Pressable>
-              {stats.tosses > 0 ? (
+              {drop ? (
                 <Pressable
                   style={({ pressed }) => [styles.dropButton, pressed && styles.pressed]}
                   onPress={toggleDrop}
                   accessibilityRole="button"
-                  accessibilityLabel={latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
-                  accessibilityHint={
-                    latestTossDropped(stats)
-                      ? 'Counts the latest toss as caught again'
-                      : 'Marks the latest toss as dropped'
-                  }
+                  accessibilityLabel={drop.label}
+                  accessibilityHint={drop.hint}
                 >
-                  <Text style={styles.dropText}>
-                    {latestTossDropped(stats) ? 'Undo drop' : 'Drop'}
-                  </Text>
+                  <Text style={styles.dropText}>{drop.label}</Text>
+                  {drop.detail ? (
+                    <Text style={styles.dropDetail} testID="drop-target">
+                      {drop.detail}
+                    </Text>
+                  ) : null}
                 </Pressable>
               ) : null}
             </View>
@@ -393,7 +394,10 @@ const getStyles = themed((t: Theme) =>
     stopButton: { backgroundColor: t.danger },
     startText: { color: t.onPrimary, fontSize: 22, fontWeight: '700' },
     dropButton: {
-      paddingVertical: 16,
+      // The row stretches it to the Start button's height; a second line
+      // ("toss 3 · 5") fits without changing it.
+      paddingVertical: 6,
+      justifyContent: 'center',
       minWidth: 130,
       alignItems: 'center',
       borderRadius: 32,
@@ -402,6 +406,7 @@ const getStyles = themed((t: Theme) =>
       backgroundColor: t.background + 'CC',
     },
     dropText: { color: t.text, fontSize: 20, fontWeight: '700' },
+    dropDetail: { color: t.dangerText, fontSize: 13, fontWeight: '600' },
     pageLink: {
       paddingVertical: 8,
       paddingHorizontal: 14,

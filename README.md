@@ -93,6 +93,10 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) | ![A second preset of your own, with "Move earlier"](docs/screenshots/15-move-preset.png) | ![Speak the count-off: "5 6, then the call"](docs/screenshots/16-count-off.png) |
 
+| Drop, just after a release                                                                        |
+| ------------------------------------------------------------------------------------------------- |
+| ![Right after toss 2 is released, Drop still marks toss 1](docs/screenshots/17-drop-previous.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript
