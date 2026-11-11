@@ -10,6 +10,8 @@ import {
   dropTarget,
   formatDuration,
   latestTossDropped,
+  mostCalledLabel,
+  mostCalledSpoken,
   recordCue,
   summarizeStats,
   toggleDrop,
@@ -347,6 +349,21 @@ describe('drop grace period', () => {
       detail: 'toss 1 · 7',
       hint: 'Counts the previous toss (7) as caught again',
     });
+  });
+});
+
+describe('mostCalledLabel', () => {
+  it('keeps the figure short', () => {
+    expect(mostCalledLabel([])).toBe('–');
+    expect(mostCalledLabel([5])).toBe('5');
+    expect(mostCalledLabel([4, 4.5])).toBe('4, 4&');
+    expect(mostCalledLabel([1, 2, 3, 4, 5])).toBe('1, 2 +3');
+    expect(mostCalledLabel([1, 2, 3], 3)).toBe('1, 2, 3');
+  });
+
+  it('spells out every call for screen readers', () => {
+    expect(mostCalledSpoken([])).toBe('none yet');
+    expect(mostCalledSpoken([1, 2, 3, 4.5])).toBe('1, 2, 3, 4 and');
   });
 });
 

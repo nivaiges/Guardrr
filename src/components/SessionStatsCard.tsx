@@ -1,17 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Theme, themed, useTheme } from '../theme';
-import { SessionStats, callLabel, summarizeStats } from '../engine';
+import { SessionStats, mostCalledLabel, mostCalledSpoken, summarizeStats } from '../engine';
 
 export interface SessionStatsCardProps {
   stats: SessionStats;
   running: boolean;
 }
 
-function Figure({ value, label }: { value: string; label: string }) {
+function Figure({ value, label, spoken }: { value: string; label: string; spoken?: string }) {
   const styles = getStyles(useTheme());
   return (
-    <View style={styles.figure} accessible accessibilityLabel={`${label}: ${value}`}>
+    <View style={styles.figure} accessible accessibilityLabel={`${label}: ${spoken ?? value}`}>
       <Text style={styles.figureValue}>{value}</Text>
       <Text style={styles.figureLabel}>{label}</Text>
     </View>
@@ -35,7 +35,8 @@ export function SessionStatsCard({ stats, running }: SessionStatsCardProps) {
         <Figure value={summary.duration} label="time" />
         {summary.drops > 0 ? <Figure value={summary.catchRateLabel} label="caught" /> : null}
         <Figure
-          value={summary.mostCalled.length ? summary.mostCalled.map(callLabel).join(', ') : '–'}
+          value={mostCalledLabel(summary.mostCalled)}
+          spoken={mostCalledSpoken(summary.mostCalled)}
           label="called most"
         />
       </View>

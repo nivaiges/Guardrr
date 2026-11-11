@@ -8,7 +8,7 @@
  */
 
 import { callLabel } from './calls';
-import { PracticeCue } from './practice';
+import { PracticeCue, displayLabelForCall } from './practice';
 
 /** How many recent tosses the history keeps. */
 export const STATS_HISTORY_LIMIT = 50;
@@ -261,4 +261,21 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
       .reverse()
       .map((r) => (r.dropped ? `${callLabel(r.call)} ✗` : callLabel(r.call))),
   };
+}
+
+/**
+ * The "called most" figure, short enough for its column: "4, 4&", and past
+ * `max` tied calls "1, 2 +3"; "–" before the first toss. Screen readers get
+ * the full list (`mostCalledSpoken`).
+ */
+export function mostCalledLabel(mostCalled: readonly number[], max = 2): string {
+  if (mostCalled.length === 0) return '–';
+  const shown = mostCalled.slice(0, max).map(displayLabelForCall).join(', ');
+  const more = mostCalled.length - max;
+  return more > 0 ? `${shown} +${more}` : shown;
+}
+
+/** Every tied call for screen readers ("4, 4 and"); "none yet" before the first toss. */
+export function mostCalledSpoken(mostCalled: readonly number[]): string {
+  return mostCalled.length ? mostCalled.map(callLabel).join(', ') : 'none yet';
 }
