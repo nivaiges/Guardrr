@@ -361,6 +361,40 @@ async function main() {
     );
     await filterChip('all').click();
 
+    // 5d2. Catch-rate trend: the dropped call practiced again, cleanly, reads "getting better".
+    const historyBefore = await page.evaluate(() => {
+      const json = localStorage.getItem('guardrr.history');
+      const stored = JSON.parse(json);
+      const dropped = stored.sessions.find((r) => r.drops > 0);
+      const droppedCall = Object.keys(dropped.timesDropped)[0];
+      stored.sessions.unshift({
+        startedAt: Date.now(),
+        durationMs: 60_000,
+        bpm: 120,
+        phraseLength: 16,
+        tosses: 4,
+        drops: 0,
+        timesCalled: { [droppedCall]: 4 },
+        timesDropped: {},
+      });
+      localStorage.setItem('guardrr.history', JSON.stringify(stored));
+      return json;
+    });
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    const trendRow = page.getByLabel(/: caught 0%, then 100%, over 2 sessions: getting better$/);
+    check(
+      'History shows the catch-rate trend of a dropped call',
+      (await trendRow.count()) === 1 && (await page.getByText('0% → 100%').isVisible()),
+      await page
+        .getByTestId('history-trends')
+        .textContent()
+        .catch(() => 'no trends'),
+    );
+    await page.evaluate((json) => localStorage.setItem('guardrr.history', json), historyBefore);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+
     // 5e. History: delete a session, undo it, then clear all (asks first) and reload.
     await page.getByTestId('history-edit').click();
     await page.getByRole('button', { name: /^Delete session Today/ }).click();

@@ -6,6 +6,9 @@ import {
   HistoryFilterKey,
   SessionRecord,
   SessionRow,
+  TREND_SESSIONS,
+  TrendDirection,
+  callTrends,
   deletionMessage,
   filterHistory,
   historyFilterLabel,
@@ -56,6 +59,18 @@ function rowLabel(row: SessionRow): string {
   return `${row.date}: ${tosses}${drops}, ${row.duration}, ${drill}${row.bpm} BPM, ${row.phraseLength}-count phrase`;
 }
 
+const DIRECTION_TEXT: Record<TrendDirection, string> = {
+  better: '↑ better',
+  worse: '↓ worse',
+  steady: 'steady',
+};
+
+function directionStyle(styles: ReturnType<typeof getStyles>, direction: TrendDirection) {
+  if (direction === 'better') return styles.trendBetter;
+  if (direction === 'worse') return styles.trendWorse;
+  return null;
+}
+
 /**
  * All-time totals, the calls dropped most and the latest sessions; chips
  * above them narrow everything (and Share) to one preset. "Edit"
@@ -93,6 +108,15 @@ export function SessionHistoryCard({
   const summary = useMemo(
     () => summarizeHistory(shown, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
     [shown, nowMs, expanded],
+  );
+  // How the calls dropped most are doing lately (follows the filter).
+  const trends = useMemo(
+    () =>
+      callTrends(
+        shown,
+        summary.hardest.map((c) => c.call),
+      ),
+    [shown, summary.hardest],
   );
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
@@ -253,6 +277,39 @@ export function SessionHistoryCard({
               ))}
             </Text>
           ) : null}
+          {trends.length > 0 ? (
+            <View style={styles.trends} testID="history-trends">
+              <Text style={styles.trendsTitle}>
+                Catch rate, last {TREND_SESSIONS} sessions per call
+              </Text>
+              {trends.map((trend) => (
+                <View
+                  key={trend.call}
+                  style={styles.trendRow}
+                  accessible
+                  accessibilityLabel={trend.accessibilityLabel}
+                >
+                  <Text style={styles.trendCall}>{trend.label}</Text>
+                  <View style={styles.trendBars}>
+                    {trend.points.map((p) => (
+                      <View key={p.startedAt} style={styles.trendSlot}>
+                        <View
+                          style={[
+                            styles.trendBar,
+                            { height: `${Math.max(8, Math.round(p.rate * 100))}%` },
+                          ]}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={styles.trendSummary}>{trend.summary}</Text>
+                  <Text style={[styles.trendDirection, directionStyle(styles, trend.direction)]}>
+                    {DIRECTION_TEXT[trend.direction]}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
 
           <View style={styles.legend} importantForAccessibility="no-hide-descendants">
             <Text style={[styles.date, styles.legendText]} />
@@ -396,6 +453,30 @@ const getStyles = themed((t: Theme) =>
     filterCount: { fontWeight: '400', fontVariant: ['tabular-nums'] },
     hardest: { fontSize: 14, color: t.textMuted, marginTop: 4 },
     hardestCall: { fontWeight: '700', color: t.dangerText },
+    trends: { marginTop: 10, gap: 6 },
+    trendsTitle: { fontSize: 12, color: t.textMuted },
+    trendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    trendCall: { width: 44, fontSize: 14, fontWeight: '700', color: t.dangerText },
+    trendBars: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 24 },
+    trendSlot: {
+      flex: 1,
+      maxWidth: 14,
+      height: '100%',
+      justifyContent: 'flex-end',
+      borderRadius: 2,
+      backgroundColor: t.track,
+    },
+    trendBar: { width: '100%', borderRadius: 2, backgroundColor: t.primary },
+    trendSummary: {
+      width: 104,
+      textAlign: 'right',
+      fontSize: 13,
+      color: t.text,
+      fontVariant: ['tabular-nums'],
+    },
+    trendDirection: { width: 64, fontSize: 13, fontWeight: '600', color: t.textMuted },
+    trendBetter: { color: t.text, fontWeight: '700' },
+    trendWorse: { color: t.dangerText },
     rows: { marginTop: 4, gap: 8 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     rowInfo: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
