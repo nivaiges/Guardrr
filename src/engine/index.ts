@@ -22,3 +22,4 @@ export * from './historyFilter';
 export * from './customPresets';
 export * from './pages';
 export * from './liveSettings';
+export * from './historyTrend';
