@@ -74,12 +74,17 @@
       latency); if they lag, pre-roll each word by the measured latency or use recorded count words.
 - [ ] Check on device that a "Slow" call still finishes before the release at high tempos with 1–2 lead counts; if not, warn in Settings.
 - [x] Stats: let the performer mark drops (e.g. a big "Drop" button) to track a catch rate, not just calls made.
-- [ ] Drop button: a grace period (or "drop the previous toss") for drops marked just after the next release — today Drop always marks the latest released toss.
+- [x] Drop button: a grace period for drops marked just after the next release — for 2 counts after a
+      release (until that toss is caught) Drop marks the toss before it; the button says which ("toss 3 · 5").
+- [ ] Drop grace period: check on device that 2 counts is the right length (Quick 8 with a 7 leaves
+      one count between the catch and the next release).
 - [x] Save drops with past sessions, to show the catch rate per call over time (History → "Dropped most").
 - [ ] Voice picker: check on device how long the iOS English voice list is (novelty voices like "Bubbles" included) and whether it needs a search box or a "hide novelty voices" filter.
 - [ ] Localized calls (speak the numbers in the phone's language) — today calls are always English words.
 - [x] History: delete one session / clear all (Edit → Delete per session, "Clear all history" with an inline confirm; Undo after every delete).
-- [ ] History: catch-rate trend per call over time (e.g. a small chart per call, last 10 sessions).
+- [x] History: catch-rate trend per call over time — bars for each call dropped most, last 10 sessions,
+      "67% → 90% ↑ better"; follows the History filter.
+- [ ] History trend: a per-call detail view (tap a call to see every session's catch rate and dates).
 - [x] History: export/share sessions (CSV) for a coach — History → Share (share sheet; a .csv download on the web).
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
@@ -102,3 +107,4 @@
 - [x] History: remember the chosen filter across app restarts.
 - [x] Smoke test: the live-change check ("changes start with toss 2") was flaky — it read the note
       before the re-render after the tap (not a timing problem in the app); it now waits for it.
+- [x] Stats: "called most" wrapped onto two lines when calls tied ("4, 4 and") — short labels, "+N" past two.

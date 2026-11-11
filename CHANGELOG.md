@@ -1,5 +1,55 @@
 # Changelog
 
+## 2026-11-11
+
+### Added
+
+- **Drop marks the right toss right after a release** (roadmap: "Drop button: a grace period").
+  For the first 2 counts after a release — as long as the new toss hasn't been caught — Drop
+  marks the toss _before_ it, and the button gets a second line saying which: **Drop · toss 3 ·
+  5**. So in Quick 8 with a 7 (caught one count before the next release), a drop tapped a beat
+  late still lands on the toss you dropped. A second tap undoes it, as before. Screen readers
+  hear "Marks the previous toss (5) as dropped".
+  - Engine: `dropTarget`, `dropButtonText`, `DROP_GRACE_COUNTS`; toss records remember when
+    they were released and whether their catch was reached.
+- **Catch-rate trend per call in History** (roadmap: "History: catch-rate trend per call").
+  Under "Dropped most", each of those calls gets a row of small bars — its catch rate in each of
+  its last 10 sessions, oldest on the left — then _earlier → later_ and **↑ better**, **↓
+  worse** or _steady_. It follows the History filter (e.g. only Quads 155 sessions).
+  - Engine: `callTrend`, `callTrends`, `trendHalves`, `trendDirection` (historyTrend.ts).
+- Smoke test: 62 checks (Drop naming toss 1 right after toss 2 is released, and a trend reading
+  "getting better" are new). Screenshot `17-drop-previous` added to the README gallery.
+- 20 new unit tests (471 total).
+
+### Fixed
+
+- "Called most" in the session stats wrapped onto two lines when calls tied ("4, 4 and"),
+  pushing the tally down. It now uses the short labels ("4, 4&") and past two ties reads
+  "1, 2 +3"; screen readers still hear every call.
+
+### Decisions
+
+- **Grace = 2 counts, and only while the new toss is in the air.** Nobody can know a toss just
+  released will be dropped, so a tap then means the last one. Two counts covers a late tap after
+  a catch on the count before the release, without stealing taps for long. A "1" (caught on the
+  "and" of 1) ends the grace at its catch. The first toss of a run has nothing before it, so Drop
+  marks it. Stopping during the grace keeps the same target, so a drop tapped right after Stop
+  also lands on the toss just caught.
+- **Trend = earlier half vs later half, toss-weighted.** A call's sessions are split in two (the
+  middle one left out when odd) and each half's tosses pooled, so a 2-toss session can't swing
+  it. Under 5 points of change reads as _steady_ (one drop in 20 tosses is noise). The numbers
+  shown ("50% → 88%") are those two halves, so the words and numbers always agree — the first
+  attempt showed the first and last session ("100% → 100% ↑ better"), which was confusing.
+- Trends are shown only for the calls in "Dropped most" (at most 3) and only once a call came
+  up in 2 or more sessions, to keep History short.
+
+### To test on your phone
+
+- Quick 8 with a 7 in the calls: drop one on purpose and tap **Drop** just after the next
+  release. The button should read "toss N · 7" and the stats should mark that 7. Tell me if
+  2 counts feels too short or too long.
+- After a few sessions with drops, check the trend bars under "Dropped most" read sensibly.
+
 ## 2026-11-10
 
 ### Added
