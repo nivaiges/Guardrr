@@ -421,6 +421,18 @@ async function main() {
         .textContent()
         .catch(() => 'no trends'),
     );
+    await trendRow.click();
+    const detailPanel = page.getByTestId('history-call-detail');
+    const detailText = (await detailPanel.textContent().catch(() => '')) ?? '';
+    check(
+      'tapping a trend lists every session of that call',
+      /2 sessions · \d+ toss(es)? · \d+% caught/.test(detailText) &&
+        /\d+ of \d+100%/.test(detailText) &&
+        /0 of \d+0%/.test(detailText),
+      detailText.slice(0, 120),
+    );
+    await page.getByTestId('history-call-detail-close').click();
+    check('Close hides the sessions of the call', !(await detailPanel.isVisible()));
     await page.evaluate((json) => localStorage.setItem('guardrr.history', json), historyBefore);
     await page.reload();
     await page.getByRole('button', { name: 'Start practice' }).waitFor();

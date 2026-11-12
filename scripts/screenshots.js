@@ -187,6 +187,14 @@ async function main() {
     await page.waitForTimeout(200);
     await shot(historyCard, '18-history-tempo');
     await page.getByTestId('history-tempo-all').click();
+    // Tap a call's trend for every session it came up in.
+    // (A taller window for this one: the open card is taller than the phone's screen.)
+    await page.getByTestId('history-trend-7').click();
+    await page.setViewportSize({ width: 390, height: 1200 });
+    await page.waitForTimeout(300);
+    await shot(historyCard, '19-call-detail');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('history-call-detail-close').click();
 
     // Settings → Practice: the spoken count-off over the count-in.
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();

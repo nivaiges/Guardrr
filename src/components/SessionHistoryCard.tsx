@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -10,6 +10,7 @@ import {
   SessionRow,
   TREND_SESSIONS,
   TrendDirection,
+  callDetail,
   callTrends,
   combinedFilterLabel,
   deletionMessage,
@@ -187,6 +188,12 @@ export function SessionHistoryCard({
       ),
     [shown, summary.hardest],
   );
+  // The call whose sessions are listed (tap a trend row); follows the filters.
+  const [detailCall, setDetailCall] = useState<number | null>(null);
+  const detail = useMemo(
+    () => (detailCall === null ? null : callDetail(shown, detailCall, nowMs)),
+    [shown, detailCall, nowMs],
+  );
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
   const more = Math.min(shown.length, MANY_ROWS) - summary.rows.length;
@@ -338,34 +345,104 @@ export function SessionHistoryCard({
           {trends.length > 0 ? (
             <View style={styles.trends} testID="history-trends">
               <Text style={styles.trendsTitle}>
-                Catch rate, last {TREND_SESSIONS} sessions per call
+                Catch rate, last {TREND_SESSIONS} sessions · tap a call for details
               </Text>
-              {trends.map((trend) => (
-                <View
-                  key={trend.call}
-                  style={styles.trendRow}
-                  accessible
-                  accessibilityLabel={trend.accessibilityLabel}
-                >
-                  <Text style={styles.trendCall}>{trend.label}</Text>
-                  <View style={styles.trendBars}>
-                    {trend.points.map((p) => (
-                      <View key={p.startedAt} style={styles.trendSlot}>
-                        <View
-                          style={[
-                            styles.trendBar,
-                            { height: `${Math.max(8, Math.round(p.rate * 100))}%` },
-                          ]}
-                        />
+              {trends.map((trend) => {
+                const open = detail?.call === trend.call;
+                return (
+                  <Fragment key={trend.call}>
+                    <Pressable
+                      testID={`history-trend-${trend.call}`}
+                      onPress={() => setDetailCall(open ? null : trend.call)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: open }}
+                      aria-expanded={open}
+                      accessibilityLabel={trend.accessibilityLabel}
+                      accessibilityHint={
+                        open ? 'Hides the sessions' : `Lists every session with a ${trend.label}`
+                      }
+                      style={({ pressed }) => [
+                        styles.trendRow,
+                        open && styles.trendRowOpen,
+                        pressed && styles.morePressed,
+                      ]}
+                    >
+                      <Text style={styles.trendCall}>{trend.label}</Text>
+                      <View style={styles.trendBars}>
+                        {trend.points.map((p) => (
+                          <View key={p.startedAt} style={styles.trendSlot}>
+                            <View
+                              style={[
+                                styles.trendBar,
+                                { height: `${Math.max(8, Math.round(p.rate * 100))}%` },
+                              ]}
+                            />
+                          </View>
+                        ))}
                       </View>
-                    ))}
-                  </View>
-                  <Text style={styles.trendSummary}>{trend.summary}</Text>
-                  <Text style={[styles.trendDirection, directionStyle(styles, trend.direction)]}>
-                    {DIRECTION_TEXT[trend.direction]}
-                  </Text>
-                </View>
-              ))}
+                      <Text style={styles.trendSummary}>{trend.summary}</Text>
+                      <Text
+                        style={[styles.trendDirection, directionStyle(styles, trend.direction)]}
+                      >
+                        {DIRECTION_TEXT[trend.direction]}
+                      </Text>
+                    </Pressable>
+                    {open && detail ? (
+                      <View style={styles.detailPanel} testID="history-call-detail">
+                        <View style={styles.detailHeader}>
+                          <Text style={styles.detailTitle} accessibilityRole="header">
+                            {detail.label} — every session
+                          </Text>
+                          <Pressable
+                            testID="history-call-detail-close"
+                            onPress={() => setDetailCall(null)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Close ${detail.label} sessions`}
+                            hitSlop={8}
+                            style={({ pressed }) => [
+                              styles.headerButton,
+                              pressed && styles.morePressed,
+                            ]}
+                          >
+                            <Text style={styles.headerButtonText}>Close</Text>
+                          </Pressable>
+                        </View>
+                        <Text style={styles.detailSummary}>
+                          {detail.sessions} {detail.sessions === 1 ? 'session' : 'sessions'} ·{' '}
+                          {detail.tosses} {detail.tosses === 1 ? 'toss' : 'tosses'} ·{' '}
+                          {detail.caught} caught
+                        </Text>
+                        {detail.rows.map((row) => (
+                          <View
+                            key={row.startedAt}
+                            style={styles.detailRow}
+                            accessible
+                            accessibilityLabel={row.accessibilityLabel}
+                          >
+                            <View style={styles.dateColumn}>
+                              <Text style={styles.date} numberOfLines={1}>
+                                {row.date}
+                              </Text>
+                              <Text style={styles.detail} numberOfLines={1}>
+                                {row.drill}
+                              </Text>
+                            </View>
+                            <Text style={styles.detailCaughtOf}>{row.caughtOf}</Text>
+                            <Text style={[styles.cell, row.drops > 0 && styles.dropped]}>
+                              {row.caught}
+                            </Text>
+                          </View>
+                        ))}
+                        {detail.more > 0 ? (
+                          <Text style={styles.detailMore}>
+                            and {detail.more} older {detail.more === 1 ? 'session' : 'sessions'}
+                          </Text>
+                        ) : null}
+                      </View>
+                    ) : null}
+                  </Fragment>
+                );
+              })}
             </View>
           ) : null}
 
@@ -513,7 +590,35 @@ const getStyles = themed((t: Theme) =>
     hardestCall: { fontWeight: '700', color: t.dangerText },
     trends: { marginTop: 10, gap: 6 },
     trendsTitle: { fontSize: 12, color: t.textMuted },
-    trendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    trendRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minHeight: 40,
+      marginHorizontal: -6,
+      paddingHorizontal: 6,
+      borderRadius: 8,
+    },
+    trendRowOpen: { backgroundColor: t.control },
+    detailPanel: {
+      marginTop: 2,
+      padding: 12,
+      gap: 8,
+      borderRadius: 12,
+      backgroundColor: t.control,
+    },
+    detailHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    detailTitle: { fontSize: 15, fontWeight: '700', color: t.text },
+    detailSummary: { fontSize: 14, color: t.textMuted },
+    detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+    detailCaughtOf: {
+      width: 64,
+      fontSize: 14,
+      textAlign: 'right',
+      color: t.textMuted,
+      fontVariant: ['tabular-nums'],
+    },
+    detailMore: { fontSize: 13, color: t.textMuted },
     trendCall: { width: 44, fontSize: 14, fontWeight: '700', color: t.dangerText },
     trendBars: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 24 },
     trendSlot: {

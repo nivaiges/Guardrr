@@ -93,9 +93,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | ![History shared as a CSV file](docs/screenshots/13-history-share.png) | ![History filtered to Standard 16](docs/screenshots/14-history-filter.png) | ![A second preset of your own, with "Move earlier"](docs/screenshots/15-move-preset.png) | ![Speak the count-off: "5 6, then the call"](docs/screenshots/16-count-off.png) |
 
-| Drop, just after a release                                                                        | History at one tempo                                                  |
-| ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| ![Right after toss 2 is released, Drop still marks toss 1](docs/screenshots/17-drop-previous.png) | ![History filtered to 120 BPM](docs/screenshots/18-history-tempo.png) |
+| Drop, just after a release                                                                        | History at one tempo                                                  | Every session of one call                                                                  |
+| ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| ![Right after toss 2 is released, Drop still marks toss 1](docs/screenshots/17-drop-previous.png) | ![History filtered to 120 BPM](docs/screenshots/18-history-tempo.png) | ![Tapping the 7's trend lists every session with a 7](docs/screenshots/19-call-detail.png) |
 
 ## Tech
 
