@@ -11,7 +11,13 @@ import { TossSettings, validateTossSettings } from './announce';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN } from './countIn';
-import { ALL_SESSIONS, HistoryFilterKey, parseHistoryFilterKey } from './historyFilter';
+import {
+  ALL_SESSIONS,
+  ALL_TEMPOS,
+  HistoryFilterKey,
+  parseHistoryFilterKey,
+  parseTempoFilterKey,
+} from './historyFilter';
 import { CueOptions } from './practice';
 import { DEFAULT_VOICE_RATE, isVoiceRateOption } from './voiceRate';
 import { isStoredVoiceId } from './voices';
@@ -74,6 +80,8 @@ export interface PracticeSettings {
   swipeHintSeen: boolean;
   /** The History filter last chosen (see historyFilter.ts); "all" by default. */
   historyFilter: HistoryFilterKey;
+  /** The History tempo filter last chosen ("tempo:120/16"); "all" by default. */
+  historyTempoFilter: HistoryFilterKey;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -86,6 +94,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   camera: DEFAULT_CAMERA_SETTINGS,
   swipeHintSeen: false,
   historyFilter: ALL_SESSIONS,
+  historyTempoFilter: ALL_TEMPOS,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -162,5 +171,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     camera: parseCamera(raw.camera),
     swipeHintSeen: bool(raw.swipeHintSeen, false),
     historyFilter: parseHistoryFilterKey(raw.historyFilter),
+    historyTempoFilter: parseTempoFilterKey(raw.historyTempoFilter),
   };
 }

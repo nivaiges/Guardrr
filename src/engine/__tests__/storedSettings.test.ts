@@ -27,6 +27,7 @@ const custom: PracticeSettings = {
   camera: { enabled: false, facing: 'back' },
   swipeHintSeen: true,
   historyFilter: 'preset:Quads 155',
+  historyTempoFilter: 'tempo:155/16',
 };
 
 describe('stored settings', () => {
@@ -93,6 +94,15 @@ describe('stored settings', () => {
     expect(parse('preset:')).toBe('all');
     expect(parse(42)).toBe('all');
     expect(parseStoredSettings(JSON.stringify({})).historyFilter).toBe('all');
+  });
+
+  it('keeps the History tempo filter and repairs a bad one', () => {
+    const parse = (historyTempoFilter: unknown) =>
+      parseStoredSettings(JSON.stringify({ historyTempoFilter })).historyTempoFilter;
+    expect(parse('tempo:120/8')).toBe('tempo:120/8');
+    expect(parse('tempo:abc')).toBe('all');
+    expect(parse(true)).toBe('all');
+    expect(parseStoredSettings(JSON.stringify({})).historyTempoFilter).toBe('all');
   });
 
   it('keeps a saved haptics choice and repairs a bad one', () => {
