@@ -5,7 +5,7 @@
  */
 
 import { callLabel } from './calls';
-import { SessionRecord } from './history';
+import { SessionRecord, formatSessionDate, sessionRowDetail } from './history';
 
 /** How many of a call's most recent sessions the trend looks at. */
 export const TREND_SESSIONS = 10;
@@ -128,4 +128,103 @@ export function callTrends(
   sessions = TREND_SESSIONS,
 ): CallTrend[] {
   return calls.flatMap((call) => callTrend(history, call, sessions) ?? []);
+}
+
+/** Sessions listed in a call's detail view before it says how many more there are. */
+export const CALL_DETAIL_SESSIONS = 25;
+
+export interface CallDetailRow {
+  startedAt: number;
+  /** "Today 6:05 PM" */
+  date: string;
+  /** "Quads 155 · 155 BPM" or "120 BPM · 16 counts" */
+  drill: string;
+  tosses: number;
+  drops: number;
+  /** This session's catch rate for the call, 0..1. */
+  rate: number;
+  /** "4 of 5" */
+  caughtOf: string;
+  /** "80%" */
+  caught: string;
+  /** "Today 6:05 PM, Quads 155, 155 BPM: caught 4 of 5, 80%" */
+  accessibilityLabel: string;
+}
+
+export interface CallDetail {
+  call: number;
+  label: string;
+  /** Every session the call came up in. */
+  sessions: number;
+  tosses: number;
+  drops: number;
+  /** "85%" over all those sessions. */
+  caught: string;
+  /** Newest first, at most `limit`. */
+  rows: CallDetailRow[];
+  /** Sessions not listed (older than the last row). */
+  more: number;
+  /** "7: 12 sessions, 48 tosses, 85% caught" */
+  summary: string;
+}
+
+/**
+ * Every session a call came up in (newest first, as History keeps them):
+ * the date, the drill and that session's catch rate for the call. Null when
+ * the call never came up. Follows the History filters when given the
+ * filtered list.
+ */
+export function callDetail(
+  history: readonly SessionRecord[],
+  call: number,
+  nowMs: number,
+  limit = CALL_DETAIL_SESSIONS,
+): CallDetail | null {
+  const key = String(call);
+  const label = callLabel(call);
+  const rows: CallDetailRow[] = [];
+  let sessions = 0;
+  let tosses = 0;
+  let drops = 0;
+  for (const r of history) {
+    const t = r.timesCalled[key] ?? 0;
+    if (t === 0) continue;
+    const d = Math.min(r.timesDropped[key] ?? 0, t);
+    sessions += 1;
+    tosses += t;
+    drops += d;
+    if (rows.length >= limit) continue;
+    const date = formatSessionDate(r.startedAt, nowMs);
+    const drill = sessionRowDetail({
+      preset: r.preset ?? null,
+      bpm: r.bpm,
+      phraseLength: r.phraseLength,
+    });
+    const rate = (t - d) / t;
+    const caughtOf = `${t - d} of ${t}`;
+    rows.push({
+      startedAt: r.startedAt,
+      date,
+      drill,
+      tosses: t,
+      drops: d,
+      rate,
+      caughtOf,
+      caught: percent(rate),
+      accessibilityLabel: `${date}, ${drill.replace(/ · /g, ', ')}: caught ${caughtOf}, ${percent(rate)}`,
+    });
+  }
+  if (sessions === 0) return null;
+  const caught = percent((tosses - drops) / tosses);
+  return {
+    call,
+    label,
+    sessions,
+    tosses,
+    drops,
+    caught,
+    rows,
+    more: sessions - rows.length,
+    summary: `${label}: ${sessions} ${sessions === 1 ? 'session' : 'sessions'}, ${tosses} ${tosses === 1 ? 'toss' : 'tosses'}, ${caught} caught`,
+  };
 }
