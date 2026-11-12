@@ -84,10 +84,14 @@
 - [x] History: delete one session / clear all (Edit → Delete per session, "Clear all history" with an inline confirm; Undo after every delete).
 - [x] History: catch-rate trend per call over time — bars for each call dropped most, last 10 sessions,
       "67% → 90% ↑ better"; follows the History filter.
-- [ ] History trend: a per-call detail view (tap a call to see every session's catch rate and dates).
+- [x] History trend: a per-call detail view — tap a call's trend row for every session it came up in
+      (date, drill, "2 of 4", 50%), right under the row; follows the filters.
+- [ ] Call detail: open it from "Dropped most" or the session stats too, for calls without a trend yet.
 - [x] History: export/share sessions (CSV) for a coach — History → Share (share sheet; a .csv download on the web).
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
-- [ ] History: filter by tempo / phrase length (e.g. only sessions at 120 BPM, 16 counts).
+- [x] History: filter by tempo / phrase length — a second row of chips ("120 BPM", "155 BPM · 8"),
+      shown when the sessions left span two or more tempos; saved across restarts.
+- [ ] History filters: if two chip rows feel busy on device, fold them into one "Filter" menu.
 - [x] Accessibility (web): radio/checkbox chips expose `aria-checked` (RN Web ignores `accessibilityState`).
 - [x] Custom presets: rename, and "update preset with current settings" (also "Save N BPM to …").
 - [x] Custom presets: reorder — Move earlier / Move later on a selected preset of your own.

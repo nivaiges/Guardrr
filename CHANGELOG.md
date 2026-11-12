@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-11-12
+
+### Added
+
+- **Filter History by tempo** (roadmap: "History: filter by tempo / phrase length"). A second
+  row of chips under the preset chips — **All tempos**, **120 BPM**, **155 BPM** — narrows the
+  totals, "Dropped most", the trends, the session list and Share to one tempo. When your
+  sessions use more than one phrase length, the chips say which (**155 BPM · 8**). The row
+  only appears when the sessions shown span two or more tempos, so picking a preset that you
+  always practice at one tempo hides it. Your choice is remembered after a restart, like the
+  preset filter. A shared CSV is titled with the filters, e.g. _"Guardrr history: 120 BPM · 16 counts"_.
+  - Engine: `tempoFilters`, `resolveTempoFilter`, `filterByTempo`, `tempoFilterLabel`,
+    `combinedFilterLabel`, `parseTempoFilterKey`; `PracticeSettings.historyTempoFilter`.
+- **Every session of one call** (roadmap: "History trend: a per-call detail view"). Tap a
+  call's trend row under "Dropped most" and a panel opens right under it: _"7 — every
+  session"_, its totals (_4 sessions · 15 tosses · 67% caught_) and each session newest first
+  with its date, drill and how many of that call you caught (**2 of 4 · 50%**). Tap the row
+  again or **Close** to hide it. It follows both filters. Lists up to 25 sessions, then "and N
+  older sessions".
+  - Engine: `callDetail`, `CALL_DETAIL_SESSIONS` (historyTrend.ts).
+- Smoke test: 68 checks (tempo chips, the tempo filter surviving a reload, a one-tempo preset
+  hiding them, and the call detail opening/closing are new). Screenshots `18-history-tempo`
+  and `19-call-detail` added to the README gallery.
+- 19 new unit tests (490 total).
+
+### Decisions
+
+- **Tempo and phrase length are one filter, not two.** A tempo means little without its
+  phrase ("120 BPM" in Quick 8 vs Standard 16 are different drills), and two more chip rows
+  would crowd History. The phrase length is only named when it actually varies.
+- **The tempo filter is applied after the preset filter, and its chips are built from what
+  the preset leaves.** Inside a preset there is usually one tempo, so the row disappears
+  instead of offering a choice that changes nothing; the saved tempo comes back when you
+  return to All.
+- **The call detail opens in place, not on a new screen.** The app has no navigation stack
+  yet (two swipe pages), and an inline panel keeps the trend bars it explains in view.
+- The detail counts drops per call the same way the trend does (never more drops than
+  tosses), so its totals and the "Dropped most" numbers always agree under the same filter.
+
+### To test on your phone
+
+- Practice a couple of sessions at different tempos (e.g. Quads 155 and a slower drill),
+  then try the tempo chips in History — tell me if two rows of chips feel too busy.
+- Tap a call's trend bars: the list of sessions should open right under it and be easy to
+  close while scrolling.
+
 ## 2026-11-11
 
 ### Added
