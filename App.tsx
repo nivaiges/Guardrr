@@ -298,6 +298,8 @@ export default function App() {
             }
             filterKey={saved.historyFilter}
             onFilterChange={(historyFilter) => update((s) => ({ ...s, historyFilter }))}
+            tempoKey={saved.historyTempoFilter}
+            onTempoChange={(historyTempoFilter) => update((s) => ({ ...s, historyTempoFilter }))}
           />
 
           <PresetPicker

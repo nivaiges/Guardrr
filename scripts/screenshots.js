@@ -182,6 +182,11 @@ async function main() {
     await page.waitForTimeout(200);
     await shot(historyCard, '14-history-filter');
     await page.getByTestId('history-filter-all').click();
+    // Filter History to one tempo (the tempo chips show when sessions differ in tempo).
+    await page.getByTestId('history-tempo-tempo:120/16').click();
+    await page.waitForTimeout(200);
+    await shot(historyCard, '18-history-tempo');
+    await page.getByTestId('history-tempo-all').click();
 
     // Settings → Practice: the spoken count-off over the count-in.
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();

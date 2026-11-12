@@ -361,6 +361,36 @@ async function main() {
     );
     await filterChip('all').click();
 
+    // 5d1. Tempo filter: the two sessions differ in tempo and phrase, so tempo chips show.
+    const tempoChip = (key) => page.getByTestId(`history-tempo-${key}`);
+    check(
+      'History offers tempo chips when sessions differ in tempo',
+      (await tempoChip('all').getAttribute('aria-checked')) === 'true' &&
+        (await tempoChip('tempo:100/8').isVisible()) &&
+        (await tempoChip('tempo:120/16').isVisible()),
+    );
+    await tempoChip('tempo:100/8').click();
+    check(
+      'the 100 BPM chip shows only the 100 BPM session',
+      (await page.getByText(/^1 session · 3 tosses/).isVisible()) &&
+        !(await historyRow.isVisible()),
+    );
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    check(
+      'the chosen tempo filter survives a reload',
+      (await tempoChip('tempo:100/8').getAttribute('aria-checked')) === 'true' &&
+        (await page.getByText(/^1 session · 3 tosses/).isVisible()),
+    );
+    await filterChip('preset:Standard 16').click();
+    check(
+      'a preset with one tempo hides the tempo chips',
+      !(await tempoChip('all').isVisible()) &&
+        (await page.getByText(/^1 session · 1 toss · 0% caught/).isVisible()),
+    );
+    await filterChip('all').click();
+    await tempoChip('all').click();
+
     // 5d2. Catch-rate trend: the dropped call practiced again, cleanly, reads "getting better".
     const historyBefore = await page.evaluate(() => {
       const json = localStorage.getItem('guardrr.history');

@@ -3,19 +3,24 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import {
   ALL_SESSIONS,
+  ALL_TEMPOS,
+  HistoryFilter,
   HistoryFilterKey,
   SessionRecord,
   SessionRow,
   TREND_SESSIONS,
   TrendDirection,
   callTrends,
+  combinedFilterLabel,
   deletionMessage,
+  filterByTempo,
   filterHistory,
-  historyFilterLabel,
   historyFilters,
   resolveHistoryFilter,
+  resolveTempoFilter,
   sessionRowDetail,
   summarizeHistory,
+  tempoFilters,
 } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 
@@ -45,6 +50,10 @@ export interface SessionHistoryCardProps {
   filterKey?: HistoryFilterKey;
   /** Called when a filter chip is tapped. */
   onFilterChange?: (key: HistoryFilterKey) => void;
+  /** The chosen tempo filter ("tempo:120/16"), when the parent keeps it. */
+  tempoKey?: HistoryFilterKey;
+  /** Called when a tempo chip is tapped. */
+  onTempoChange?: (key: HistoryFilterKey) => void;
 }
 
 interface PendingUndo {
@@ -71,9 +80,57 @@ function directionStyle(styles: ReturnType<typeof getStyles>, direction: TrendDi
   return null;
 }
 
+/** One row of radio chips (presets, or tempos) with session counts. */
+function FilterChips({
+  filters,
+  active,
+  label,
+  testIDPrefix,
+  styles,
+  onSelect,
+}: {
+  filters: readonly HistoryFilter[];
+  active: HistoryFilterKey;
+  label: string;
+  testIDPrefix: string;
+  styles: ReturnType<typeof getStyles>;
+  onSelect: (key: HistoryFilterKey) => void;
+}) {
+  return (
+    <View style={styles.filters} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      {filters.map((f) => {
+        const checked = f.key === active;
+        return (
+          <Pressable
+            key={f.key}
+            testID={`${testIDPrefix}-${f.key}`}
+            onPress={() => onSelect(f.key)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked }}
+            aria-checked={checked}
+            accessibilityLabel={`${f.label}, ${f.sessions} ${f.sessions === 1 ? 'session' : 'sessions'}`}
+            style={({ pressed }) => [
+              styles.filter,
+              checked && styles.filterChecked,
+              pressed && !checked && styles.morePressed,
+            ]}
+          >
+            <Text
+              style={[styles.filterText, checked && styles.filterTextChecked]}
+              numberOfLines={1}
+            >
+              {f.label} <Text style={styles.filterCount}>{f.sessions}</Text>
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 /**
  * All-time totals, the calls dropped most and the latest sessions; chips
- * above them narrow everything (and Share) to one preset. "Edit"
+ * above them narrow everything (and Share) to one preset and/or tempo. "Edit"
  * shows a Delete button per session and "Clear all history" (which asks
  * first); every delete can be undone until the next one or "Done".
  */
@@ -86,6 +143,8 @@ export function SessionHistoryCard({
   onShare,
   filterKey: savedFilterKey,
   onFilterChange,
+  tempoKey: savedTempoKey,
+  onTempoChange,
 }: SessionHistoryCardProps) {
   const theme = useTheme();
   const styles = getStyles(theme);
@@ -101,10 +160,20 @@ export function SessionHistoryCard({
     setOwnFilterKey(key);
     onFilterChange?.(key);
   };
+  const [ownTempoKey, setOwnTempoKey] = useState<HistoryFilterKey>(ALL_TEMPOS);
+  const tempoKey = savedTempoKey ?? ownTempoKey;
+  const setTempoKey = (key: HistoryFilterKey) => {
+    setOwnTempoKey(key);
+    onTempoChange?.(key);
+  };
   const filters = useMemo(() => historyFilters(history), [history]);
   // A preset whose sessions were all deleted falls back to All.
   const activeFilter = resolveHistoryFilter(history, filterKey);
-  const shown = useMemo(() => filterHistory(history, activeFilter), [history, activeFilter]);
+  const byPreset = useMemo(() => filterHistory(history, activeFilter), [history, activeFilter]);
+  // Tempo chips narrow the preset's sessions further; hidden when one tempo is left.
+  const tempos = useMemo(() => tempoFilters(byPreset), [byPreset]);
+  const activeTempo = resolveTempoFilter(byPreset, tempoKey);
+  const shown = useMemo(() => filterByTempo(byPreset, activeTempo), [byPreset, activeTempo]);
   const summary = useMemo(
     () => summarizeHistory(shown, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
     [shown, nowMs, expanded],
@@ -121,7 +190,7 @@ export function SessionHistoryCard({
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
   const more = Math.min(shown.length, MANY_ROWS) - summary.rows.length;
-  const filterLabel = historyFilterLabel(activeFilter);
+  const filterLabel = combinedFilterLabel(activeFilter, activeTempo);
 
   const removed = (records: SessionRecord[]) => {
     setConfirmingClear(false);
@@ -222,41 +291,30 @@ export function SessionHistoryCard({
       ) : (
         <>
           {filters.length > 0 ? (
-            <View
-              style={styles.filters}
-              accessibilityRole="radiogroup"
-              accessibilityLabel="Show sessions from"
-            >
-              {filters.map((f) => {
-                const checked = f.key === activeFilter;
-                return (
-                  <Pressable
-                    key={f.key}
-                    testID={`history-filter-${f.key}`}
-                    onPress={() => {
-                      setFilterKey(f.key);
-                      setShareNote(null);
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked }}
-                    aria-checked={checked}
-                    accessibilityLabel={`${f.label}, ${f.sessions} ${f.sessions === 1 ? 'session' : 'sessions'}`}
-                    style={({ pressed }) => [
-                      styles.filter,
-                      checked && styles.filterChecked,
-                      pressed && !checked && styles.morePressed,
-                    ]}
-                  >
-                    <Text
-                      style={[styles.filterText, checked && styles.filterTextChecked]}
-                      numberOfLines={1}
-                    >
-                      {f.label} <Text style={styles.filterCount}>{f.sessions}</Text>
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <FilterChips
+              filters={filters}
+              active={activeFilter}
+              label="Show sessions from"
+              testIDPrefix="history-filter"
+              styles={styles}
+              onSelect={(key) => {
+                setFilterKey(key);
+                setShareNote(null);
+              }}
+            />
+          ) : null}
+          {tempos.length > 0 ? (
+            <FilterChips
+              filters={tempos}
+              active={activeTempo}
+              label="Show sessions at"
+              testIDPrefix="history-tempo"
+              styles={styles}
+              onSelect={(key) => {
+                setTempoKey(key);
+                setShareNote(null);
+              }}
+            />
           ) : null}
           <Text
             style={styles.totals}
