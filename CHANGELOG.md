@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-11-13
+
+### Added
+
+- **Choose how the count-off is counted** (roadmap #12: "Custom prep patterns"). With
+  **Speak the count-off** on, a new row of chips — **Count it as** — offers:
+  - **5 6, 5 6 7 8** — the prep count, as before (default);
+  - **1 – 8** — a straight "one, two, three … eight" for drills counted in from a full eight;
+  - **5 6 7 8** — only the last four counts.
+
+  The switch's summary follows the choice (e.g. _"Speak the count-off (1 2 3 4, then the
+  call)"_ with the default 4-count lead). As before, the voice always stops before the call.
+  The choice is saved with the other sound options.
+  - Engine: `CountOffPattern`, `COUNT_OFF_PATTERNS`, `countOffPatternLabel`,
+    `isCountOffPattern`; `countOffWord`/`countOffWords`/`countOffSummary` take a pattern;
+    `CueOptions.countOffPattern`.
+
+- **Open a call's sessions from "Dropped most"** (roadmap: "Call detail: open it from
+  'Dropped most'"). The calls in the "Dropped most" line are now tappable (underlined). A call
+  with trend bars opens its list under its trend row, as before; a call you've only practiced
+  in one session so far — no trend yet — opens it right under the "Dropped most" line. Tap
+  again or **Close** to hide it.
+  - Engine: `callDetailAnchor` (historyTrend.ts).
+- Smoke test: 73 checks (the straight count-off being spoken, its chips hiding when the
+  count-off is off, and opening/closing a call from "Dropped most" are new). Screenshots
+  `20-count-off-straight` and `21-dropped-detail` added to the README gallery.
+- 11 new unit tests (501 total).
+
+### Decisions
+
+- **"Custom prep patterns" means the count-off words, as three fixed choices.** The prep
+  ("5 6, 5 6 7 8") is how guards are counted in; a straight eight and a quick "5 6 7 8" are
+  the other common ways to start a drill. A free-text word list would need a TTS check per
+  word and a new editor; three chips cover the common cases now (a custom list is on the
+  roadmap if needed).
+- **Prep and straight need 8 counts of count-in.** With a 4-count count-in all three patterns
+  fall back to "5 6 7 8", the only count that fits.
+- **A detail opened from "Dropped most" moves under the trend row when the call has one**, so
+  there is only ever one detail panel and its bars stay in view.
+- `Segmented` (the chip-row control) now accepts text options as well as numbers.
+
+### To test on your phone
+
+- Turn on **Speak the count-off**, pick **1 – 8** and Start: you should hear "one, two, three,
+  four" over the count-in clicks and then the call, without the words lagging behind the
+  clicks at 155 BPM.
+- In History, tap a call under "Dropped most" — with VoiceOver on too, if you can, to check
+  each call can be focused on its own.
+
 ## 2026-11-12
 
 ### Added

@@ -24,7 +24,9 @@
   - [x] Count-in: 4 counts, 8 counts (default) or a full phrase before the first toss; never shorter than the lead counts.
   - [x] Voice rate: Slow / Normal / Fast (default, the old fixed 1.1) / Faster, plus a Test voice button.
   - [x] Voice choice: picker of the phone's offline English voices (calls are English words), phone's region and enhanced voices first, tap to preview.
-  - [ ] Custom prep patterns.
+  - [x] Custom prep patterns: the spoken count-off can be the prep "5 6, 5 6 7 8", a straight
+        "1 2 3 4 5 6 7 8" or a quick "5 6 7 8" (Settings → Phrase → "Count it as").
+  - [ ] Prep patterns beyond the count-off: e.g. a spoken "ready, and" or a custom word list.
   - [ ] Background audio (keep the metronome going with the screen locked).
   - [ ] Recorded voice option.
 
@@ -86,7 +88,11 @@
       "67% → 90% ↑ better"; follows the History filter.
 - [x] History trend: a per-call detail view — tap a call's trend row for every session it came up in
       (date, drill, "2 of 4", 50%), right under the row; follows the filters.
-- [ ] Call detail: open it from "Dropped most" or the session stats too, for calls without a trend yet.
+- [x] Call detail: open it from "Dropped most" too — calls without a trend yet (one session)
+      open right under that line.
+- [ ] Call detail: open it from the session stats ("Last session") as well.
+- [ ] Accessibility on device: check VoiceOver/TalkBack can focus each call inside the
+      "Dropped most" line separately (nested tappable text).
 - [x] History: export/share sessions (CSV) for a coach — History → Share (share sheet; a .csv download on the web).
 - [ ] History: swipe a row to delete (today: Edit → ✕), if Edit mode feels slow on device.
 - [x] History: filter by tempo / phrase length — a second row of chips ("120 BPM", "155 BPM · 8"),
