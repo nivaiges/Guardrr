@@ -91,7 +91,12 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
       voice.say(cue.speak);
       callSpoken = true;
     } else if (cueOptions?.countOff && !callSpoken && cue.phrase === 0 && cue.subdivision === 0) {
-      const word = countOffWord(cue.count, options.countIn ?? 0, startSettings);
+      const word = countOffWord(
+        cue.count,
+        options.countIn ?? 0,
+        startSettings,
+        cueOptions.countOffPattern,
+      );
       if (word) voice.say(word);
     }
     options.onCue?.(cue);

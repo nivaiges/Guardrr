@@ -70,6 +70,53 @@ const COUNT_OFF_LONG: readonly (string | null)[] = [
   'five',
 ];
 const COUNT_OFF_SHORT: readonly (string | null)[] = ['eight', 'seven', 'six', 'five'];
+const COUNT_OFF_STRAIGHT: readonly (string | null)[] = [
+  'eight',
+  'seven',
+  'six',
+  'five',
+  'four',
+  'three',
+  'two',
+  'one',
+];
+
+/**
+ * How the count-off is counted (Settings → Sound, under "Speak the count-off"):
+ *
+ * - `prep` — "5 6, 5 6 7 8", the usual colorguard prep count (default).
+ * - `straight` — "1 2 3 4 5 6 7 8", for drills counted in from a full eight.
+ * - `quick` — "5 6 7 8" on the last four counts only.
+ *
+ * `prep` and `straight` need an 8-count count-in; a shorter one falls back to
+ * the quick "5 6 7 8".
+ */
+export type CountOffPattern = 'prep' | 'straight' | 'quick';
+
+export const COUNT_OFF_PATTERNS: readonly CountOffPattern[] = ['prep', 'straight', 'quick'];
+
+export const DEFAULT_COUNT_OFF_PATTERN: CountOffPattern = 'prep';
+
+export function isCountOffPattern(value: unknown): value is CountOffPattern {
+  return COUNT_OFF_PATTERNS.includes(value as CountOffPattern);
+}
+
+/** Chip labels for the settings screen. */
+export function countOffPatternLabel(pattern: CountOffPattern): string {
+  switch (pattern) {
+    case 'prep':
+      return '5 6, 5 6 7 8';
+    case 'straight':
+      return '1 – 8';
+    case 'quick':
+      return '5 6 7 8';
+  }
+}
+
+function patternWords(pattern: CountOffPattern, used: number): readonly (string | null)[] {
+  if (pattern === 'quick' || used < COUNT_OFF_LONG.length) return COUNT_OFF_SHORT;
+  return pattern === 'straight' ? COUNT_OFF_STRAIGHT : COUNT_OFF_LONG;
+}
 
 /**
  * The count-off word to speak on `count` (1-based) of the lead-in phrase, or
@@ -82,11 +129,13 @@ const COUNT_OFF_SHORT: readonly (string | null)[] = ['eight', 'seven', 'six', 'f
  *   on (lead counts before the release), so the count-off never talks over it.
  *   With a 2-count lead the performer hears "five, six, five six" then the
  *   call.
+ * - `pattern` picks the words (see CountOffPattern).
  */
 export function countOffWord(
   count: number,
   countIn: number,
   settings: TossSettings,
+  pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
 ): string | null {
   const L = settings.phraseLength;
   if (!Number.isInteger(count) || count < 1 || count > L) {
@@ -97,27 +146,40 @@ export function countOffWord(
   if (count > L - settings.leadCounts) return null;
   const fromEnd = L - count;
   if (fromEnd >= used) return null;
-  const pattern = used >= COUNT_OFF_LONG.length ? COUNT_OFF_LONG : COUNT_OFF_SHORT;
-  return pattern[fromEnd] ?? null;
+  return patternWords(pattern, used)[fromEnd] ?? null;
 }
 
 /** The whole count-off for these settings, count by count (for the settings hint and tests). */
 export function countOffWords(
   countIn: number,
   settings: TossSettings,
+  pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
 ): { count: number; word: string }[] {
   const words: { count: number; word: string }[] = [];
   for (let count = 1; count <= settings.phraseLength; count++) {
-    const word = countOffWord(count, countIn, settings);
+    const word = countOffWord(count, countIn, settings, pattern);
     if (word) words.push({ count, word });
   }
   return words;
 }
 
 /** "5 6, 5 6 7" style summary of what will be spoken, or null if nothing fits before the call. */
-export function countOffSummary(countIn: number, settings: TossSettings): string | null {
-  const digits: Record<string, string> = { five: '5', six: '6', seven: '7', eight: '8' };
-  const words = countOffWords(countIn, settings);
+export function countOffSummary(
+  countIn: number,
+  settings: TossSettings,
+  pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
+): string | null {
+  const digits: Record<string, string> = {
+    one: '1',
+    two: '2',
+    three: '3',
+    four: '4',
+    five: '5',
+    six: '6',
+    seven: '7',
+    eight: '8',
+  };
+  const words = countOffWords(countIn, settings, pattern);
   if (words.length === 0) return null;
   // A held count (a gap of more than one count) reads as a comma: "5 6, 5 6 7 8".
   return words

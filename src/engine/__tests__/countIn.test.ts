@@ -5,8 +5,12 @@ import {
   FULL_PHRASE_COUNT_IN,
   countInLabel,
   countOffSummary,
+  COUNT_OFF_PATTERNS,
+  DEFAULT_COUNT_OFF_PATTERN,
+  countOffPatternLabel,
   countOffWord,
   countOffWords,
+  isCountOffPattern,
   effectiveCountIn,
   firstCountIndex,
 } from '../countIn';
@@ -134,5 +138,61 @@ describe('spoken count-off', () => {
   it('rejects counts outside the phrase', () => {
     expect(() => countOffWord(0, 8, lead(2))).toThrow(RangeError);
     expect(() => countOffWord(17, 8, lead(2))).toThrow(RangeError);
+  });
+});
+
+describe('count-off patterns', () => {
+  const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
+
+  it('offers prep (default), straight and quick, with chip labels', () => {
+    expect(COUNT_OFF_PATTERNS).toEqual(['prep', 'straight', 'quick']);
+    expect(DEFAULT_COUNT_OFF_PATTERN).toBe('prep');
+    expect(COUNT_OFF_PATTERNS.map(countOffPatternLabel)).toEqual([
+      '5 6, 5 6 7 8',
+      '1 – 8',
+      '5 6 7 8',
+    ]);
+    expect(isCountOffPattern('quick')).toBe(true);
+    expect(isCountOffPattern('ready')).toBe(false);
+    expect(isCountOffPattern(undefined)).toBe(false);
+  });
+
+  it('is "5 6, 5 6 7 8" by default, same as before patterns existed', () => {
+    expect(countOffWords(8, lead(1), 'prep')).toEqual(countOffWords(8, lead(1)));
+  });
+
+  it('counts a straight "1 2 3 4 5 6 7 8", one word per count', () => {
+    expect(countOffWords(8, lead(1), 'straight')).toEqual([
+      { count: 9, word: 'one' },
+      { count: 10, word: 'two' },
+      { count: 11, word: 'three' },
+      { count: 12, word: 'four' },
+      { count: 13, word: 'five' },
+      { count: 14, word: 'six' },
+      { count: 15, word: 'seven' },
+    ]);
+    expect(countOffSummary(8, lead(1), 'straight')).toBe('1 2 3 4 5 6 7');
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(2), 'straight')).toBe('1 2 3 4 5 6');
+  });
+
+  it('counts only "5 6 7 8" on the last four counts for quick', () => {
+    expect(countOffWords(8, lead(1), 'quick')).toEqual([
+      { count: 13, word: 'five' },
+      { count: 14, word: 'six' },
+      { count: 15, word: 'seven' },
+    ]);
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(2), 'quick')).toBe('5 6');
+  });
+
+  it('falls back to "5 6 7 8" when the count-in is too short for eight counts', () => {
+    expect(countOffSummary(4, lead(1), 'straight')).toBe('5 6 7');
+    expect(countOffSummary(4, lead(1), 'prep')).toBe('5 6 7');
+    expect(countOffSummary(FULL_PHRASE_COUNT_IN, lead(1, 6), 'straight')).toBe('5 6 7');
+  });
+
+  it('still stops before the call', () => {
+    expect(countOffWord(13, 8, lead(4), 'straight')).toBeNull();
+    expect(countOffSummary(8, lead(4), 'straight')).toBe('1 2 3 4');
+    expect(countOffSummary(8, lead(4), 'quick')).toBeNull();
   });
 });

@@ -10,7 +10,7 @@
 import { TossSettings, validateTossSettings } from './announce';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
-import { DEFAULT_COUNT_IN } from './countIn';
+import { DEFAULT_COUNT_IN, DEFAULT_COUNT_OFF_PATTERN, isCountOffPattern } from './countIn';
 import {
   ALL_SESSIONS,
   ALL_TEMPOS,
@@ -56,6 +56,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   haptics: true,
   catchHaptics: false,
   countOff: false,
+  countOffPattern: DEFAULT_COUNT_OFF_PATTERN,
 };
 
 export interface PracticeSettings {
@@ -164,6 +165,9 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
       catchHaptics: bool(cue.catchHaptics, DEFAULT_CUE_OPTIONS.catchHaptics),
       countOff: bool(cue.countOff, DEFAULT_CUE_OPTIONS.countOff),
+      countOffPattern: isCountOffPattern(cue.countOffPattern)
+        ? cue.countOffPattern
+        : DEFAULT_CUE_OPTIONS.countOffPattern,
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,

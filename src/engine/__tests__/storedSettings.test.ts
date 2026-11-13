@@ -20,6 +20,7 @@ const custom: PracticeSettings = {
     haptics: false,
     catchHaptics: true,
     countOff: true,
+    countOffPattern: 'straight',
   },
   countIn: 4,
   voiceRate: 0.8,
@@ -83,7 +84,17 @@ describe('stored settings', () => {
       haptics: true,
       catchHaptics: false,
       countOff: false,
+      countOffPattern: 'prep',
     });
+  });
+
+  it('keeps the count-off pattern and repairs a bad one', () => {
+    const parse = (countOffPattern: unknown) =>
+      parseStoredSettings(JSON.stringify({ cue: { countOffPattern } })).cue.countOffPattern;
+    expect(parse('quick')).toBe('quick');
+    expect(parse('straight')).toBe('straight');
+    expect(parse('ready-and')).toBe('prep');
+    expect(parse(3)).toBe('prep');
   });
 
   it('keeps the History filter and repairs a bad one', () => {

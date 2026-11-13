@@ -77,6 +77,7 @@ describe('practice presets', () => {
         haptics: false,
         catchHaptics: true,
         countOff: true,
+        countOffPattern: 'quick' as const,
       },
     };
     const quick = presetById('quick-8')!;

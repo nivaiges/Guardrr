@@ -9,6 +9,7 @@
 
 import { CallSequence, CountEvents, TossSettings, eventsAtCount } from './announce';
 import { callLabel } from './calls';
+import { CountOffPattern } from './countIn';
 
 export type ClickKind = 'accent' | 'count' | 'and';
 
@@ -26,6 +27,8 @@ export interface CueOptions {
    * the first call (see countOffWord). Default false.
    */
   countOff?: boolean;
+  /** Which words the count-off uses (see CountOffPattern). Default "prep". */
+  countOffPattern?: CountOffPattern;
 }
 
 /** Vibration to play on a tick: a firm tap on the release, a light one on the catch. */
