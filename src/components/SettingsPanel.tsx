@@ -3,7 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   COUNT_IN_OPTIONS,
+  COUNT_OFF_PATTERNS,
+  CountOffPattern,
   CueOptions,
+  DEFAULT_COUNT_OFF_PATTERN,
   MAX_BPM,
   MIN_BPM,
   PHRASE_LENGTH_OPTIONS,
@@ -15,6 +18,7 @@ import {
   announceCountInPhrase,
   callSetNote,
   countInLabel,
+  countOffPatternLabel,
   countOffSummary,
   describeWarning,
   effectiveCountIn,
@@ -143,7 +147,8 @@ export function SettingsPanel({
   const previewLocked = running;
   const liveNote = liveSettingsNote(running, pendingChange);
   const countInUsed = effectiveCountIn(countIn, settings);
-  const countOff = countOffSummary(countIn, settings);
+  const countOffPattern = cueOptions.countOffPattern ?? DEFAULT_COUNT_OFF_PATTERN;
+  const countOff = countOffSummary(countIn, settings, countOffPattern);
 
   return (
     <View style={styles.panel}>
@@ -198,6 +203,17 @@ export function SettingsPanel({
         value={cueOptions.countOff ?? false}
         onChange={(v) => onCueOptionsChange({ ...cueOptions, countOff: v })}
       />
+      {cueOptions.countOff ? (
+        <Segmented<CountOffPattern>
+          label="Count it as"
+          options={COUNT_OFF_PATTERNS}
+          value={countOffPattern}
+          onChange={(p) => onCueOptionsChange({ ...cueOptions, countOffPattern: p })}
+          optionLabel={countOffPatternLabel}
+          optionAccessibilityLabel={countOffPatternAccessibilityLabel}
+          testID="count-off-pattern"
+        />
+      ) : null}
 
       <Text style={styles.heading} accessibilityRole="header">
         Calls
@@ -329,3 +345,14 @@ const getStyles = themed((t: Theme) =>
     warning: { fontSize: 14, color: t.warningText },
   }),
 );
+
+function countOffPatternAccessibilityLabel(pattern: CountOffPattern): string {
+  switch (pattern) {
+    case 'prep':
+      return 'Prep count: 5 6, 5 6 7 8';
+    case 'straight':
+      return 'Straight count: 1 to 8';
+    case 'quick':
+      return 'Quick count: 5 6 7 8';
+  }
+}

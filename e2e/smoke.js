@@ -299,6 +299,31 @@ async function main() {
     await page.getByTestId('call-shortcut-all').click();
     check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
 
+    // 5c2. Count-off patterns: a straight "1 2 3 4" over the count-in, then the call.
+    await page.getByRole('switch', { name: /Speak the count-off/ }).click();
+    await page.getByRole('radio', { name: 'Straight count: 1 to 8' }).click();
+    check(
+      'the straight count-off is summarized as 1 2 3 4',
+      await page.getByText('Speak the count-off (1 2 3 4, then the call)').isVisible(),
+    );
+    await page.evaluate(() => (window.__speech.length = 0));
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    // Stop after the call but before the release, so no session is recorded.
+    await page.waitForTimeout((COUNT_IN - LEAD_COUNTS + 1.5) * (60_000 / (BPM + 1)));
+    await page.getByRole('button', { name: 'Stop practice' }).click();
+    const countedOff = await page.evaluate(() => window.__speech.map((u) => u.text));
+    check(
+      'the straight count-off speaks one, two, three, four before the call',
+      countedOff.slice(0, 4).join(' ') === 'one two three four' && countedOff.length === 5,
+      countedOff.map((t) => `"${t}"`).join(', ') || 'none',
+    );
+    await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
+    await page.getByRole('switch', { name: /Speak the count-off/ }).click();
+    check(
+      'the count-off pattern chips hide when the count-off is off',
+      (await page.getByTestId('count-off-pattern').count()) === 0,
+    );
+
     // 5d. History filters: with an older hand-tuned session added, chips narrow
     // the totals and rows to one preset.
     await page.evaluate(() => {

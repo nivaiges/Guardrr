@@ -201,6 +201,10 @@ async function main() {
     await scrollTo(page.getByText(/^Call \d+ before release/).first());
     await page.waitForTimeout(200);
     await shot(page, '16-count-off');
+    await page.getByRole('radio', { name: 'Straight count: 1 to 8' }).click();
+    await page.waitForTimeout(200);
+    await shot(page, '20-count-off-straight');
+    await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
 
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();

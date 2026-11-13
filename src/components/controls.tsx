@@ -130,28 +130,30 @@ export function Toggle({
   );
 }
 
-export function Segmented({
+export function Segmented<T extends number | string>({
   label,
   options,
   value,
   onChange,
   disabled = false,
   optionLabel = String,
-  optionAccessibilityLabel = (n: number) => `${n} counts`,
+  optionAccessibilityLabel = (n: T) => `${n} counts`,
+  testID,
 }: {
   label: string;
-  options: readonly number[];
-  value: number;
-  onChange: (value: number) => void;
+  options: readonly T[];
+  value: T;
+  onChange: (value: T) => void;
   disabled?: boolean;
-  /** Text shown in each segment. Default: the number. */
-  optionLabel?: (option: number) => string;
+  /** Text shown in each segment. Default: the option itself. */
+  optionLabel?: (option: T) => string;
   /** Screen-reader label of each segment. Default: "8 counts". */
-  optionAccessibilityLabel?: (option: number) => string;
+  optionAccessibilityLabel?: (option: T) => string;
+  testID?: string;
 }) {
   const styles = getStyles(useTheme());
   return (
-    <View style={styles.segmentedBlock}>
+    <View style={styles.segmentedBlock} testID={testID}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.segmented} accessibilityRole="radiogroup" accessibilityLabel={label}>
         {options.map((option) => {
