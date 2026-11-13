@@ -1,5 +1,5 @@
 import { SessionRecord } from '../history';
-import { callDetail } from '../historyTrend';
+import { callDetail, callDetailAnchor, callTrends } from '../historyTrend';
 
 const DAY = 86_400_000;
 // Local noon today, so "Today"/"Yesterday" don't depend on when the test runs.
@@ -83,5 +83,25 @@ describe('callDetail', () => {
     expect(detail.rows[0].accessibilityLabel).toMatch(
       /^Today \d+:\d\d [AP]M, Quads 155, 155 BPM: caught 4 of 5, 80%$/,
     );
+  });
+});
+
+describe('callDetailAnchor', () => {
+  it('opens under the trend row when the call has one, wherever it was tapped', () => {
+    expect(callDetailAnchor([7, 5], 7)).toBe('trend');
+  });
+
+  it('opens under "Dropped most" for a call with only one session', () => {
+    // 7 came up in two sessions (a trend); a 3 dropped once has no trend yet.
+    const history = [...HISTORY, record(NOW - 3 * DAY, { '3': 2 }, { '3': 1 })];
+    const trendCalls = callTrends(history, [7, 3]).map((t) => t.call);
+    expect(trendCalls).toEqual([7]);
+    expect(callDetailAnchor(trendCalls, 3)).toBe('hardest');
+    expect(callDetail(history, 3, NOW)?.rows.map((r) => r.caughtOf)).toEqual(['1 of 2']);
+  });
+
+  it('is null when no call is open', () => {
+    expect(callDetailAnchor([7], null)).toBeNull();
+    expect(callDetailAnchor([], null)).toBeNull();
   });
 });

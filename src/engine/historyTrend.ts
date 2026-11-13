@@ -228,3 +228,20 @@ export function callDetail(
     summary: `${label}: ${sessions} ${sessions === 1 ? 'session' : 'sessions'}, ${tosses} ${tosses === 1 ? 'toss' : 'tosses'}, ${caught} caught`,
   };
 }
+
+/** Where History shows an open call detail: under the call's trend row, or under "Dropped most". */
+export type CallDetailAnchor = 'trend' | 'hardest';
+
+/**
+ * Where the detail of `call` opens. A call with a trend row (2+ sessions)
+ * opens under that row, wherever it was tapped, so its bars stay in view; a
+ * call without one (a single session so far) opens under the "Dropped most"
+ * line it was tapped in. Null when no call is open.
+ */
+export function callDetailAnchor(
+  trendCalls: readonly number[],
+  call: number | null,
+): CallDetailAnchor | null {
+  if (call === null) return null;
+  return trendCalls.includes(call) ? 'trend' : 'hardest';
+}

@@ -97,6 +97,10 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | ![Right after toss 2 is released, Drop still marks toss 1](docs/screenshots/17-drop-previous.png) | ![History filtered to 120 BPM](docs/screenshots/18-history-tempo.png) | ![Tapping the 7's trend lists every session with a 7](docs/screenshots/19-call-detail.png) | ![Count-off counted 1–8: "1 2 3 4, then the call"](docs/screenshots/20-count-off-straight.png) |
 
+| A call from "Dropped most"                                                                                       |
+| ---------------------------------------------------------------------------------------------------------------- |
+| ![Tapping the 5 under "Dropped most" in Quads 155 lists its one session](docs/screenshots/21-dropped-detail.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript

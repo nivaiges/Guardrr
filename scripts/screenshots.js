@@ -195,6 +195,13 @@ async function main() {
     await shot(historyCard, '19-call-detail');
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByTestId('history-call-detail-close').click();
+    // In Quads 155 (one session, so no trend bars yet) tap a call under "Dropped most".
+    await page.getByTestId('history-filter-preset:Quads 155').click();
+    await page.getByTestId('history-hardest-5').click();
+    await page.waitForTimeout(300);
+    await shot(historyCard, '21-dropped-detail');
+    await page.getByTestId('history-call-detail-close').click();
+    await page.getByTestId('history-filter-all').click();
 
     // Settings → Practice: the spoken count-off over the count-in.
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();

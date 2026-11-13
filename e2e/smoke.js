@@ -416,6 +416,23 @@ async function main() {
     await filterChip('all').click();
     await tempoChip('all').click();
 
+    // 5d1b. Tapping a call under "Dropped most" lists its sessions, even without a trend yet.
+    const droppedOnce = await page.evaluate(() => {
+      const stored = JSON.parse(localStorage.getItem('guardrr.history'));
+      return Object.keys(stored.sessions.find((r) => r.drops > 0).timesDropped)[0];
+    });
+    await page.getByTestId(`history-hardest-${droppedOnce}`).click();
+    const hardestDetail = page.getByTestId('history-call-detail');
+    const hardestText = (await hardestDetail.textContent().catch(() => '')) ?? '';
+    check(
+      'tapping a call under Dropped most lists its sessions',
+      /every session/.test(hardestText) &&
+        /\d+ sessions? · \d+ toss(es)? · \d+% caught/.test(hardestText),
+      hardestText.slice(0, 120) || 'no detail',
+    );
+    await page.getByTestId(`history-hardest-${droppedOnce}`).click();
+    check('a second tap on the call hides its sessions', !(await hardestDetail.isVisible()));
+
     // 5d2. Catch-rate trend: the dropped call practiced again, cleanly, reads "getting better".
     const historyBefore = await page.evaluate(() => {
       const json = localStorage.getItem('guardrr.history');
