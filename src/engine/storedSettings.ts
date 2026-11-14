@@ -55,6 +55,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   andClicks: false,
   haptics: true,
   catchHaptics: false,
+  callHaptics: false,
   countOff: false,
   countOffPattern: DEFAULT_COUNT_OFF_PATTERN,
 };
@@ -164,6 +165,7 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       andClicks: bool(cue.andClicks, DEFAULT_CUE_OPTIONS.andClicks),
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
       catchHaptics: bool(cue.catchHaptics, DEFAULT_CUE_OPTIONS.catchHaptics),
+      callHaptics: bool(cue.callHaptics, DEFAULT_CUE_OPTIONS.callHaptics),
       countOff: bool(cue.countOff, DEFAULT_CUE_OPTIONS.countOff),
       countOffPattern: isCountOffPattern(cue.countOffPattern)
         ? cue.countOffPattern

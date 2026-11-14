@@ -23,6 +23,11 @@ export interface CueOptions {
   /** A lighter tap on every catch (the called count, or its "and"). Default false. */
   catchHaptics?: boolean;
   /**
+   * A double buzz when the call is spoken, so a performer who can't hear the
+   * voice (loud gym, hard of hearing) knows to glance at the screen. Default false.
+   */
+  callHaptics?: boolean;
+  /**
    * Speak the prep count-off ("5 6, 5 6 7 8") over the count-in clicks, up to
    * the first call (see countOffWord). Default false.
    */
@@ -31,8 +36,11 @@ export interface CueOptions {
   countOffPattern?: CountOffPattern;
 }
 
-/** Vibration to play on a tick: a firm tap on the release, a light one on the catch. */
-export type HapticKind = 'release' | 'catch';
+/**
+ * Vibration to play on a tick: a firm tap on the release, a light one on the
+ * catch, a double buzz when the next call is spoken.
+ */
+export type HapticKind = 'release' | 'catch' | 'call';
 
 export interface PracticeCue {
   tick: number;
@@ -117,8 +125,19 @@ function clickFor(subdivision: number, events: CountEvents, options: CueOptions)
   return 'count';
 }
 
-function hapticFor(release: boolean, caught: boolean, options: CueOptions): HapticKind | null {
+/**
+ * One vibration per tick. When cues share a tick the release wins (it's the
+ * one the toss depends on), then the call (it carries new information), then
+ * the catch.
+ */
+function hapticFor(
+  release: boolean,
+  called: boolean,
+  caught: boolean,
+  options: CueOptions,
+): HapticKind | null {
   if (release && (options.haptics ?? true)) return 'release';
+  if (called && (options.callHaptics ?? false)) return 'call';
   if (caught && (options.catchHaptics ?? false)) return 'catch';
   return null;
 }
@@ -157,6 +176,6 @@ export function cueForTick(
     currentCall: events.currentCall,
     release,
     catch: caught,
-    haptic: hapticFor(release, caught, options),
+    haptic: hapticFor(release, announce !== null, caught, options),
   };
 }

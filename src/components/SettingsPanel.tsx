@@ -268,6 +268,11 @@ export function SettingsPanel({
         value={cueOptions.catchHaptics ?? false}
         onChange={(catchHaptics) => onCueOptionsChange({ ...cueOptions, catchHaptics })}
       />
+      <Toggle
+        label="Double buzz with the call"
+        value={cueOptions.callHaptics ?? false}
+        onChange={(callHaptics) => onCueOptionsChange({ ...cueOptions, callHaptics })}
+      />
 
       <Text style={styles.heading} accessibilityRole="header">
         Voice

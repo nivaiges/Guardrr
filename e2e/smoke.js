@@ -324,6 +324,21 @@ async function main() {
       (await page.getByTestId('count-off-pattern').count()) === 0,
     );
 
+    // 5c3. Call buzz: the switch is saved with the other sound options.
+    const callBuzz = page.getByRole('switch', { name: 'Double buzz with the call' });
+    await callBuzz.click();
+    const savedBuzz = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.callHaptics === true,
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('the call buzz switch is saved', savedBuzz);
+    await callBuzz.click();
+
     // 5d. History filters: with an older hand-tuned session added, chips narrow
     // the totals and rows to one preset.
     await page.evaluate(() => {

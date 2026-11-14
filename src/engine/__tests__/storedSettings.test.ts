@@ -19,6 +19,7 @@ const custom: PracticeSettings = {
     andClicks: true,
     haptics: false,
     catchHaptics: true,
+    callHaptics: true,
     countOff: true,
     countOffPattern: 'straight',
   },
@@ -83,6 +84,7 @@ describe('stored settings', () => {
       andClicks: true,
       haptics: true,
       catchHaptics: false,
+      callHaptics: false,
       countOff: false,
       countOffPattern: 'prep',
     });
@@ -129,6 +131,18 @@ describe('stored settings', () => {
     );
     const on = JSON.stringify({ cue: { catchHaptics: true } });
     expect(parseStoredSettings(on).cue.catchHaptics).toBe(true);
+  });
+
+  it('keeps a saved call-buzz choice, off for settings saved before it existed', () => {
+    expect(parseStoredSettings(JSON.stringify({ cue: { haptics: true } })).cue.callHaptics).toBe(
+      false,
+    );
+    expect(
+      parseStoredSettings(JSON.stringify({ cue: { callHaptics: true } })).cue.callHaptics,
+    ).toBe(true);
+    expect(parseStoredSettings(JSON.stringify({ cue: { callHaptics: 1 } })).cue.callHaptics).toBe(
+      false,
+    );
   });
 
   it('clamps or replaces a bad BPM', () => {

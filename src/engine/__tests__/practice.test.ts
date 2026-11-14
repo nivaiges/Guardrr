@@ -147,6 +147,35 @@ describe('cueForTick', () => {
     expect(walk(settings, 48).cues.some((c) => c.haptic === 'catch')).toBe(false);
   });
 
+  it('double-buzzes on every spoken call when asked, including the first one in the lead-in', () => {
+    const { cues } = walk(settings, 48, { haptics: false, callHaptics: true });
+    const buzzes = cues.filter((c) => c.haptic === 'call');
+    expect(buzzes.length).toBeGreaterThan(0);
+    expect(buzzes).toEqual(cues.filter((c) => c.speak !== null));
+    expect(buzzes.every((c) => c.subdivision === 0)).toBe(true);
+    // The first call is spoken before any toss starts.
+    expect(buzzes[0].currentCall).toBeNull();
+    expect(walk(settings, 48).cues.some((c) => c.haptic === 'call')).toBe(false);
+  });
+
+  it('lets the call buzz win over a catch tap on the same count, and the release win over both', () => {
+    // Lead 4 in a 16-count phrase: calls on count 13; a 13 is caught there too.
+    const thirteens: TossSettings = { ...settings, allowedTossCounts: [13] };
+    const { cues } = walk(thirteens, 48, { callHaptics: true, catchHaptics: true });
+    const shared = cues.filter((c) => c.catch && c.speak !== null);
+    expect(shared.length).toBeGreaterThan(0);
+    expect(shared.every((c) => c.haptic === 'call')).toBe(true);
+    const releases = cues.filter((c) => c.release);
+    expect(releases.every((c) => c.haptic === 'release')).toBe(true);
+    // Full-phrase lead: the call is spoken on the release count itself.
+    const full: TossSettings = { ...settings, leadCounts: settings.phraseLength };
+    const onRelease = walk(full, 48, { callHaptics: true }).cues.filter(
+      (c) => c.release && c.speak !== null,
+    );
+    expect(onRelease.length).toBeGreaterThan(0);
+    expect(onRelease.every((c) => c.haptic === 'release')).toBe(true);
+  });
+
   it('catches on the called count', () => {
     const fives: TossSettings = { ...settings, allowedTossCounts: [5] };
     const { cues } = walk(fives, 48);
