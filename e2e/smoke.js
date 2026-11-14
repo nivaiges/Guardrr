@@ -223,6 +223,20 @@ async function main() {
     check('metronome is silent after Stop', playsAfter === playsAtStop);
     await page.screenshot({ path: path.join(outDir, 'stopped.png'), fullPage: true });
 
+    // 4b. A call in the session stats opens every session it came up in.
+    const statsCall = page.locator(
+      '[data-testid^="stats-call-"]:not([data-testid^="stats-call-detail"])',
+    );
+    check("the session's call is tappable in the stats", (await statsCall.count()) === 1);
+    await statsCall.first().click();
+    const statsDetail = page.getByTestId('stats-call-detail');
+    check(
+      'tapping it lists the session under the call — 0 of 1',
+      (await statsDetail.isVisible()) && (await statsDetail.getByText('0 of 1').isVisible()),
+    );
+    await page.getByTestId('stats-call-detail-close').click();
+    check('Close hides the stats call detail', (await statsDetail.count()) === 0);
+
     // 5. Settings survive a reload.
     await page.getByRole('button', { name: 'BPM plus 1' }).click();
     await page.waitForTimeout(1500); // settings are saved debounced

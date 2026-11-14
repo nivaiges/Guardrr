@@ -286,7 +286,12 @@ export default function App() {
             </Text>
           </View>
 
-          <SessionStatsCard stats={stats} running={running} />
+          <SessionStatsCard
+            stats={stats}
+            running={running}
+            history={history}
+            nowMs={historyUpdatedAt}
+          />
           <SessionHistoryCard
             history={history}
             nowMs={historyUpdatedAt}
