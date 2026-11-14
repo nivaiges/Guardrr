@@ -168,6 +168,12 @@ async function main() {
     await page.waitForTimeout(200);
     await shot(page, '05-stats-history');
     const historyCard = exact(page, 'History').locator('xpath=../..');
+    // Tap a call in the session stats for every session it came up in.
+    const statsCard = exact(page, 'Last session').locator('xpath=..');
+    await statsCard.locator('[data-testid^="stats-call-"]').first().click();
+    await page.waitForTimeout(300);
+    await shot(statsCard, '22-stats-call-detail');
+    await page.getByTestId('stats-call-detail-close').click();
     await page.getByTestId('history-edit').click();
     await page.getByTestId('history-clear').click();
     await shot(historyCard, '06-history-edit');
@@ -212,6 +218,13 @@ async function main() {
     await page.waitForTimeout(200);
     await shot(page, '20-count-off-straight');
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
+
+    // Settings → Sound: the optional double buzz with the call.
+    await page.getByRole('switch', { name: 'Double buzz with the call' }).click();
+    await scrollTo(page.getByRole('switch', { name: 'Accent count 1' }));
+    await page.waitForTimeout(200);
+    await shot(page, '23-call-buzz');
+    await page.getByRole('switch', { name: 'Double buzz with the call' }).click();
 
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();

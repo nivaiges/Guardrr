@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-11-14
+
+### Added
+
+- **Double buzz with the call** (roadmap: "Optional haptic on the call too"). A new switch in
+  Settings → Sound makes the phone give a double pulse on the count the call is spoken, so a
+  performer who can't hear the voice (loud gym, music playing, hard of hearing) knows to glance
+  at the screen for the call. Off by default; saved with the other sound options.
+  - Engine: `CueOptions.callHaptics`, `HapticKind` gains `'call'`.
+  - Feedback: `createHapticPlayer` plays the call with `Haptics.notificationAsync(Warning)`.
+- **Open a call's sessions from the session stats** (roadmap: "Call detail: open it from the
+  session stats"). In **Last session** (or **This session** while practicing), a call that
+  already has saved sessions is underlined; tap its row to list every session it came up in —
+  date, drill, "2 of 4", 50% — right under the row. Tap again or **Close** to hide it. A hint
+  under the bars says the rows are tappable.
+  - UI: the panel is now one `CallDetailPanel` shared by History and the stats card.
+- Smoke test: 77 checks (the call-buzz switch being saved, and opening/closing a call from the
+  session stats are new). Screenshots `22-stats-call-detail` and `23-call-buzz` added to the
+  README gallery.
+- 5 new unit tests (506 total).
+
+### Decisions
+
+- **The call buzz is a "look at the screen" signal, not the number itself.** A haptic can't
+  say "five" quickly enough at 155 BPM with a 4-count lead, so it uses the system's distinct
+  warning pattern (double pulse) and the screen shows the call. Buzzing the number as pulses is
+  on the roadmap in case glancing proves too hard.
+- **One vibration per tick: release, then call, then catch.** The release buzz is the one the
+  toss depends on; the call carries new information, so it beats the catch tap when a call is
+  spoken on the count a toss is caught (e.g. a 13 with a 4-count lead in 16).
+- **The first call buzzes too**, in the count-in, since it is spoken there.
+- **The stats card's call detail covers all of History**, not the History card's filters: it's
+  about the call you just practiced, wherever it came up. Calls with no saved sessions yet
+  (the running session is saved at Stop) aren't tappable.
+
+### To test on your phone
+
+- Settings → Sound → turn on **Double buzz with the call**, and Start with the phone in your
+  pocket or on the floor: you should feel a double pulse when the call is spoken that feels
+  different from the heavy buzz on the release. (Haptics can't be felt in the headless web
+  check, so this is untested on a device.)
+- After a session, tap a call in **Last session**; the list should match that call's rows in
+  History.
+
 ## 2026-11-13
 
 ### Added

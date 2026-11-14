@@ -64,7 +64,12 @@
 - [x] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list (History card).
 - [x] User-saved custom presets ("save current settings as…") — Presets → Save as preset…, delete with Undo, up to 12.
 - [x] Optional light haptic on the catch count (Settings → Sound → "Light tap on the catch").
-- [ ] Optional haptic on the call too (for performers who can't hear the voice), if the catch tap proves useful.
+- [x] Optional haptic on the call too (for performers who can't hear the voice) — Settings → Sound →
+      "Double buzz with the call" (system warning pattern, so it never feels like the release or catch).
+- [ ] Call buzz: check on device that the double pulse is distinct from the release buzz on both
+      iPhone and Android, and that it doesn't land late at 155 BPM.
+- [ ] Call buzz: an option to buzz the call's number (e.g. 5 short pulses for a 5) if glancing at
+      the screen mid-toss is too hard.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
 - [x] Calls: reword the "Picked by hand" note per shortcut ("Odd counts only." / "Even counts only.").
 - [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
@@ -90,7 +95,8 @@
       (date, drill, "2 of 4", 50%), right under the row; follows the filters.
 - [x] Call detail: open it from "Dropped most" too — calls without a trend yet (one session)
       open right under that line.
-- [ ] Call detail: open it from the session stats ("Last session") as well.
+- [x] Call detail: open it from the session stats ("Last session") as well — tap a call's row
+      (underlined when it has saved sessions); lists every session across all of History.
 - [ ] Accessibility on device: check VoiceOver/TalkBack can focus each call inside the
       "Dropped most" line separately (nested tappable text).
 - [x] History: export/share sessions (CSV) for a coach — History → Share (share sheet; a .csv download on the web).
