@@ -25,6 +25,7 @@ import {
   tempoFilters,
 } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
+import { CallDetailPanel } from './CallDetailPanel';
 
 /** Rows shown before "Show more", and after it. */
 const FEW_ROWS = 5;
@@ -200,51 +201,11 @@ export function SessionHistoryCard({
     detail ? detail.call : null,
   );
   const detailPanel = detail ? (
-    <View style={styles.detailPanel} testID="history-call-detail">
-      <View style={styles.detailHeader}>
-        <Text style={styles.detailTitle} accessibilityRole="header">
-          {detail.label} — every session
-        </Text>
-        <Pressable
-          testID="history-call-detail-close"
-          onPress={() => setDetailCall(null)}
-          accessibilityRole="button"
-          accessibilityLabel={`Close ${detail.label} sessions`}
-          hitSlop={8}
-          style={({ pressed }) => [styles.headerButton, pressed && styles.morePressed]}
-        >
-          <Text style={styles.headerButtonText}>Close</Text>
-        </Pressable>
-      </View>
-      <Text style={styles.detailSummary}>
-        {detail.sessions} {detail.sessions === 1 ? 'session' : 'sessions'} · {detail.tosses}{' '}
-        {detail.tosses === 1 ? 'toss' : 'tosses'} · {detail.caught} caught
-      </Text>
-      {detail.rows.map((row) => (
-        <View
-          key={row.startedAt}
-          style={styles.detailRow}
-          accessible
-          accessibilityLabel={row.accessibilityLabel}
-        >
-          <View style={styles.dateColumn}>
-            <Text style={styles.date} numberOfLines={1}>
-              {row.date}
-            </Text>
-            <Text style={styles.detail} numberOfLines={1}>
-              {row.drill}
-            </Text>
-          </View>
-          <Text style={styles.detailCaughtOf}>{row.caughtOf}</Text>
-          <Text style={[styles.cell, row.drops > 0 && styles.dropped]}>{row.caught}</Text>
-        </View>
-      ))}
-      {detail.more > 0 ? (
-        <Text style={styles.detailMore}>
-          and {detail.more} older {detail.more === 1 ? 'session' : 'sessions'}
-        </Text>
-      ) : null}
-    </View>
+    <CallDetailPanel
+      detail={detail}
+      onClose={() => setDetailCall(null)}
+      testID="history-call-detail"
+    />
   ) : null;
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
@@ -619,25 +580,6 @@ const getStyles = themed((t: Theme) =>
       borderRadius: 8,
     },
     trendRowOpen: { backgroundColor: t.control },
-    detailPanel: {
-      marginTop: 2,
-      padding: 12,
-      gap: 8,
-      borderRadius: 12,
-      backgroundColor: t.control,
-    },
-    detailHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    detailTitle: { fontSize: 15, fontWeight: '700', color: t.text },
-    detailSummary: { fontSize: 14, color: t.textMuted },
-    detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-    detailCaughtOf: {
-      width: 64,
-      fontSize: 14,
-      textAlign: 'right',
-      color: t.textMuted,
-      fontVariant: ['tabular-nums'],
-    },
-    detailMore: { fontSize: 13, color: t.textMuted },
     trendCall: { width: 44, fontSize: 14, fontWeight: '700', color: t.dangerText },
     trendBars: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 24 },
     trendSlot: {
