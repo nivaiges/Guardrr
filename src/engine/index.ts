@@ -23,3 +23,4 @@ export * from './customPresets';
 export * from './pages';
 export * from './liveSettings';
 export * from './historyTrend';
+export * from './appearance';

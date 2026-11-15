@@ -30,6 +30,7 @@ const custom: PracticeSettings = {
   swipeHintSeen: true,
   historyFilter: 'preset:Quads 155',
   historyTempoFilter: 'tempo:155/16',
+  appearance: 'dark',
 };
 
 describe('stored settings', () => {
@@ -200,5 +201,18 @@ describe('stored settings', () => {
     expect(parse(true)).toBe(true);
     expect(parse('yes')).toBe(false);
     expect(parse(undefined)).toBe(false);
+  });
+
+  it('follows the phone appearance unless one was chosen', () => {
+    expect(DEFAULT_PRACTICE_SETTINGS.appearance).toBe('system');
+    const parse = (appearance: unknown) =>
+      parseStoredSettings(JSON.stringify({ appearance })).appearance;
+    expect(parse('light')).toBe('light');
+    expect(parse('dark')).toBe('dark');
+    expect(parse('system')).toBe('system');
+    expect(parse('auto')).toBe('system');
+    expect(parse(true)).toBe('system');
+    // Settings saved before the option existed follow the phone, as before.
+    expect(parseStoredSettings(JSON.stringify({ bpm: 120 })).appearance).toBe('system');
   });
 });

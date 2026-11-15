@@ -8,6 +8,7 @@
  */
 
 import { TossSettings, validateTossSettings } from './announce';
+import { AppearancePreference, DEFAULT_APPEARANCE, isAppearancePreference } from './appearance';
 import { isValidCall } from './calls';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN, DEFAULT_COUNT_OFF_PATTERN, isCountOffPattern } from './countIn';
@@ -84,6 +85,8 @@ export interface PracticeSettings {
   historyFilter: HistoryFilterKey;
   /** The History tempo filter last chosen ("tempo:120/16"); "all" by default. */
   historyTempoFilter: HistoryFilterKey;
+  /** Light/dark: follow the phone ("system", default) or force one (see appearance.ts). */
+  appearance: AppearancePreference;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -97,6 +100,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   swipeHintSeen: false,
   historyFilter: ALL_SESSIONS,
   historyTempoFilter: ALL_TEMPOS,
+  appearance: DEFAULT_APPEARANCE,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -178,5 +182,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     swipeHintSeen: bool(raw.swipeHintSeen, false),
     historyFilter: parseHistoryFilterKey(raw.historyFilter),
     historyTempoFilter: parseTempoFilterKey(raw.historyTempoFilter),
+    appearance: isAppearancePreference(raw.appearance) ? raw.appearance : DEFAULT_APPEARANCE,
   };
 }
