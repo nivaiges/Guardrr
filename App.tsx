@@ -1,3 +1,4 @@
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -52,11 +53,25 @@ import { shareHistory, shareOutcomeMessage } from './src/sharing';
 import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
 import { AppearanceContext, Theme, themeForAppearance, themed } from './src/theme';
 
+// Keep the splash up until the saved settings are read, so the app doesn't
+// open in the default theme/tempo and then switch to the saved ones.
+SplashScreen.preventAutoHideAsync().catch(() => {});
+/** Hide the splash after this long even if storage never answers. */
+const SPLASH_TIMEOUT_MS = 2_000;
+
 /** What a saved session is labelled with besides its start time. */
 type SessionLabel = Omit<SessionContext, 'startedAt'>;
 
 export default function App() {
-  const { settings: saved, setSettings: update } = usePersistedSettings();
+  const { settings: saved, setSettings: update, loaded } = usePersistedSettings();
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hide();
+      return;
+    }
+    const timer = setTimeout(() => SplashScreen.hide(), SPLASH_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [loaded]);
   // App provides the appearance to every component (see AppearanceContext),
   // so it resolves its own theme from the saved preference directly.
   const { appearance } = saved;
