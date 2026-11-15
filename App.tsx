@@ -12,10 +12,12 @@ import {
   StyleSheet,
   Text,
   View,
+  useColorScheme,
   useWindowDimensions,
 } from 'react-native';
 
 import { createVoice, useCallVoices } from './src/audio';
+import { AppearanceSettings } from './src/components/AppearanceSettings';
 import { CameraBackdrop } from './src/components/CameraBackdrop';
 import { CameraSettings } from './src/components/CameraSettings';
 import { PageDots } from './src/components/PageDots';
@@ -48,19 +50,22 @@ import {
 import { usePracticeSession } from './src/practice';
 import { shareHistory, shareOutcomeMessage } from './src/sharing';
 import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
-import { Theme, themed, useTheme } from './src/theme';
+import { AppearanceContext, Theme, themeForAppearance, themed } from './src/theme';
 
 /** What a saved session is labelled with besides its start time. */
 type SessionLabel = Omit<SessionContext, 'startedAt'>;
 
 export default function App() {
-  const theme = useTheme();
+  const { settings: saved, setSettings: update } = usePersistedSettings();
+  // App provides the appearance to every component (see AppearanceContext),
+  // so it resolves its own theme from the saved preference directly.
+  const { appearance } = saved;
+  const theme = themeForAppearance(appearance, useColorScheme());
   const styles = getStyles(theme);
   useEffect(() => {
     // Root view color behind the app (keyboard, rotation, overscroll) follows the theme.
     SystemUI.setBackgroundColorAsync(theme.background).catch(() => {});
   }, [theme]);
-  const { settings: saved, setSettings: update } = usePersistedSettings();
   const { bpm, toss: settings, cue: cueOptions, countIn, voiceRate } = saved;
   const { voices, reload: reloadVoices } = useCallVoices();
   // A saved voice the phone no longer has falls back to the system default.
@@ -172,181 +177,187 @@ export default function App() {
   }, [page, swipeHintSeen, update]);
 
   return (
-    <View style={styles.root}>
-      <ScrollView
-        ref={pager}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onPagerScroll}
-        scrollEventThrottle={32}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Page 1: practice, over the camera. */}
-        <View style={[styles.practicePage, { width, height }]} testID="practice-page">
-          <CameraBackdrop enabled={camera.enabled} facing={camera.facing} active={page === 0} />
-          <View style={styles.topBar}>
-            <View style={styles.titlePill}>
-              <Text style={styles.title} accessibilityRole="header">
-                Guardrr
-              </Text>
-              <Text style={styles.subtitle}>
-                {bpm} BPM · {activeSettings.phraseLength} counts · call on{' '}
-                {activeSettings.phraseLength - activeSettings.leadCounts + 1}
-              </Text>
-            </View>
-            {camera.enabled ? (
-              <Pressable
-                testID="camera-flip"
-                style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}
-                onPress={flipCamera}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  camera.facing === 'front' ? 'Switch to back camera' : 'Switch to front camera'
-                }
-                hitSlop={8}
-              >
-                <Text style={styles.roundButtonText}>⟲</Text>
-                <Text style={styles.roundButtonLabel}>
-                  {camera.facing === 'front' ? 'Front' : 'Back'}
+    <AppearanceContext.Provider value={appearance}>
+      <View style={styles.root}>
+        <ScrollView
+          ref={pager}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={onPagerScroll}
+          scrollEventThrottle={32}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Page 1: practice, over the camera. */}
+          <View style={[styles.practicePage, { width, height }]} testID="practice-page">
+            <CameraBackdrop enabled={camera.enabled} facing={camera.facing} active={page === 0} />
+            <View style={styles.topBar}>
+              <View style={styles.titlePill}>
+                <Text style={styles.title} accessibilityRole="header">
+                  Guardrr
                 </Text>
-              </Pressable>
-            ) : null}
-          </View>
-
-          <View style={styles.displayArea}>
-            <PracticeDisplay model={display} overlay />
-          </View>
-
-          <View style={styles.controls}>
-            <View style={styles.buttonRow}>
-              <Pressable
-                style={[styles.startButton, running && styles.stopButton]}
-                onPress={running ? onStop : onStart}
-                accessibilityRole="button"
-                accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
-                accessibilityHint={
-                  running
-                    ? undefined
-                    : 'Starts the metronome; the first toss is called during the count-in'
-                }
-              >
-                <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
-              </Pressable>
-              {drop ? (
+                <Text style={styles.subtitle}>
+                  {bpm} BPM · {activeSettings.phraseLength} counts · call on{' '}
+                  {activeSettings.phraseLength - activeSettings.leadCounts + 1}
+                </Text>
+              </View>
+              {camera.enabled ? (
                 <Pressable
-                  style={({ pressed }) => [styles.dropButton, pressed && styles.pressed]}
-                  onPress={toggleDrop}
+                  testID="camera-flip"
+                  style={({ pressed }) => [styles.roundButton, pressed && styles.pressed]}
+                  onPress={flipCamera}
                   accessibilityRole="button"
-                  accessibilityLabel={drop.label}
-                  accessibilityHint={drop.hint}
+                  accessibilityLabel={
+                    camera.facing === 'front' ? 'Switch to back camera' : 'Switch to front camera'
+                  }
+                  hitSlop={8}
                 >
-                  <Text style={styles.dropText}>{drop.label}</Text>
-                  {drop.detail ? (
-                    <Text style={styles.dropDetail} testID="drop-target">
-                      {drop.detail}
-                    </Text>
-                  ) : null}
+                  <Text style={styles.roundButtonText}>⟲</Text>
+                  <Text style={styles.roundButtonLabel}>
+                    {camera.facing === 'front' ? 'Front' : 'Back'}
+                  </Text>
                 </Pressable>
               ) : null}
             </View>
-            <Pressable
-              testID="go-to-settings"
-              style={({ pressed }) => [styles.pageLink, pressed && styles.pressed]}
-              onPress={() => goToPage(1)}
-              accessibilityRole="button"
-              accessibilityLabel="Settings, stats and history"
-              accessibilityHint="Or swipe left"
-            >
-              <Text style={styles.pageLinkText}>{settingsLinkLabel(swipeHintSeen)}</Text>
-            </Pressable>
+
+            <View style={styles.displayArea}>
+              <PracticeDisplay model={display} overlay />
+            </View>
+
+            <View style={styles.controls}>
+              <View style={styles.buttonRow}>
+                <Pressable
+                  style={[styles.startButton, running && styles.stopButton]}
+                  onPress={running ? onStop : onStart}
+                  accessibilityRole="button"
+                  accessibilityLabel={running ? 'Stop practice' : 'Start practice'}
+                  accessibilityHint={
+                    running
+                      ? undefined
+                      : 'Starts the metronome; the first toss is called during the count-in'
+                  }
+                >
+                  <Text style={styles.startText}>{running ? 'Stop' : 'Start'}</Text>
+                </Pressable>
+                {drop ? (
+                  <Pressable
+                    style={({ pressed }) => [styles.dropButton, pressed && styles.pressed]}
+                    onPress={toggleDrop}
+                    accessibilityRole="button"
+                    accessibilityLabel={drop.label}
+                    accessibilityHint={drop.hint}
+                  >
+                    <Text style={styles.dropText}>{drop.label}</Text>
+                    {drop.detail ? (
+                      <Text style={styles.dropDetail} testID="drop-target">
+                        {drop.detail}
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                ) : null}
+              </View>
+              <Pressable
+                testID="go-to-settings"
+                style={({ pressed }) => [styles.pageLink, pressed && styles.pressed]}
+                onPress={() => goToPage(1)}
+                accessibilityRole="button"
+                accessibilityLabel="Settings, stats and history"
+                accessibilityHint="Or swipe left"
+              >
+                <Text style={styles.pageLinkText}>{settingsLinkLabel(swipeHintSeen)}</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
 
-        {/* Page 2: everything else, one swipe to the right. */}
-        <ScrollView
-          style={[styles.settingsPage, { width, height }]}
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          testID="settings-page"
-        >
-          <View style={styles.settingsHeader}>
-            <Pressable
-              testID="go-to-practice"
-              style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-              onPress={() => goToPage(0)}
-              accessibilityRole="button"
-              accessibilityLabel="Back to practice"
-              accessibilityHint="Or swipe right"
-            >
-              <Text style={styles.backText}>‹ Practice</Text>
-            </Pressable>
-            <Text style={styles.settingsTitle} accessibilityRole="header">
-              Settings & stats
-            </Text>
-          </View>
+          {/* Page 2: everything else, one swipe to the right. */}
+          <ScrollView
+            style={[styles.settingsPage, { width, height }]}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled"
+            testID="settings-page"
+          >
+            <View style={styles.settingsHeader}>
+              <Pressable
+                testID="go-to-practice"
+                style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
+                onPress={() => goToPage(0)}
+                accessibilityRole="button"
+                accessibilityLabel="Back to practice"
+                accessibilityHint="Or swipe right"
+              >
+                <Text style={styles.backText}>‹ Practice</Text>
+              </Pressable>
+              <Text style={styles.settingsTitle} accessibilityRole="header">
+                Settings & stats
+              </Text>
+            </View>
 
-          <SessionStatsCard
-            stats={stats}
-            running={running}
-            history={history}
-            nowMs={historyUpdatedAt}
-          />
-          <SessionHistoryCard
-            history={history}
-            nowMs={historyUpdatedAt}
-            onDelete={deleteSession}
-            onClear={clearHistory}
-            onRestore={restoreSessions}
-            onShare={async (sessions, filterLabel) =>
-              shareOutcomeMessage(await shareHistory(sessions, Date.now(), filterLabel))
-            }
-            filterKey={saved.historyFilter}
-            onFilterChange={(historyFilter) => update((s) => ({ ...s, historyFilter }))}
-            tempoKey={saved.historyTempoFilter}
-            onTempoChange={(historyTempoFilter) => update((s) => ({ ...s, historyTempoFilter }))}
-          />
+            <SessionStatsCard
+              stats={stats}
+              running={running}
+              history={history}
+              nowMs={historyUpdatedAt}
+            />
+            <SessionHistoryCard
+              history={history}
+              nowMs={historyUpdatedAt}
+              onDelete={deleteSession}
+              onClear={clearHistory}
+              onRestore={restoreSessions}
+              onShare={async (sessions, filterLabel) =>
+                shareOutcomeMessage(await shareHistory(sessions, Date.now(), filterLabel))
+              }
+              filterKey={saved.historyFilter}
+              onFilterChange={(historyFilter) => update((s) => ({ ...s, historyFilter }))}
+              tempoKey={saved.historyTempoFilter}
+              onTempoChange={(historyTempoFilter) => update((s) => ({ ...s, historyTempoFilter }))}
+            />
 
-          <PresetPicker
-            settings={saved}
-            customPresets={customPresets}
-            onApply={applyPresetToSettings}
-            onSave={(name) => savePreset(saved, name)}
-            onDelete={deletePreset}
-            onRestore={restorePreset}
-            onRename={renamePreset}
-            onUpdate={(id) => updatePreset(id, saved)}
-            onMove={movePreset}
-          />
+            <PresetPicker
+              settings={saved}
+              customPresets={customPresets}
+              onApply={applyPresetToSettings}
+              onSave={(name) => savePreset(saved, name)}
+              onDelete={deletePreset}
+              onRestore={restorePreset}
+              onRename={renamePreset}
+              onUpdate={(id) => updatePreset(id, saved)}
+              onMove={movePreset}
+            />
 
-          <CameraSettings camera={camera} onChange={setCamera} />
+            <CameraSettings camera={camera} onChange={setCamera} />
+            <AppearanceSettings
+              value={appearance}
+              onChange={(next) => update((s) => ({ ...s, appearance: next }))}
+            />
 
-          <SettingsPanel
-            bpm={bpm}
-            onBpmChange={setBpm}
-            settings={settings}
-            onSettingsChange={setSettings}
-            cueOptions={cueOptions}
-            onCueOptionsChange={setCueOptions}
-            countIn={countIn}
-            onCountInChange={setCountIn}
-            voiceRate={voiceRate}
-            onVoiceRateChange={setVoiceRate}
-            voices={voices}
-            voice={voice ?? null}
-            onVoiceChange={setVoice}
-            onReloadVoices={reloadVoices}
-            onTestVoice={testVoice}
-            running={running}
-            pendingChange={pendingChange}
-          />
+            <SettingsPanel
+              bpm={bpm}
+              onBpmChange={setBpm}
+              settings={settings}
+              onSettingsChange={setSettings}
+              cueOptions={cueOptions}
+              onCueOptionsChange={setCueOptions}
+              countIn={countIn}
+              onCountInChange={setCountIn}
+              voiceRate={voiceRate}
+              onVoiceRateChange={setVoiceRate}
+              voices={voices}
+              voice={voice ?? null}
+              onVoiceChange={setVoice}
+              onReloadVoices={reloadVoices}
+              onTestVoice={testVoice}
+              running={running}
+              pendingChange={pendingChange}
+            />
+          </ScrollView>
         </ScrollView>
-      </ScrollView>
-      <View style={styles.dots} pointerEvents="box-none">
-        <PageDots page={page} onPress={() => goToPage(otherPage(page))} />
+        <View style={styles.dots} pointerEvents="box-none">
+          <PageDots page={page} onPress={() => goToPage(otherPage(page))} />
+        </View>
+        <StatusBar style={theme.dark ? 'light' : 'dark'} />
       </View>
-      <StatusBar style={theme.dark ? 'light' : 'dark'} />
-    </View>
+    </AppearanceContext.Provider>
   );
 }
 

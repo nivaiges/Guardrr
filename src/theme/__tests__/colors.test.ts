@@ -1,5 +1,5 @@
 import { contrastRatio, luminance } from '../contrast';
-import { Theme, darkTheme, lightTheme, themeFor } from '../colors';
+import { Theme, darkTheme, lightTheme, themeFor, themeForAppearance } from '../colors';
 
 describe('contrast math', () => {
   it('matches the WCAG reference values', () => {
@@ -67,5 +67,15 @@ describe('themeFor', () => {
     expect(themeFor('light')).toBe(lightTheme);
     expect(themeFor(null)).toBe(lightTheme);
     expect(themeFor(undefined)).toBe(lightTheme);
+  });
+});
+
+describe('themeForAppearance', () => {
+  it('follows the phone under System and forces the theme otherwise', () => {
+    expect(themeForAppearance('system', 'dark')).toBe(darkTheme);
+    expect(themeForAppearance('system', 'light')).toBe(lightTheme);
+    expect(themeForAppearance('system', null)).toBe(lightTheme);
+    expect(themeForAppearance('dark', 'light')).toBe(darkTheme);
+    expect(themeForAppearance('light', 'dark')).toBe(lightTheme);
   });
 });

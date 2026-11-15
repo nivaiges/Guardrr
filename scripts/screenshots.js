@@ -4,7 +4,8 @@
  * and captures the main screens — ready (over a fake camera), the call,
  * the release, the catch, stats and history, History in edit mode, shared
  * as CSV and filtered to one preset, the call picker, dark theme, and
- * saving, updating and moving a preset of your own.
+ * saving, updating and moving a preset of your own, and Appearance forced
+ * to Dark.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -277,6 +278,12 @@ async function main() {
     await scrollTo(exact(page, 'Presets'));
     await page.waitForTimeout(200);
     await shot(page, '15-move-preset');
+
+    // Settings → Appearance: Dark, with the phone (browser) still light.
+    await page.getByRole('radio', { name: 'Always dark' }).click();
+    await scrollTo(exact(page, 'Appearance'));
+    await page.waitForTimeout(200);
+    await shot(page, '24-appearance-dark');
     await context.close();
 
     // Dark theme, mid-toss.

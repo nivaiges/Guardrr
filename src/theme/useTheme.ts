@@ -1,10 +1,18 @@
+import { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { Theme, themeFor } from './colors';
+import { AppearancePreference, DEFAULT_APPEARANCE } from '../engine';
+import { Theme, themeForAppearance } from './colors';
 
-/** The palette for the system appearance (light/dark), updating live. */
+/**
+ * The appearance chosen in Settings (System / Light / Dark). App provides it
+ * from the saved settings; without a provider the theme follows the phone.
+ */
+export const AppearanceContext = createContext<AppearancePreference>(DEFAULT_APPEARANCE);
+
+/** The palette for the chosen appearance, following the phone live under "System". */
 export function useTheme(): Theme {
-  return themeFor(useColorScheme());
+  return themeForAppearance(useContext(AppearanceContext), useColorScheme());
 }
 
 /**

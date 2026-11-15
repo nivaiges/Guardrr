@@ -3,7 +3,7 @@
  * two themes stay in sync; `colors.test.ts` checks their contrast.
  */
 
-import type { DisplayPhase } from '../engine';
+import { AppearancePreference, DisplayPhase, resolveDark } from '../engine';
 
 export interface Theme {
   dark: boolean;
@@ -86,4 +86,12 @@ export const darkTheme: Theme = {
 
 export function themeFor(scheme: string | null | undefined): Theme {
   return scheme === 'dark' ? darkTheme : lightTheme;
+}
+
+/** The palette for an appearance preference and the phone's current scheme. */
+export function themeForAppearance(
+  preference: AppearancePreference,
+  systemScheme: string | null | undefined,
+): Theme {
+  return resolveDark(preference, systemScheme) ? darkTheme : lightTheme;
 }
