@@ -353,6 +353,45 @@ async function main() {
     check('the call buzz switch is saved', savedBuzz);
     await callBuzz.click();
 
+    // 5c4. Appearance: Dark overrides the (light) browser, survives a reload,
+    // and System follows the browser again.
+    const pageBackground = () =>
+      page.getByTestId('settings-page').evaluate((el) => getComputedStyle(el).backgroundColor);
+    const LIGHT_BG = 'rgb(255, 255, 255)';
+    const DARK_BG = 'rgb(13, 17, 23)';
+    check('the theme follows the light browser by default', (await pageBackground()) === LIGHT_BG);
+    check(
+      'Appearance says it follows the phone',
+      (await page.getByTestId('appearance-note').textContent()) ===
+        'Following the phone: light right now.',
+    );
+    await page.getByRole('radio', { name: 'Always dark' }).click();
+    check('Appearance → Dark turns the app dark', (await pageBackground()) === DARK_BG);
+    const savedDark = await page
+      .waitForFunction(
+        () => JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').appearance === 'dark',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('the chosen appearance is saved', savedDark);
+    await page.reload();
+    await page.getByRole('button', { name: 'Start practice' }).waitFor();
+    await page
+      .waitForFunction(
+        (bg) =>
+          getComputedStyle(document.querySelector('[data-testid="settings-page"]'))
+            .backgroundColor === bg,
+        DARK_BG,
+        { timeout: 3000 },
+      )
+      .catch(() => {});
+    check('Dark survives a reload', (await pageBackground()) === DARK_BG);
+    await page.getByTestId('go-to-settings').click();
+    await page.getByRole('radio', { name: "Match the phone's appearance" }).click();
+    check('Appearance → System follows the browser again', (await pageBackground()) === LIGHT_BG);
+
     // 5d. History filters: with an older hand-tuned session added, chips narrow
     // the totals and rows to one preset.
     await page.evaluate(() => {
