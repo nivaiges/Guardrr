@@ -72,7 +72,12 @@
       the screen mid-toss is too hard.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
 - [x] Calls: reword the "Picked by hand" note per shortcut ("Odd counts only." / "Even counts only.").
-- [ ] In-app theme override (System / Light / Dark) if following the system isn't enough.
+- [x] In-app theme override (System / Light / Dark) — Settings → Appearance; saved, System still
+      follows the phone live.
+- [x] Launch: hold the splash screen until the saved settings are read (at most 2 s), so a saved
+      Dark/Light or tempo doesn't flash the defaults first.
+- [ ] Appearance: native pieces (switch tracks, keyboard, alerts) still follow the phone; consider
+      `Appearance.setColorScheme` on iOS if that looks off (on Android it can restart the activity).
 - [ ] iOS: dark and tinted app-icon variants (iOS 18+); today the one icon is used everywhere.
 - [ ] Accessibility on device: check VoiceOver/TalkBack announcements don't collide with the spoken call when Start is pressed close to a call, and whether a screen-reader user would want an option to hear the phase changes too.
 - [ ] Respect reduce-motion once anything animates (e.g. the "and"-tick flash idea above).

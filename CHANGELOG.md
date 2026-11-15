@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-11-15
+
+### Added
+
+- **Appearance: System / Light / Dark** (roadmap: "In-app theme override"). A new **Appearance**
+  section in Settings (under Camera) lets you force the dark or light theme instead of following
+  the phone — e.g. dark in a dim gym at night without switching the whole phone to dark mode, or
+  light outdoors in sunlight. **System** (the default) still follows the phone live, and the note
+  under the chips says what it means right now (_"Following the phone: light right now."_). The
+  choice is saved with the other settings; settings saved before today keep following the phone.
+  - Engine: `AppearancePreference`, `APPEARANCE_PREFERENCES`, `resolveDark`, `appearanceLabel`,
+    `appearanceNote`; `PracticeSettings.appearance`.
+  - Theme: `AppearanceContext` (App provides the saved choice), `themeForAppearance`; `useTheme`
+    resolves the choice against the phone's scheme, so every component follows it unchanged.
+- **No flash of the defaults at launch.** The splash screen now stays up until the saved
+  settings are read (at most 2 s, in case storage never answers), so the app opens straight in
+  your saved theme and tempo instead of showing Quads 155 in the phone's theme for a moment.
+- Smoke test: 83 checks (Dark overriding a light browser, being saved, surviving a reload, and
+  System following the browser again are new). Screenshot `24-appearance-dark` added to the
+  README gallery.
+- 8 new unit tests (514 total).
+
+### Decisions
+
+- **The override lives in the app's own theme, not `Appearance.setColorScheme`.** React Native's
+  override also recolors native pieces (switch tracks, the keyboard), but on Android it goes
+  through the system night-mode setting, which can recreate the activity — that would cut off a
+  running practice. Our palette covers everything Guardrr draws; native switch tracks keep the
+  phone's look (they read fine on both themes).
+- **Three chips, System first**, like the phone's own setting; System stays the default so
+  nothing changes for anyone who doesn't touch it.
+- **Appearance sits next to Camera**, the other "how the practice page looks" setting, rather
+  than with Sound.
+
+### To test on your phone
+
+- Settings → Appearance → **Dark** with the phone in light mode: both pages, the status bar and
+  the practice display colors should switch at once. Close and reopen the app — it should open
+  dark, with no flash of light after the splash.
+- Back to **System**, then change the phone's appearance in Control Center / quick settings: the
+  app should follow it while open.
+
 ## 2026-11-14
 
 ### Added

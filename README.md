@@ -64,7 +64,7 @@ hasn't been called yet — the toss in the air finishes its phrase first, and Se
 toss the change starts with. Only choosing and testing voices waits for Stop. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
 settings. Settings are saved on the phone and come back the next time you open the app.
-The screen stays on while practicing, and the app follows the phone's light/dark appearance.
+The screen stays on while practicing, and the app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
 With VoiceOver or TalkBack on, Start and Stop are announced (tempo and call count, then the
 session summary) and the big display reads its whole state when focused — but the screen reader
 never narrates counts during practice, so it can't talk over the metronome or the call.
@@ -141,7 +141,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on
