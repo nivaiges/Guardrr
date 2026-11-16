@@ -8,6 +8,7 @@
  */
 
 import { CallSequence, CountEvents, TossSettings, eventsAtCount } from './announce';
+import { CallBuzzStyle } from './callBuzz';
 import { callLabel } from './calls';
 import { CountOffPattern } from './countIn';
 
@@ -27,6 +28,11 @@ export interface CueOptions {
    * voice (loud gym, hard of hearing) knows to glance at the screen. Default false.
    */
   callHaptics?: boolean;
+  /**
+   * What the call buzz feels like: a "double" pulse, or the call's number as
+   * pulses ("count", see callPulsePattern). Default "double".
+   */
+  callHapticStyle?: CallBuzzStyle;
   /**
    * Speak the prep count-off ("5 6, 5 6 7 8") over the count-in clicks, up to
    * the first call (see countOffWord). Default false.

@@ -10,6 +10,7 @@
 import { TossSettings, validateTossSettings } from './announce';
 import { AppearancePreference, DEFAULT_APPEARANCE, isAppearancePreference } from './appearance';
 import { isValidCall } from './calls';
+import { DEFAULT_CALL_BUZZ_STYLE, isCallBuzzStyle } from './callBuzz';
 import { clampBpm } from './editSettings';
 import { DEFAULT_COUNT_IN, DEFAULT_COUNT_OFF_PATTERN, isCountOffPattern } from './countIn';
 import {
@@ -57,6 +58,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   haptics: true,
   catchHaptics: false,
   callHaptics: false,
+  callHapticStyle: DEFAULT_CALL_BUZZ_STYLE,
   countOff: false,
   countOffPattern: DEFAULT_COUNT_OFF_PATTERN,
 };
@@ -170,6 +172,9 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       haptics: bool(cue.haptics, DEFAULT_CUE_OPTIONS.haptics),
       catchHaptics: bool(cue.catchHaptics, DEFAULT_CUE_OPTIONS.catchHaptics),
       callHaptics: bool(cue.callHaptics, DEFAULT_CUE_OPTIONS.callHaptics),
+      callHapticStyle: isCallBuzzStyle(cue.callHapticStyle)
+        ? cue.callHapticStyle
+        : DEFAULT_CUE_OPTIONS.callHapticStyle,
       countOff: bool(cue.countOff, DEFAULT_CUE_OPTIONS.countOff),
       countOffPattern: isCountOffPattern(cue.countOffPattern)
         ? cue.countOffPattern

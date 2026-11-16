@@ -20,6 +20,7 @@ const custom: PracticeSettings = {
     haptics: false,
     catchHaptics: true,
     callHaptics: true,
+    callHapticStyle: 'count',
     countOff: true,
     countOffPattern: 'straight',
   },
@@ -86,6 +87,7 @@ describe('stored settings', () => {
       haptics: true,
       catchHaptics: false,
       callHaptics: false,
+      callHapticStyle: 'double',
       countOff: false,
       countOffPattern: 'prep',
     });
@@ -144,6 +146,17 @@ describe('stored settings', () => {
     expect(parseStoredSettings(JSON.stringify({ cue: { callHaptics: 1 } })).cue.callHaptics).toBe(
       false,
     );
+  });
+
+  it('keeps the call-buzz style, the double buzz for old or bad values', () => {
+    const style = (callHapticStyle: unknown) =>
+      parseStoredSettings(JSON.stringify({ cue: { callHaptics: true, callHapticStyle } })).cue
+        .callHapticStyle;
+    expect(style('count')).toBe('count');
+    expect(style('double')).toBe('double');
+    expect(style(undefined)).toBe('double');
+    expect(style('morse')).toBe('double');
+    expect(style(5)).toBe('double');
   });
 
   it('clamps or replaces a bad BPM', () => {

@@ -77,6 +77,7 @@ describe('practice presets', () => {
         haptics: false,
         catchHaptics: true,
         callHaptics: true,
+        callHapticStyle: 'count' as const,
         countOff: true,
         countOffPattern: 'quick' as const,
       },
