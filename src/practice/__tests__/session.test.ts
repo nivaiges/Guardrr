@@ -1,4 +1,10 @@
-import { CueOptions, DEFAULT_TOSS_SETTINGS, PracticeCue, speechTextForCall } from '../../engine';
+import {
+  CueOptions,
+  DEFAULT_TOSS_SETTINGS,
+  PracticeCue,
+  callPulsePattern,
+  speechTextForCall,
+} from '../../engine';
 import { createPracticeSession } from '../session';
 
 jest.mock('expo-audio', () => ({}));
@@ -32,6 +38,82 @@ function setup(bpm = 120, countIn?: number, cueOptions?: CueOptions) {
   });
   return { session, clicks, voice, haptics, cues };
 }
+
+function setupPulses(
+  bpm: number,
+  cueOptions: CueOptions,
+  withPulses = true,
+  settings = DEFAULT_TOSS_SETTINGS,
+) {
+  const haptics = withPulses
+    ? { play: jest.fn(), playPulses: jest.fn(), stop: jest.fn() }
+    : { play: jest.fn() };
+  const cues: PracticeCue[] = [];
+  const session = createPracticeSession({
+    bpm,
+    settings,
+    clicks: { play: jest.fn() },
+    voice: { say: jest.fn(), stop: jest.fn() },
+    haptics,
+    seed: 42,
+    cueOptions: { haptics: false, callHaptics: true, ...cueOptions },
+    onCue: (c) => cues.push(c),
+    schedulerOverrides: { now: () => Date.now() },
+  });
+  return { session, haptics, cues };
+}
+
+describe('call buzz styles', () => {
+  // The first call is spoken on count 13 of the lead-in phrase (4 lead counts).
+  it('taps out the call as pulses with "Buzz the number"', () => {
+    const { session, haptics, cues } = setupPulses(120, { callHapticStyle: 'count' });
+    session.start();
+    jest.advanceTimersByTime(12 * 500);
+    const spoken = cues.find((c) => c.speak !== null)!;
+    expect(spoken.count).toBe(13);
+    expect(haptics.playPulses).toHaveBeenCalledTimes(1);
+    expect(haptics.playPulses).toHaveBeenCalledWith(callPulsePattern(spoken.nextCall!, 120, 4));
+    expect(haptics.play).not.toHaveBeenCalled();
+    session.stop();
+    expect(haptics.stop).toHaveBeenCalled();
+  });
+
+  it('keeps the double buzz by default', () => {
+    const { session, haptics } = setupPulses(120, {});
+    session.start();
+    jest.advanceTimersByTime(12 * 500);
+    expect(haptics.play).toHaveBeenCalledWith('call');
+    expect(haptics.playPulses).not.toHaveBeenCalled();
+    session.stop();
+  });
+
+  it('falls back to the double buzz when the pulses would blur', () => {
+    // Quads 155 with 1 lead count: ≈ 194 ms before the release, too short to tap out a 3–5.
+    const settings = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1 };
+    const { session, haptics, cues } = setupPulses(
+      155,
+      { callHapticStyle: 'count' },
+      true,
+      settings,
+    );
+    session.start();
+    jest.advanceTimersByTime(Math.ceil((15 * 60000) / 155));
+    const spoken = cues.find((c) => c.speak !== null)!;
+    expect(spoken.count).toBe(16);
+    expect(callPulsePattern(spoken.nextCall!, 155, 1)).toBeNull();
+    expect(haptics.play).toHaveBeenCalledWith('call');
+    expect(haptics.playPulses).not.toHaveBeenCalled();
+    session.stop();
+  });
+
+  it('falls back to the double buzz on a player that cannot play pulses', () => {
+    const { session, haptics } = setupPulses(120, { callHapticStyle: 'count' }, false);
+    session.start();
+    jest.advanceTimersByTime(12 * 500);
+    expect(haptics.play).toHaveBeenCalledWith('call');
+    session.stop();
+  });
+});
 
 describe('createPracticeSession', () => {
   it('buzzes on each release, starting with the first toss phrase', () => {

@@ -8,12 +8,14 @@
 
 import {
   CueOptions,
+  HapticKind,
   LiveCueTimeline,
   PendingSettingsChange,
   PracticeCue,
   Scheduler,
   SchedulerOptions,
   TossSettings,
+  callPulsePattern,
   createRng,
   createScheduler,
   countOffWord,
@@ -82,11 +84,33 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
   /** Once a call has been spoken the count-off is over (a word would cut the call off). */
   let callSpoken = false;
 
+  /** The call buzz taps out the call when asked and it fits; otherwise the double buzz. */
+  function playHaptic(cue: PracticeCue, kind: HapticKind): void {
+    const haptics = options.haptics;
+    if (!haptics) return;
+    if (
+      kind === 'call' &&
+      cueOptions?.callHapticStyle === 'count' &&
+      cue.nextCall !== null &&
+      haptics.playPulses &&
+      timeline
+    ) {
+      // Counts left until the next release (count 1 of the next phrase).
+      const countsToRelease = timeline.activeSettings().phraseLength - cue.count + 1;
+      const pulses = callPulsePattern(cue.nextCall, bpm, countsToRelease);
+      if (pulses) {
+        haptics.playPulses(pulses);
+        return;
+      }
+    }
+    haptics.play(kind);
+  }
+
   function onTick(raw: Parameters<SchedulerOptions['onTick']>[0]): void {
     if (!timeline) return;
     const cue = timeline.cueAt(raw, cueOptions);
     if (cue.click) options.clicks.play(cue.click);
-    if (cue.haptic) options.haptics?.play(cue.haptic);
+    if (cue.haptic) playHaptic(cue, cue.haptic);
     if (cue.speak) {
       voice.say(cue.speak);
       callSpoken = true;
@@ -128,6 +152,7 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
     stop() {
       scheduler?.stop();
       voice.stop();
+      options.haptics?.stop?.();
     },
     setBpm(next) {
       bpm = next;
