@@ -14,7 +14,9 @@
  * a long call) that call falls back to the double buzz.
  */
 
-import { assertValidCall, isAndCall } from './calls';
+import { TossSettings, tossCountsThatFit } from './announce';
+import { assertValidCall, callLabel, isAndCall } from './calls';
+import { normalizeTossCounts } from './random';
 import { msPerCount } from './timing';
 
 export type CallBuzzStyle = 'double' | 'count';
@@ -84,4 +86,49 @@ export function callsTooLongToBuzz(
 /** Label for the style chips in Settings. */
 export function callBuzzStyleLabel(style: CallBuzzStyle): string {
   return style === 'double' ? 'Double buzz' : 'Buzz the number';
+}
+
+/**
+ * The note under the style chips: how to read the pulses, or which calls
+ * fall back to the double buzz at this tempo and lead. Null for "double".
+ */
+export function callBuzzNote(
+  style: CallBuzzStyle,
+  settings: TossSettings,
+  bpm: number,
+): string | null {
+  if (style !== 'count') return null;
+  const calls = tossCountsThatFit(
+    normalizeTossCounts(settings.allowedTossCounts),
+    settings.phraseLength,
+  );
+  const tooLong = callsTooLongToBuzz(calls, bpm, settings.leadCounts);
+  if (tooLong.length === calls.length) {
+    return `No call fits as taps before the release at ${bpm} BPM, so every call gets the double buzz. Use more lead counts or a slower tempo.`;
+  }
+  const overMax = tooLong.filter((c) => Math.floor(c) > MAX_COUNT_PULSES);
+  const tight = tooLong.filter((c) => !overMax.includes(c));
+  const sentences: string[] = [];
+  if (tight.length === 0) {
+    sentences.push(
+      calls.some((c) => isAndCall(c))
+        ? 'A 5 is five taps; an "and" call adds a lighter tap after a pause.'
+        : 'A 5 is five taps.',
+    );
+  } else {
+    const labels = tight.map(callLabel);
+    const one = labels.length === 1;
+    const list = one
+      ? labels[0]
+      : `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
+    sentences.push(
+      `${one ? 'Call' : 'Calls'} ${list} ${one ? "doesn't" : "don't"} fit as taps before the release at ${bpm} BPM, so ${one ? 'it gets' : 'they get'} the double buzz.`,
+    );
+  }
+  if (overMax.length > 0) {
+    sentences.push(
+      `Calls over ${MAX_COUNT_PULSES} counts get the double buzz (too many taps to count).`,
+    );
+  }
+  return sentences.join(' ');
 }

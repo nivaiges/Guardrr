@@ -2,7 +2,10 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  CALL_BUZZ_STYLES,
   COUNT_IN_OPTIONS,
+  CallBuzzStyle,
+  DEFAULT_CALL_BUZZ_STYLE,
   COUNT_OFF_PATTERNS,
   CountOffPattern,
   CueOptions,
@@ -16,6 +19,8 @@ import {
   VoiceInfo,
   addTap,
   announceCountInPhrase,
+  callBuzzNote,
+  callBuzzStyleLabel,
   callSetNote,
   countInLabel,
   countOffPatternLabel,
@@ -149,6 +154,8 @@ export function SettingsPanel({
   const countInUsed = effectiveCountIn(countIn, settings);
   const countOffPattern = cueOptions.countOffPattern ?? DEFAULT_COUNT_OFF_PATTERN;
   const countOff = countOffSummary(countIn, settings, countOffPattern);
+  const callBuzzStyle = cueOptions.callHapticStyle ?? DEFAULT_CALL_BUZZ_STYLE;
+  const buzzNote = callBuzzNote(callBuzzStyle, settings, bpm);
 
   return (
     <View style={styles.panel}>
@@ -269,10 +276,28 @@ export function SettingsPanel({
         onChange={(catchHaptics) => onCueOptionsChange({ ...cueOptions, catchHaptics })}
       />
       <Toggle
-        label="Double buzz with the call"
+        label="Buzz with the call"
         value={cueOptions.callHaptics ?? false}
         onChange={(callHaptics) => onCueOptionsChange({ ...cueOptions, callHaptics })}
       />
+      {cueOptions.callHaptics ? (
+        <>
+          <Segmented<CallBuzzStyle>
+            label="Call buzz"
+            options={CALL_BUZZ_STYLES}
+            value={callBuzzStyle}
+            onChange={(callHapticStyle) => onCueOptionsChange({ ...cueOptions, callHapticStyle })}
+            optionLabel={callBuzzStyleLabel}
+            optionAccessibilityLabel={callBuzzStyleAccessibilityLabel}
+            testID="call-buzz-style"
+          />
+          {buzzNote ? (
+            <Text style={styles.note} testID="call-buzz-note">
+              {buzzNote}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
 
       <Text style={styles.heading} accessibilityRole="header">
         Voice
@@ -360,4 +385,10 @@ function countOffPatternAccessibilityLabel(pattern: CountOffPattern): string {
     case 'quick':
       return 'Quick count: 5 6 7 8';
   }
+}
+
+function callBuzzStyleAccessibilityLabel(style: CallBuzzStyle): string {
+  return style === 'double'
+    ? 'Double buzz: a call was made, look at the screen'
+    : 'Buzz the number: one tap per count of the call';
 }

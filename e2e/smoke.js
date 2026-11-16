@@ -338,8 +338,8 @@ async function main() {
       (await page.getByTestId('count-off-pattern').count()) === 0,
     );
 
-    // 5c3. Call buzz: the switch is saved with the other sound options.
-    const callBuzz = page.getByRole('switch', { name: 'Double buzz with the call' });
+    // 5c3. Call buzz: the switch and its style are saved with the other sound options.
+    const callBuzz = page.getByRole('switch', { name: 'Buzz with the call' });
     await callBuzz.click();
     const savedBuzz = await page
       .waitForFunction(
@@ -351,7 +351,34 @@ async function main() {
       .then(() => true)
       .catch(() => false);
     check('the call buzz switch is saved', savedBuzz);
+    await page.getByRole('radio', { name: /^Buzz the number/ }).click();
+    const savedStyle = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.callHapticStyle ===
+          'count',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('"Buzz the number" is saved', savedStyle);
+    const buzzNote = (await page.getByTestId('call-buzz-note').textContent()) ?? '';
+    check(
+      '"Buzz the number" says which calls are too long to tap out',
+      /over 8 counts get the double buzz/.test(buzzNote),
+      buzzNote,
+    );
+    await page.getByRole('radio', { name: /^Double buzz/ }).click();
+    check(
+      'the double buzz needs no note',
+      (await page.getByTestId('call-buzz-note').count()) === 0,
+    );
     await callBuzz.click();
+    check(
+      'the call buzz chips hide when the buzz is off',
+      (await page.getByTestId('call-buzz-style').count()) === 0,
+    );
 
     // 5c4. Appearance: Dark overrides the (light) browser, survives a reload,
     // and System follows the browser again.

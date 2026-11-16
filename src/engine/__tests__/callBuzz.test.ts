@@ -1,4 +1,6 @@
 import {
+  DEFAULT_TOSS_SETTINGS,
+  callBuzzNote,
   MAX_COUNT_PULSES,
   PULSE_GAP_MAX_MS,
   PULSE_GAP_MIN_MS,
@@ -78,5 +80,58 @@ describe('call buzz style', () => {
     expect(isCallBuzzStyle('numbers')).toBe(false);
     expect(callBuzzStyleLabel('double')).toBe('Double buzz');
     expect(callBuzzStyleLabel('count')).toBe('Buzz the number');
+  });
+});
+
+describe('callBuzzNote', () => {
+  const quads = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 4, allowedTossCounts: [3, 3.5, 4, 4.5, 5] };
+
+  it('says nothing for the double buzz', () => {
+    expect(callBuzzNote('double', quads, 155)).toBeNull();
+  });
+
+  it('explains the taps when every call fits', () => {
+    expect(callBuzzNote('count', quads, 155)).toBe(
+      'A 5 is five taps; an "and" call adds a lighter tap after a pause.',
+    );
+    expect(callBuzzNote('count', { ...quads, allowedTossCounts: [3, 4, 5] }, 155)).toBe(
+      'A 5 is five taps.',
+    );
+  });
+
+  it('names the calls that fall back to the double buzz', () => {
+    const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [1, 2, 3, 5] };
+    expect(callBuzzNote('count', tight, 155)).toBe(
+      "Calls 3 and 5 don't fit as taps before the release at 155 BPM, so they get the double buzz.",
+    );
+    expect(callBuzzNote('count', { ...tight, allowedTossCounts: [2, 3] }, 155)).toBe(
+      "Call 3 doesn't fit as taps before the release at 155 BPM, so it gets the double buzz.",
+    );
+  });
+
+  it('sums up calls too long to tap out at any tempo', () => {
+    const full = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 4, allowedTossCounts: [3, 5, 9, 12] };
+    expect(callBuzzNote('count', full, 120)).toBe(
+      'A 5 is five taps. Calls over 8 counts get the double buzz (too many taps to count).',
+    );
+    const tight = { ...full, leadCounts: 1, allowedTossCounts: [2, 3, 9] };
+    expect(callBuzzNote('count', tight, 155)).toBe(
+      "Call 3 doesn't fit as taps before the release at 155 BPM, so it gets the double buzz. Calls over 8 counts get the double buzz (too many taps to count).",
+    );
+  });
+
+  it('says so when no call fits', () => {
+    const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [4, 5] };
+    expect(callBuzzNote('count', tight, 155)).toMatch(/^No call fits as taps/);
+  });
+
+  it('ignores calls that never fit the phrase', () => {
+    const short = {
+      ...DEFAULT_TOSS_SETTINGS,
+      phraseLength: 8,
+      leadCounts: 4,
+      allowedTossCounts: [3, 9],
+    };
+    expect(callBuzzNote('count', short, 120)).toBe('A 5 is five taps.');
   });
 });

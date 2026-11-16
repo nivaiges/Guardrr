@@ -220,12 +220,16 @@ async function main() {
     await shot(page, '20-count-off-straight');
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
 
-    // Settings → Sound: the optional double buzz with the call.
-    await page.getByRole('switch', { name: 'Double buzz with the call' }).click();
+    // Settings → Sound: the optional call buzz, then "Buzz the number".
+    await page.getByRole('switch', { name: 'Buzz with the call' }).click();
     await scrollTo(page.getByRole('switch', { name: 'Accent count 1' }));
     await page.waitForTimeout(200);
     await shot(page, '23-call-buzz');
-    await page.getByRole('switch', { name: 'Double buzz with the call' }).click();
+    await page.getByRole('radio', { name: /^Buzz the number/ }).click();
+    await page.waitForTimeout(200);
+    await shot(page, '25-buzz-the-number');
+    await page.getByRole('radio', { name: /^Double buzz/ }).click();
+    await page.getByRole('switch', { name: 'Buzz with the call' }).click();
 
     // Settings → Calls.
     await page.getByTestId('call-shortcut-odd').click();
