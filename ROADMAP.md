@@ -68,8 +68,13 @@
       "Double buzz with the call" (system warning pattern, so it never feels like the release or catch).
 - [ ] Call buzz: check on device that the double pulse is distinct from the release buzz on both
       iPhone and Android, and that it doesn't land late at 155 BPM.
-- [ ] Call buzz: an option to buzz the call's number (e.g. 5 short pulses for a 5) if glancing at
-      the screen mid-toss is too hard.
+- [x] Call buzz: an option to buzz the call's number (e.g. 5 short pulses for a 5) if glancing at
+      the screen mid-toss is too hard — Settings → Sound → Call buzz → "Buzz the number"; an "and"
+      call adds a lighter tap after a pause; calls that can't be tapped out in time keep the double buzz.
+- [ ] Buzz the number: check on device that 120–200 ms pulses can be counted by feel (phone in a
+      pocket or on the floor), and whether the Android motor needs wider gaps than the iPhone's.
+- [ ] Buzz the number: optionally group long calls (e.g. 7 = 4 + 3 taps) if counting more than
+      five taps mid-toss is hard.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
 - [x] Calls: reword the "Picked by hand" note per shortcut ("Odd counts only." / "Even counts only.").
 - [x] In-app theme override (System / Light / Dark) — Settings → Appearance; saved, System still

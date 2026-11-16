@@ -1,5 +1,50 @@
 # Changelog
 
+## 2026-11-16
+
+### Added
+
+- **Buzz the number** (roadmap: "Call buzz: an option to buzz the call's number"). The call buzz
+  in Settings → Sound (now **Buzz with the call**) has two styles when it's on:
+  - **Double buzz** (default, as before) — a double pulse that says "a call was made, look".
+  - **Buzz the number** — the call itself as taps, so you can feel it without looking: a **5 is
+    five taps**, a **3&** is three taps, a pause, and one lighter tap. A pop toss ("1") is a single tap.
+  - The note under the chips explains the taps, or names any calls that can't be tapped out in
+    time at your tempo and lead (_"Call 3 doesn't fit as taps before the release at 155 BPM, so it
+    gets the double buzz."_); calls over 8 counts always get the double buzz.
+  - Engine: `CallBuzzStyle`, `callPulsePattern`, `callsTooLongToBuzz`, `callBuzzNote`;
+    `CueOptions.callHapticStyle` (saved; settings from before today keep the double buzz).
+  - Feedback: the haptic player gains `playPulses` (timed medium/light impacts) and `stop`; Stop
+    cancels pulses that haven't played yet, and a new call replaces any left over.
+- Smoke test: 87 checks (the style is saved, explains itself, and hides with the switch). New
+  screenshot `25-buzz-the-number` in the README gallery.
+- 23 new unit tests (537 total).
+
+### Decisions
+
+- **Pulses 120–200 ms apart.** Wider adds nothing; closer and phone motors blur into one buzz.
+  The pattern is spread over the counts left before the release and must end **half a count
+  before it**, so the heavy release buzz always stands apart. At Quads 155 with 4 lead counts
+  every call (3–5&) taps out at the full 200 ms.
+- **Fall back to the double buzz rather than squeeze.** A call that can't fit legibly (fast
+  tempo with 1 lead count, or more than 8 taps) still buzzes — just the double pulse — so the
+  performer never misses that a call was made.
+- **The "and" is a lighter tap after a double gap**, not an extra tap, so "3&" can't be confused
+  with a 4.
+- **Plain timers for the pulses.** A pattern lasts under a second, so drift doesn't matter; the
+  call itself still starts on the drift-corrected count tick.
+
+### To test on your phone
+
+- Settings → Sound → **Buzz with the call** on → **Buzz the number**, then practice Quads 155
+  with the phone in a pocket: can you count the taps for 3, 4 and 5, and tell 3& (three, pause,
+  light tap) from 4? Are 200 ms gaps comfortable, and does the last tap end clearly before the
+  release buzz?
+- With 1 lead count (Settings → Phrase), the note should say which calls get the double buzz.
+- Android: the "medium" impact can feel weak on some phones — note if the taps are hard to feel.
+- Not verifiable here: haptics only run on a device (the web build has no vibration motor API in
+  use), so today's checks cover the timing logic, the saved setting and the Settings UI.
+
 ## 2026-11-15
 
 ### Added
