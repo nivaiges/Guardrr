@@ -55,7 +55,8 @@ Below that you can fine-tune:
   release (count 1) you can feel even when the gym is loud, an optional lighter tap on every
   catch, and an optional **buzz with the call** — a double buzz ("look at the screen") or **Buzz
   the number**, which taps out the call itself (a 5 is five taps; "3&" is three taps and a
-  lighter one).
+  lighter one), or **Taps in fours**, which splits long calls into groups (a 7 is four taps, a
+  pause, then three). A **Feel a 5** button plays the buzz on the phone without practicing.
 - **Voice** — which of the phone's English voices speaks the call (tap one to hear it), how fast
   it's spoken (Slow / Normal / Fast / Faster) and a **Test voice** button to check speed and
   volume before you start.

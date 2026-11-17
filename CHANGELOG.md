@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-11-17
+
+### Added
+
+- **Taps in fours** (roadmap: "Buzz the number: optionally group long calls"). A third call
+  buzz style in Settings → Sound → Call buzz, next to Double buzz and Buzz the number. Long
+  calls are split into **groups of four with a pause between groups** — a **7 is four taps, a
+  pause, then three**; a 5 is four taps, a pause, one. Calls up to 4 feel exactly as with Buzz
+  the number. Because groups are easier to count, calls **up to 12** tap out (8 in one row).
+  - Engine: `CallBuzzStyle` gains `'grouped'`; `pulseGroups`, `maxPulses`, `PULSE_GROUP_SIZE`,
+    `MAX_GROUPED_PULSES`; `callPulsePattern`, `callsTooLongToBuzz` take the style; the note
+    under the chips explains the groups and the 12-count limit.
+- **Feel a 5** — a button under the call buzz style that plays the buzz on the phone right
+  away, so you can learn the taps without starting a session. It plays the **longest call in
+  your set that taps out** at your tempo and lead (the hardest one you'll get), or the double
+  buzz. Disabled while practicing, like Test voice.
+  - Engine: `callBuzzSample`, `callBuzzSampleLabel` ("Feel a 5", "Feel an 8").
+- Smoke test: 91 checks (Taps in fours is saved and explained; the Feel button names its call).
+  New screenshot `26-taps-in-fours` in the README gallery.
+- 15 new unit tests (552 total).
+
+### Decisions
+
+- **Groups of four**, not balanced halves (7 = 4 + 3, not 3 + 4 or 3 + 2 + 2): the first group
+  is always a full four, so the performer only has to count the last group — "four, then
+  three". Four is about as many quick taps as people count reliably without counting one by one.
+- **The pause between groups is one extra gap** (two gaps total), the same as the pause before
+  an "and" tap. The "and" tap stays lighter, which is what tells "4 and" from "5" — flagged
+  below to check on a phone.
+- **Same 120–200 ms spacing and the same half-count margin before the release**, so a grouped
+  call needs a little more room; calls that don't fit still fall back to the double buzz.
+- **The Feel button plays the longest call that fits**, rather than a fixed 5, so it shows the
+  groups and the "and" tap when your set has them and never demonstrates a call that would
+  really get the double buzz at your tempo.
+
+### To test on your phone
+
+- Settings → Sound → **Buzz with the call** → **Taps in fours**, then press **Feel a …**: does
+  the pause between groups stand out? With Quads 155 it plays a 5 (four, pause, one).
+- Add 4& and 5 to your calls and compare by feel: is the light "and" tap clearly different from
+  a fifth medium tap? If not, tell me and the "and" will get a longer pause.
+- Not verifiable here: haptics only run on a device; today's checks cover the timing logic, the
+  saved setting and the Settings UI.
+
 ## 2026-11-16
 
 ### Added
