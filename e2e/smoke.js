@@ -387,7 +387,19 @@ async function main() {
       /four taps, a pause, then three/.test(groupedNote) && !/over 8 counts/.test(groupedNote),
       groupedNote,
     );
+    const feel = page.getByTestId('feel-call-buzz');
+    const feelLabel = (await feel.textContent()) ?? '';
+    check(
+      'the "Feel it" button names the longest call that taps out in fours',
+      /^Feel an? \d+( and)?$/.test(feelLabel),
+      feelLabel,
+    );
+    await feel.click();
     await page.getByRole('radio', { name: /^Double buzz/ }).click();
+    check(
+      'the double buzz can be felt too',
+      ((await page.getByTestId('feel-call-buzz').textContent()) ?? '') === 'Feel the buzz',
+    );
     check(
       'the double buzz needs no note',
       (await page.getByTestId('call-buzz-note').count()) === 0,

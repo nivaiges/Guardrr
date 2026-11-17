@@ -28,6 +28,7 @@ import { SessionHistoryCard } from './src/components/SessionHistoryCard';
 import { SessionStatsCard } from './src/components/SessionStatsCard';
 import { SettingsPanel } from './src/components/SettingsPanel';
 import {
+  CallBuzzSample,
   CameraSettings as CameraSettingsValue,
   CueOptions,
   PageIndex,
@@ -48,6 +49,7 @@ import {
   settingsLinkLabel,
   summarizeStats,
 } from './src/engine';
+import { createHapticPlayer, HapticPlayer } from './src/feedback';
 import { usePracticeSession } from './src/practice';
 import { shareHistory, shareOutcomeMessage } from './src/sharing';
 import { useCustomPresets, usePersistedSettings, useSessionHistory } from './src/storage';
@@ -103,6 +105,14 @@ export default function App() {
       rate: voiceRate,
       voice: preview === undefined ? voice : (preview ?? undefined),
     }).say(VOICE_TEST_PHRASE);
+  // One player for the Settings preview, so a second press replaces pulses still playing.
+  const previewHaptics = useRef<HapticPlayer | null>(null);
+  const feelBuzz = (sample: CallBuzzSample) => {
+    previewHaptics.current ??= createHapticPlayer();
+    const player = previewHaptics.current;
+    if (sample.pulses && player.playPulses) player.playPulses(sample.pulses);
+    else player.play('call');
+  };
   const applyPresetToSettings = (preset: PracticePreset) => update((s) => applyPreset(s, preset));
   const {
     presets: customPresets,
@@ -362,6 +372,7 @@ export default function App() {
               onVoiceChange={setVoice}
               onReloadVoices={reloadVoices}
               onTestVoice={testVoice}
+              onFeelBuzz={feelBuzz}
               running={running}
               pendingChange={pendingChange}
             />

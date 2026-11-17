@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
   CALL_BUZZ_STYLES,
   COUNT_IN_OPTIONS,
+  CallBuzzSample,
   CallBuzzStyle,
   DEFAULT_CALL_BUZZ_STYLE,
   COUNT_OFF_PATTERNS,
@@ -20,6 +21,8 @@ import {
   addTap,
   announceCountInPhrase,
   callBuzzNote,
+  callBuzzSample,
+  callBuzzSampleLabel,
   callBuzzStyleLabel,
   callSetNote,
   countInLabel,
@@ -63,6 +66,8 @@ export interface SettingsPanelProps {
   onReloadVoices?: () => void;
   /** Speak a sample call at the chosen speed, with `voice` if given (else the chosen one). */
   onTestVoice: (voice?: string | null) => void;
+  /** Play a call buzz sample on the phone (Settings → Sound → "Feel a 5"). */
+  onFeelBuzz?: (sample: CallBuzzSample) => void;
   /**
    * While practicing everything can change: tempo, sounds and voice speed
    * right away, phrase and calls from the next toss not yet called (see
@@ -140,6 +145,7 @@ export function SettingsPanel({
   onVoiceChange,
   onReloadVoices,
   onTestVoice,
+  onFeelBuzz,
   running,
   pendingChange = null,
 }: SettingsPanelProps) {
@@ -156,6 +162,8 @@ export function SettingsPanel({
   const countOff = countOffSummary(countIn, settings, countOffPattern);
   const callBuzzStyle = cueOptions.callHapticStyle ?? DEFAULT_CALL_BUZZ_STYLE;
   const buzzNote = callBuzzNote(callBuzzStyle, settings, bpm);
+  const buzzSample = callBuzzSample(callBuzzStyle, settings, bpm);
+  const buzzSampleLabel = callBuzzSampleLabel(buzzSample);
 
   return (
     <View style={styles.panel}>
@@ -295,6 +303,29 @@ export function SettingsPanel({
             <Text style={styles.note} testID="call-buzz-note">
               {buzzNote}
             </Text>
+          ) : null}
+          {onFeelBuzz ? (
+            <Pressable
+              style={({ pressed }) => [styles.tap, pressed && styles.tapPressed]}
+              onPress={() => onFeelBuzz(buzzSample)}
+              disabled={previewLocked}
+              accessibilityRole="button"
+              accessibilityLabel={buzzSampleLabel}
+              accessibilityHint={
+                buzzSample.pulses
+                  ? 'Taps out this call on the phone, as it would during practice'
+                  : 'Plays the double buzz on the phone'
+              }
+              accessibilityState={{ disabled: previewLocked }}
+              testID="feel-call-buzz"
+            >
+              <Text style={[styles.tapText, previewLocked && styles.dimmed]}>
+                {buzzSampleLabel}
+              </Text>
+            </Pressable>
+          ) : null}
+          {onFeelBuzz && previewLocked ? (
+            <Text style={styles.note}>Stop to feel the buzz (it would run into the practice).</Text>
           ) : null}
         </>
       ) : null}
