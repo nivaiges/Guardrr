@@ -90,14 +90,20 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
     if (!haptics) return;
     if (
       kind === 'call' &&
-      cueOptions?.callHapticStyle === 'count' &&
+      cueOptions?.callHapticStyle !== undefined &&
+      cueOptions.callHapticStyle !== 'double' &&
       cue.nextCall !== null &&
       haptics.playPulses &&
       timeline
     ) {
       // Counts left until the next release (count 1 of the next phrase).
       const countsToRelease = timeline.activeSettings().phraseLength - cue.count + 1;
-      const pulses = callPulsePattern(cue.nextCall, bpm, countsToRelease);
+      const pulses = callPulsePattern(
+        cue.nextCall,
+        bpm,
+        countsToRelease,
+        cueOptions.callHapticStyle,
+      );
       if (pulses) {
         haptics.playPulses(pulses);
         return;

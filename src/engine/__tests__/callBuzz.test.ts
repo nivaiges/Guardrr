@@ -2,12 +2,15 @@ import {
   DEFAULT_TOSS_SETTINGS,
   callBuzzNote,
   MAX_COUNT_PULSES,
+  MAX_GROUPED_PULSES,
   PULSE_GAP_MAX_MS,
   PULSE_GAP_MIN_MS,
   callBuzzStyleLabel,
   callPulsePattern,
   callsTooLongToBuzz,
   isCallBuzzStyle,
+  maxPulses,
+  pulseGroups,
 } from '..';
 
 const atMs = (pulses: ReturnType<typeof callPulsePattern>) => pulses?.map((p) => p.atMs);
@@ -66,17 +69,89 @@ describe('callPulsePattern', () => {
   });
 });
 
+describe('pulseGroups', () => {
+  it('keeps every pulse in one group for "Buzz the number"', () => {
+    expect(pulseGroups(7, 'count')).toEqual([7]);
+  });
+
+  it('splits long calls into fours for "Taps in fours", full groups first', () => {
+    expect(pulseGroups(1, 'grouped')).toEqual([1]);
+    expect(pulseGroups(4, 'grouped')).toEqual([4]);
+    expect(pulseGroups(5, 'grouped')).toEqual([4, 1]);
+    expect(pulseGroups(7, 'grouped')).toEqual([4, 3]);
+    expect(pulseGroups(8, 'grouped')).toEqual([4, 4]);
+    expect(pulseGroups(11, 'grouped')).toEqual([4, 4, 3]);
+  });
+});
+
+describe('callPulsePattern in fours', () => {
+  it('feels the same as "Buzz the number" for calls up to 4', () => {
+    for (const call of [1, 2, 3, 3.5, 4, 4.5]) {
+      expect(callPulsePattern(call, 155, 4, 'grouped')).toEqual(callPulsePattern(call, 155, 4));
+    }
+  });
+
+  it('pauses for an extra gap between groups', () => {
+    // 120 BPM, 4 lead counts: 1750 ms for 7 units → the widest 200 ms gap.
+    expect(atMs(callPulsePattern(7, 120, 4, 'grouped'))).toEqual([
+      0, 200, 400, 600, 1000, 1200, 1400,
+    ]);
+    expect(atMs(callPulsePattern(5, 120, 4, 'grouped'))).toEqual([0, 200, 400, 600, 1000]);
+  });
+
+  it('adds the lighter "and" tap after the last group', () => {
+    const pulses = callPulsePattern(5.5, 120, 4, 'grouped')!;
+    expect(atMs(pulses)).toEqual([0, 200, 400, 600, 1000, 1400]);
+    expect(pulses.map((p) => p.strength)).toEqual([
+      'medium',
+      'medium',
+      'medium',
+      'medium',
+      'medium',
+      'light',
+    ]);
+  });
+
+  it('needs a little more room than one group, and still ends half a count before the release', () => {
+    // 155 BPM, 2 lead counts ≈ 581 ms: a 5 fits as one group (4 units, 145 ms) but
+    // not in fours (5 units, 116 ms — too close to count).
+    expect(callPulsePattern(5, 155, 2)).not.toBeNull();
+    expect(callPulsePattern(5, 155, 2, 'grouped')).toBeNull();
+    const roomy = callPulsePattern(7, 155, 4, 'grouped')!;
+    const releaseAt = (4 * 60000) / 155;
+    expect(roomy[roomy.length - 1].atMs).toBeLessThanOrEqual(releaseAt - 60000 / 155 / 2);
+  });
+
+  it('taps out calls up to 12 (three groups), then gives up', () => {
+    expect(maxPulses('count')).toBe(MAX_COUNT_PULSES);
+    expect(maxPulses('grouped')).toBe(MAX_GROUPED_PULSES);
+    expect(callPulsePattern(9, 60, 8)).toBeNull();
+    expect(atMs(callPulsePattern(9, 60, 8, 'grouped'))).toEqual([
+      0, 200, 400, 600, 1000, 1200, 1400, 1600, 2000,
+    ]);
+    expect(callPulsePattern(MAX_GROUPED_PULSES, 60, 8, 'grouped')).toHaveLength(12);
+    expect(callPulsePattern(MAX_GROUPED_PULSES + 1, 60, 8, 'grouped')).toBeNull();
+  });
+});
+
 describe('callsTooLongToBuzz', () => {
   it('lists the calls that fall back to the double buzz', () => {
     expect(callsTooLongToBuzz([3, 3.5, 4, 4.5, 5], 155, 4)).toEqual([]);
     expect(callsTooLongToBuzz([1, 2, 3, 5, 7], 155, 1)).toEqual([3, 5, 7]);
   });
+
+  it('follows the style', () => {
+    expect(callsTooLongToBuzz([3, 9, 12, 13], 60, 8)).toEqual([9, 12, 13]);
+    expect(callsTooLongToBuzz([3, 9, 12, 13], 60, 8, 'grouped')).toEqual([13]);
+  });
 });
 
 describe('call buzz style', () => {
-  it('recognizes the two styles and labels them', () => {
+  it('recognizes the three styles and labels them', () => {
     expect(isCallBuzzStyle('double')).toBe(true);
     expect(isCallBuzzStyle('count')).toBe(true);
+    expect(isCallBuzzStyle('grouped')).toBe(true);
+    expect(callBuzzStyleLabel('grouped')).toBe('Taps in fours');
     expect(isCallBuzzStyle('numbers')).toBe(false);
     expect(callBuzzStyleLabel('double')).toBe('Double buzz');
     expect(callBuzzStyleLabel('count')).toBe('Buzz the number');
@@ -133,5 +208,15 @@ describe('callBuzzNote', () => {
       allowedTossCounts: [3, 9],
     };
     expect(callBuzzNote('count', short, 120)).toBe('A 5 is five taps.');
+  });
+
+  it('explains taps in fours, with a higher limit', () => {
+    expect(callBuzzNote('grouped', quads, 155)).toBe(
+      'A 7 is four taps, a pause, then three; an "and" call adds a lighter tap after a pause.',
+    );
+    const full = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 8, allowedTossCounts: [3, 9, 12, 14] };
+    expect(callBuzzNote('grouped', full, 60)).toBe(
+      'A 7 is four taps, a pause, then three. Calls over 12 counts get the double buzz (too many taps to count).',
+    );
   });
 });

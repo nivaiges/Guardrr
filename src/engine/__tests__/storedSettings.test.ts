@@ -154,6 +154,7 @@ describe('stored settings', () => {
         .callHapticStyle;
     expect(style('count')).toBe('count');
     expect(style('double')).toBe('double');
+    expect(style('grouped')).toBe('grouped');
     expect(style(undefined)).toBe('double');
     expect(style('morse')).toBe('double');
     expect(style(5)).toBe('double');

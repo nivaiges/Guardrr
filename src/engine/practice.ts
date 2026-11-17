@@ -30,7 +30,7 @@ export interface CueOptions {
   callHaptics?: boolean;
   /**
    * What the call buzz feels like: a "double" pulse, or the call's number as
-   * pulses ("count", see callPulsePattern). Default "double".
+   * pulses ("count", or "grouped" in fours; see callPulsePattern). Default "double".
    */
   callHapticStyle?: CallBuzzStyle;
   /**

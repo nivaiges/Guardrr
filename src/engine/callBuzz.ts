@@ -7,6 +7,10 @@
  *   without looking: a 5 is five pulses; an "and" call adds one lighter pulse
  *   after a longer gap (3& = three pulses, a pause, a light tap). A pop toss
  *   ("1") is a single pulse.
+ * - "grouped": like "count", but long calls are split into groups of four
+ *   with a pause between groups (7 = four pulses, a pause, three), because
+ *   more than about four quick taps can't be counted at a glance by feel.
+ *   Calls up to 4 feel exactly as in "count".
  *
  * The pulses start on the count the call is spoken and must be over half a
  * count before the release, so the release buzz never runs into them. When a
@@ -19,9 +23,12 @@ import { assertValidCall, callLabel, isAndCall } from './calls';
 import { normalizeTossCounts } from './random';
 import { msPerCount } from './timing';
 
-export type CallBuzzStyle = 'double' | 'count';
+export type CallBuzzStyle = 'double' | 'count' | 'grouped';
 
-export const CALL_BUZZ_STYLES: readonly CallBuzzStyle[] = ['double', 'count'];
+/** The styles that tap out the number (everything but the double buzz). */
+export type CallPulseStyle = Exclude<CallBuzzStyle, 'double'>;
+
+export const CALL_BUZZ_STYLES: readonly CallBuzzStyle[] = ['double', 'count', 'grouped'];
 export const DEFAULT_CALL_BUZZ_STYLE: CallBuzzStyle = 'double';
 
 export function isCallBuzzStyle(value: unknown): value is CallBuzzStyle {
@@ -34,6 +41,25 @@ export const PULSE_GAP_MAX_MS = 200;
 export const PULSE_GAP_MIN_MS = 120;
 /** More pulses than this can't be counted mid-toss; such calls get the double buzz. */
 export const MAX_COUNT_PULSES = 8;
+/** Pulses per group in the "grouped" style. */
+export const PULSE_GROUP_SIZE = 4;
+/** In groups of four, three groups (12) are still countable. */
+export const MAX_GROUPED_PULSES = 12;
+
+/** The most whole pulses a style will tap out before falling back to the double buzz. */
+export function maxPulses(style: CallPulseStyle): number {
+  return style === 'grouped' ? MAX_GROUPED_PULSES : MAX_COUNT_PULSES;
+}
+
+/** How a call's whole pulses are grouped: [5] for "count", [4, 1] for "grouped". */
+export function pulseGroups(whole: number, style: CallPulseStyle): number[] {
+  if (style === 'count' || whole <= PULSE_GROUP_SIZE) return [whole];
+  const groups: number[] = [];
+  for (let left = whole; left > 0; left -= PULSE_GROUP_SIZE) {
+    groups.push(Math.min(PULSE_GROUP_SIZE, left));
+  }
+  return groups;
+}
 
 export type PulseStrength = 'medium' | 'light';
 
@@ -47,20 +73,23 @@ export interface CallPulse {
  * The pulses for a call, or null when they don't fit before the release (the
  * caller then plays the double buzz).
  *
- * Gap units: one between whole pulses, two before the "and" pulse, so the
- * pattern of N pulses spans (N - 1) units, plus 2 for an "and" call.
+ * Gap units: one between pulses in a group, two between groups and before
+ * the "and" pulse, so a pattern of N pulses in G groups spans
+ * (N - 1) + (G - 1) units, plus 2 for an "and" call.
  */
 export function callPulsePattern(
   call: number,
   bpm: number,
   leadCounts: number,
+  style: CallPulseStyle = 'count',
 ): CallPulse[] | null {
   assertValidCall(call);
   const whole = Math.floor(call);
   const andCall = isAndCall(call);
-  if (whole > MAX_COUNT_PULSES) return null;
+  if (whole > maxPulses(style)) return null;
 
-  const units = whole - 1 + (andCall ? 2 : 0);
+  const groups = pulseGroups(whole, style);
+  const units = whole - 1 + (groups.length - 1) + (andCall ? 2 : 0);
   if (units === 0) return [{ atMs: 0, strength: 'medium' }];
 
   const count = msPerCount(bpm);
@@ -69,8 +98,15 @@ export function callPulsePattern(
   if (gap < PULSE_GAP_MIN_MS) return null;
 
   const pulses: CallPulse[] = [];
-  for (let i = 0; i < whole; i++) pulses.push({ atMs: Math.floor(i * gap), strength: 'medium' });
-  if (andCall) pulses.push({ atMs: Math.floor((whole + 1) * gap), strength: 'light' });
+  let unit = 0;
+  groups.forEach((size, g) => {
+    if (g > 0) unit += 1; // the extra unit of pause between groups
+    for (let i = 0; i < size; i++) {
+      pulses.push({ atMs: Math.floor(unit * gap), strength: 'medium' });
+      unit += 1;
+    }
+  });
+  if (andCall) pulses.push({ atMs: Math.floor(unit * gap + gap), strength: 'light' });
   return pulses;
 }
 
@@ -79,13 +115,21 @@ export function callsTooLongToBuzz(
   calls: readonly number[],
   bpm: number,
   leadCounts: number,
+  style: CallPulseStyle = 'count',
 ): number[] {
-  return calls.filter((call) => callPulsePattern(call, bpm, leadCounts) === null);
+  return calls.filter((call) => callPulsePattern(call, bpm, leadCounts, style) === null);
 }
 
 /** Label for the style chips in Settings. */
 export function callBuzzStyleLabel(style: CallBuzzStyle): string {
-  return style === 'double' ? 'Double buzz' : 'Buzz the number';
+  switch (style) {
+    case 'double':
+      return 'Double buzz';
+    case 'count':
+      return 'Buzz the number';
+    case 'grouped':
+      return 'Taps in fours';
+  }
 }
 
 /**
@@ -97,23 +141,25 @@ export function callBuzzNote(
   settings: TossSettings,
   bpm: number,
 ): string | null {
-  if (style !== 'count') return null;
+  if (style === 'double') return null;
+  const max = maxPulses(style);
   const calls = tossCountsThatFit(
     normalizeTossCounts(settings.allowedTossCounts),
     settings.phraseLength,
   );
-  const tooLong = callsTooLongToBuzz(calls, bpm, settings.leadCounts);
+  const tooLong = callsTooLongToBuzz(calls, bpm, settings.leadCounts, style);
   if (tooLong.length === calls.length) {
     return `No call fits as taps before the release at ${bpm} BPM, so every call gets the double buzz. Use more lead counts or a slower tempo.`;
   }
-  const overMax = tooLong.filter((c) => Math.floor(c) > MAX_COUNT_PULSES);
+  const overMax = tooLong.filter((c) => Math.floor(c) > max);
   const tight = tooLong.filter((c) => !overMax.includes(c));
   const sentences: string[] = [];
   if (tight.length === 0) {
+    const how = style === 'grouped' ? 'A 7 is four taps, a pause, then three' : 'A 5 is five taps';
     sentences.push(
       calls.some((c) => isAndCall(c))
-        ? 'A 5 is five taps; an "and" call adds a lighter tap after a pause.'
-        : 'A 5 is five taps.',
+        ? `${how}; an "and" call adds a lighter tap after a pause.`
+        : `${how}.`,
     );
   } else {
     const labels = tight.map(callLabel);
@@ -126,9 +172,7 @@ export function callBuzzNote(
     );
   }
   if (overMax.length > 0) {
-    sentences.push(
-      `Calls over ${MAX_COUNT_PULSES} counts get the double buzz (too many taps to count).`,
-    );
+    sentences.push(`Calls over ${max} counts get the double buzz (too many taps to count).`);
   }
   return sentences.join(' ');
 }

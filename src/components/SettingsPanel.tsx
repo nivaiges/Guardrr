@@ -388,7 +388,12 @@ function countOffPatternAccessibilityLabel(pattern: CountOffPattern): string {
 }
 
 function callBuzzStyleAccessibilityLabel(style: CallBuzzStyle): string {
-  return style === 'double'
-    ? 'Double buzz: a call was made, look at the screen'
-    : 'Buzz the number: one tap per count of the call';
+  switch (style) {
+    case 'double':
+      return 'Double buzz: a call was made, look at the screen';
+    case 'count':
+      return 'Buzz the number: one tap per count of the call';
+    case 'grouped':
+      return 'Taps in fours: one tap per count, with a pause after every four';
+  }
 }

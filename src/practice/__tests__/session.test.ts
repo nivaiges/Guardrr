@@ -78,6 +78,23 @@ describe('call buzz styles', () => {
     expect(haptics.stop).toHaveBeenCalled();
   });
 
+  it('taps out long calls in groups of four with "Taps in fours"', () => {
+    const settings = { ...DEFAULT_TOSS_SETTINGS, allowedTossCounts: [7] };
+    const { session, haptics, cues } = setupPulses(
+      120,
+      { callHapticStyle: 'grouped' },
+      true,
+      settings,
+    );
+    session.start();
+    jest.advanceTimersByTime(12 * 500);
+    const spoken = cues.find((c) => c.speak !== null)!;
+    expect(spoken.nextCall).toBe(7);
+    expect(haptics.playPulses).toHaveBeenCalledWith(callPulsePattern(7, 120, 4, 'grouped'));
+    expect(haptics.play).not.toHaveBeenCalled();
+    session.stop();
+  });
+
   it('keeps the double buzz by default', () => {
     const { session, haptics } = setupPulses(120, {});
     session.start();
