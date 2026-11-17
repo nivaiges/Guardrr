@@ -228,6 +228,9 @@ async function main() {
     await page.getByRole('radio', { name: /^Buzz the number/ }).click();
     await page.waitForTimeout(200);
     await shot(page, '25-buzz-the-number');
+    await page.getByRole('radio', { name: /^Taps in fours/ }).click();
+    await page.waitForTimeout(200);
+    await shot(page, '26-taps-in-fours');
     await page.getByRole('radio', { name: /^Double buzz/ }).click();
     await page.getByRole('switch', { name: 'Buzz with the call' }).click();
 

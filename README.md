@@ -103,9 +103,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![Tapping the 5 under "Dropped most" in Quads 155 lists its one session](docs/screenshots/21-dropped-detail.png) | ![Tapping a call in "Last session" lists every session it came up in](docs/screenshots/22-stats-call-detail.png) | ![Settings → Sound with "Buzz with the call" on](docs/screenshots/23-call-buzz.png) | ![Settings → Appearance set to Dark while the phone is light](docs/screenshots/24-appearance-dark.png) |
 
-| Buzz the number                                                                                  |
-| ------------------------------------------------------------------------------------------------ |
-| ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) |
+| Buzz the number                                                                                  | Taps in fours                                                                                                |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) |
 
 ## Tech
 

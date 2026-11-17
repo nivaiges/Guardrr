@@ -369,6 +369,24 @@ async function main() {
       /over 8 counts get the double buzz/.test(buzzNote),
       buzzNote,
     );
+    await page.getByRole('radio', { name: /^Taps in fours/ }).click();
+    const savedGrouped = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.callHapticStyle ===
+          'grouped',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('"Taps in fours" is saved', savedGrouped);
+    const groupedNote = (await page.getByTestId('call-buzz-note').textContent()) ?? '';
+    check(
+      '"Taps in fours" explains the groups and its 12-count limit',
+      /four taps, a pause, then three/.test(groupedNote) && !/over 8 counts/.test(groupedNote),
+      groupedNote,
+    );
     await page.getByRole('radio', { name: /^Double buzz/ }).click();
     check(
       'the double buzz needs no note',
