@@ -176,3 +176,43 @@ export function callBuzzNote(
   }
   return sentences.join(' ');
 }
+
+/** What the "Feel it" button in Settings plays: one call from the set, as the practice would. */
+export interface CallBuzzSample {
+  /** The call shown on the button, or null for the double buzz style. */
+  call: number | null;
+  /** The pulses to play, or null for the double buzz. */
+  pulses: CallPulse[] | null;
+}
+
+/**
+ * Picks the call to demonstrate a style with: the longest call in the set
+ * that taps out at this tempo and lead (it shows the most — the groups, the
+ * "and" tap), so the performer feels the hardest call they'll get. When no
+ * call taps out it's the longest call, with the double buzz it would get.
+ */
+export function callBuzzSample(
+  style: CallBuzzStyle,
+  settings: TossSettings,
+  bpm: number,
+): CallBuzzSample {
+  if (style === 'double') return { call: null, pulses: null };
+  const calls = tossCountsThatFit(
+    normalizeTossCounts(settings.allowedTossCounts),
+    settings.phraseLength,
+  );
+  for (let i = calls.length - 1; i >= 0; i--) {
+    const pulses = callPulsePattern(calls[i], bpm, settings.leadCounts, style);
+    if (pulses) return { call: calls[i], pulses };
+  }
+  return { call: calls.length > 0 ? calls[calls.length - 1] : null, pulses: null };
+}
+
+/** Button label for a sample: "Feel a 5", "Feel a 3&", or "Feel the buzz". */
+export function callBuzzSampleLabel(sample: CallBuzzSample): string {
+  if (sample.call === null) return 'Feel the buzz';
+  const label = callLabel(sample.call);
+  // "an 8", "an 11", "an 8&"; everything else takes "a".
+  const article = /^(8|11|18)(?!\d)/.test(label) ? 'an' : 'a';
+  return `Feel ${article} ${label}`;
+}

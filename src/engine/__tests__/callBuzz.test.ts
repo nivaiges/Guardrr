@@ -1,6 +1,8 @@
 import {
   DEFAULT_TOSS_SETTINGS,
   callBuzzNote,
+  callBuzzSample,
+  callBuzzSampleLabel,
   MAX_COUNT_PULSES,
   MAX_GROUPED_PULSES,
   PULSE_GAP_MAX_MS,
@@ -218,5 +220,48 @@ describe('callBuzzNote', () => {
     expect(callBuzzNote('grouped', full, 60)).toBe(
       'A 7 is four taps, a pause, then three. Calls over 12 counts get the double buzz (too many taps to count).',
     );
+  });
+});
+
+describe('callBuzzSample', () => {
+  const quads = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 4, allowedTossCounts: [3, 3.5, 4, 4.5, 5] };
+
+  it('plays the double buzz for the double style', () => {
+    expect(callBuzzSample('double', quads, 155)).toEqual({ call: null, pulses: null });
+  });
+
+  it('demonstrates with the longest call that taps out', () => {
+    expect(callBuzzSample('count', quads, 155)).toEqual({
+      call: 5,
+      pulses: callPulsePattern(5, 155, 4),
+    });
+    // 9 is too many taps in one row, but fine in fours.
+    const big = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 8, allowedTossCounts: [3, 7, 9] };
+    expect(callBuzzSample('count', big, 60).call).toBe(7);
+    expect(callBuzzSample('grouped', big, 60)).toEqual({
+      call: 9,
+      pulses: callPulsePattern(9, 60, 8, 'grouped'),
+    });
+  });
+
+  it('skips calls that do not fit the phrase or the time before the release', () => {
+    const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [1, 2, 5, 20] };
+    expect(callBuzzSample('count', tight, 155).call).toBe(2);
+  });
+
+  it('falls back to the double buzz of the longest call when nothing taps out', () => {
+    const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [4, 5] };
+    expect(callBuzzSample('count', tight, 155)).toEqual({ call: 5, pulses: null });
+  });
+});
+
+describe('callBuzzSampleLabel', () => {
+  it('names the call with the right article', () => {
+    expect(callBuzzSampleLabel({ call: null, pulses: null })).toBe('Feel the buzz');
+    expect(callBuzzSampleLabel({ call: 5, pulses: [] })).toBe('Feel a 5');
+    expect(callBuzzSampleLabel({ call: 4.5, pulses: [] })).toBe('Feel a 4 and');
+    expect(callBuzzSampleLabel({ call: 8, pulses: [] })).toBe('Feel an 8');
+    expect(callBuzzSampleLabel({ call: 11, pulses: [] })).toBe('Feel an 11');
+    expect(callBuzzSampleLabel({ call: 1, pulses: [] })).toBe('Feel a 1');
   });
 });
