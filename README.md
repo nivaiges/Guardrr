@@ -46,7 +46,7 @@ Below that you can fine-tune:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32), how many counts before the release
-  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase), optionally with the voice counting it off ("5 6, 5 6 7 8") up to the first call.
+  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase), optionally with the voice counting it off ("5 6, 5 6 7 8", a straight 1–8, a quick "5 6 7 8", or just "ready, and" right before the call) up to the first call.
 - **Calls** — shortest and longest toss, optional "and" calls, a chip per call to **hand-pick**
   exactly which ones come up (e.g. only 3, 5 and 7), **All / Odd / Even** shortcuts to pick a
   whole group in one tap, and whether the same call may come twice in a
@@ -56,7 +56,7 @@ Below that you can fine-tune:
   catch, and an optional **buzz with the call** — a double buzz ("look at the screen") or **Buzz
   the number**, which taps out the call itself (a 5 is five taps; "3&" is three taps and a
   lighter one), or **Taps in fours**, which splits long calls into groups (a 7 is four taps, a
-  pause, then three). A **Feel a 5** button plays the buzz on the phone without practicing.
+  pause, then three). A **Feel a 5** button plays the buzz on the phone without practicing; tap a call under **Call to feel** to try that one instead.
 - **Voice** — which of the phone's English voices speaks the call (tap one to hear it), how fast
   it's spoken (Slow / Normal / Fast / Faster) and a **Test voice** button to check speed and
   volume before you start.
@@ -104,9 +104,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | ![Tapping the 5 under "Dropped most" in Quads 155 lists its one session](docs/screenshots/21-dropped-detail.png) | ![Tapping a call in "Last session" lists every session it came up in](docs/screenshots/22-stats-call-detail.png) | ![Settings → Sound with "Buzz with the call" on](docs/screenshots/23-call-buzz.png) | ![Settings → Appearance set to Dark while the phone is light](docs/screenshots/24-appearance-dark.png) |
 
-| Buzz the number                                                                                  | Taps in fours                                                                                                |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) |
+| Buzz the number                                                                                  | Taps in fours                                                                                                                                                                                                | Call to feel                                                                                         | "Ready, and" count-off |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ---------------------- |
+| ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) ![Call to feel: 4& picked, the button says "Feel a 4 and"](docs/screenshots/27-feel-a-call.png) | ![Count it as "Ready, and": two words just before the call](docs/screenshots/28-count-off-ready.png) |
 
 ## Tech
 

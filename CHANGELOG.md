@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-11-18
+
+### Added
+
+- **Call to feel** (roadmap: "Feel a 5: optionally let the performer pick which call to feel").
+  Under Settings → Sound → Call buzz, when the style is Buzz the number or Taps in fours, a row
+  of your calls appears above the Feel button. **Tapping a call plays it on the phone at once**
+  and makes it the button's call ("Feel a 4 and"), so you can compare 4& and 5 back to back.
+  A call that wouldn't tap out at your tempo and lead plays the double buzz, as it would in
+  practice. The Double buzz style has no chips (it feels the same for every call).
+  - Engine: `callBuzzSample` takes an optional picked call; `callBuzzSampleCalls`.
+- **"Ready, and" count-off** (roadmap: "Prep patterns beyond the count-off"). A fourth
+  "Count it as" chip under Settings → Phrase → Speak the count-off: instead of numbers, the voice
+  says **"ready" and "and" on the two counts just before the call**, and the call is the "go".
+  The toggle reads _Speak the count-off ("ready, and", then the call)_.
+  - Engine: `CountOffPattern` gains `'ready'` (saved; older settings keep their pattern).
+- Smoke test: 96 checks ("Ready, and" is spoken right before the call and saved; picking a
+  call to feel renames the button; no chips for the double buzz). New screenshots
+  `27-feel-a-call` and `28-count-off-ready` in the README gallery.
+- 10 new unit tests (562 total).
+
+### Decisions
+
+- **The picked call isn't saved.** It's only for trying the taps; when you change your calls or
+  reopen the app, the button goes back to the longest call that taps out (the hardest one).
+- **Tapping a chip plays right away** rather than only selecting it — one tap to feel a call is
+  the point; the button replays it.
+- **"Ready, and" is tied to the call, not the release.** The count-off always stops when the
+  call is spoken, so with the default lead of 4 the number patterns have almost no room ("5 6
+  7 8" has none). Two words right before the call fit any lead, and the call itself becomes the
+  cue to go.
+- **Both words or none**: with less than two counts of count-in before the call (e.g. a 4-count
+  count-in with a lead of 3) nothing is spoken — a lone "and" means nothing.
+- A custom word list was left for later (roadmap): it needs a text field and a way to time the
+  words, and "ready, and" covers the common spoken cue.
+
+### To test on your phone
+
+- Settings → Sound → Buzz with the call → **Buzz the number**, then tap **4&** and **5** under
+  **Call to feel**: can you tell them apart?
+- Settings → Phrase → **Speak the count-off** → **Ready, and**, then Start with Quads 155: you
+  should hear "ready, and" on counts 3 and 4 of the count-in, then the call on 5. Is the short
+  "and" clear at 155 BPM, or clipped?
+- Not verifiable here: haptics and speech timing only run on a device; today's checks cover the
+  logic, the saved setting, the spoken words (web speech mock) and the Settings UI.
+
 ## 2026-11-17
 
 ### Added

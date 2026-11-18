@@ -26,7 +26,9 @@
   - [x] Voice choice: picker of the phone's offline English voices (calls are English words), phone's region and enhanced voices first, tap to preview.
   - [x] Custom prep patterns: the spoken count-off can be the prep "5 6, 5 6 7 8", a straight
         "1 2 3 4 5 6 7 8" or a quick "5 6 7 8" (Settings → Phrase → "Count it as").
-  - [ ] Prep patterns beyond the count-off: e.g. a spoken "ready, and" or a custom word list.
+  - [x] Prep patterns beyond the count-off: a spoken "ready, and" on the two counts just before
+        the call (Settings → Phrase → "Count it as" → "Ready, and").
+  - [ ] Custom count-off words (a word list the performer types, e.g. a captain's own cue).
   - [ ] Background audio (keep the metronome going with the screen locked).
   - [ ] Recorded voice option.
 
@@ -78,8 +80,10 @@
 - [x] Call buzz: a "Feel a 5" button in Settings to try the taps without starting a session.
 - [ ] Taps in fours: check on device that "4 and" (four taps, pause, light tap) and "5" (four
       taps, pause, one tap) feel different enough; if not, give the "and" tap a longer pause.
-- [ ] Feel a 5: optionally let the performer pick which call to feel (today: the longest one
-      that taps out).
+- [x] Feel a 5: let the performer pick which call to feel — "Call to feel" chips under the
+      call buzz style (tap plays it; default stays the longest one that taps out).
+- [ ] "Ready, and": check on device that the TTS "and" isn't clipped or swallowed at 155 BPM
+      (one short word per count); if it is, try "ready… and" as one utterance.
 - [x] Calls: quick All / Odd / Even shortcuts above the call chips (no "Clear": a session needs at least one call).
 - [x] Calls: reword the "Picked by hand" note per shortcut ("Odd counts only." / "Even counts only.").
 - [x] In-app theme override (System / Light / Dark) — Settings → Appearance; saved, System still
