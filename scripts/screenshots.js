@@ -231,6 +231,10 @@ async function main() {
     await page.getByRole('radio', { name: /^Taps in fours/ }).click();
     await page.waitForTimeout(200);
     await shot(page, '26-taps-in-fours');
+    await page.getByRole('radio', { name: 'Feel a 4 and', exact: true }).click();
+    await scrollTo(page.getByTestId('feel-call-picker'));
+    await page.waitForTimeout(200);
+    await shot(page, '27-feel-a-call');
     await page.getByRole('radio', { name: /^Double buzz/ }).click();
     await page.getByRole('switch', { name: 'Buzz with the call' }).click();
 

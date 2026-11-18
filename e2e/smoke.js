@@ -395,7 +395,18 @@ async function main() {
       feelLabel,
     );
     await feel.click();
+    await page.getByRole('radio', { name: 'Feel a 3', exact: true }).click();
+    const pickedLabel = (await page.getByTestId('feel-call-buzz').textContent()) ?? '';
+    check(
+      'tapping a call under "Call to feel" picks it for the button',
+      pickedLabel === 'Feel a 3',
+      pickedLabel,
+    );
     await page.getByRole('radio', { name: /^Double buzz/ }).click();
+    check(
+      'the double buzz has no "Call to feel" chips (it feels the same for every call)',
+      (await page.getByTestId('feel-call-picker').count()) === 0,
+    );
     check(
       'the double buzz can be felt too',
       ((await page.getByTestId('feel-call-buzz').textContent()) ?? '') === 'Feel the buzz',

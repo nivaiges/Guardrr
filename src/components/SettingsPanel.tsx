@@ -22,6 +22,7 @@ import {
   announceCountInPhrase,
   callBuzzNote,
   callBuzzSample,
+  callBuzzSampleCalls,
   callBuzzSampleLabel,
   callBuzzStyleLabel,
   callSetNote,
@@ -29,6 +30,7 @@ import {
   countOffPatternLabel,
   countOffSummary,
   describeWarning,
+  displayLabelForCall,
   effectiveCountIn,
   liveSettingsNote,
   settingsWarnings,
@@ -162,7 +164,10 @@ export function SettingsPanel({
   const countOff = countOffSummary(countIn, settings, countOffPattern);
   const callBuzzStyle = cueOptions.callHapticStyle ?? DEFAULT_CALL_BUZZ_STYLE;
   const buzzNote = callBuzzNote(callBuzzStyle, settings, bpm);
-  const buzzSample = callBuzzSample(callBuzzStyle, settings, bpm);
+  // The call picked under "Feel a …" (not saved: it's only for trying the taps).
+  const [feelCall, setFeelCall] = useState<number | null>(null);
+  const buzzSampleCalls = callBuzzSampleCalls(callBuzzStyle, settings);
+  const buzzSample = callBuzzSample(callBuzzStyle, settings, bpm, feelCall);
   const buzzSampleLabel = callBuzzSampleLabel(buzzSample);
 
   return (
@@ -303,6 +308,21 @@ export function SettingsPanel({
             <Text style={styles.note} testID="call-buzz-note">
               {buzzNote}
             </Text>
+          ) : null}
+          {onFeelBuzz && buzzSampleCalls.length > 1 && buzzSample.call !== null ? (
+            <Segmented<number>
+              label="Call to feel"
+              options={buzzSampleCalls}
+              value={buzzSample.call}
+              onChange={(call) => {
+                setFeelCall(call);
+                onFeelBuzz(callBuzzSample(callBuzzStyle, settings, bpm, call));
+              }}
+              disabled={previewLocked}
+              optionLabel={displayLabelForCall}
+              optionAccessibilityLabel={(call) => callBuzzSampleLabel({ call, pulses: [] })}
+              testID="feel-call-picker"
+            />
           ) : null}
           {onFeelBuzz ? (
             <Pressable
