@@ -186,7 +186,9 @@ export interface CallBuzzSample {
 }
 
 /**
- * Picks the call to demonstrate a style with: the longest call in the set
+ * Picks the call to demonstrate a style with. A `call` the performer picked
+ * is used as is (with the double buzz if it doesn't tap out, as in practice)
+ * while it's still in the set. Otherwise it's the longest call in the set
  * that taps out at this tempo and lead (it shows the most — the groups, the
  * "and" tap), so the performer feels the hardest call they'll get. When no
  * call taps out it's the longest call, with the double buzz it would get.
@@ -195,17 +197,29 @@ export function callBuzzSample(
   style: CallBuzzStyle,
   settings: TossSettings,
   bpm: number,
+  call?: number | null,
 ): CallBuzzSample {
   if (style === 'double') return { call: null, pulses: null };
-  const calls = tossCountsThatFit(
-    normalizeTossCounts(settings.allowedTossCounts),
-    settings.phraseLength,
-  );
+  const calls = callBuzzSampleCalls(style, settings);
+  // A call picked by the performer, if it's still in the set; otherwise the default below.
+  if (call !== undefined && call !== null && calls.includes(call)) {
+    return { call, pulses: callPulsePattern(call, bpm, settings.leadCounts, style) };
+  }
   for (let i = calls.length - 1; i >= 0; i--) {
     const pulses = callPulsePattern(calls[i], bpm, settings.leadCounts, style);
     if (pulses) return { call: calls[i], pulses };
   }
   return { call: calls.length > 0 ? calls[calls.length - 1] : null, pulses: null };
+}
+
+/**
+ * The calls the performer can pick to feel (the chips under the Feel button):
+ * every call in the set that fits the phrase, shortest first. Empty for the
+ * double buzz, which feels the same for every call.
+ */
+export function callBuzzSampleCalls(style: CallBuzzStyle, settings: TossSettings): number[] {
+  if (style === 'double') return [];
+  return tossCountsThatFit(normalizeTossCounts(settings.allowedTossCounts), settings.phraseLength);
 }
 
 /** Button label for a sample: "Feel a 5", "Feel a 3&", or "Feel the buzz". */

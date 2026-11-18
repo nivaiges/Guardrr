@@ -2,6 +2,7 @@ import {
   DEFAULT_TOSS_SETTINGS,
   callBuzzNote,
   callBuzzSample,
+  callBuzzSampleCalls,
   callBuzzSampleLabel,
   MAX_COUNT_PULSES,
   MAX_GROUPED_PULSES,
@@ -252,6 +253,47 @@ describe('callBuzzSample', () => {
   it('falls back to the double buzz of the longest call when nothing taps out', () => {
     const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [4, 5] };
     expect(callBuzzSample('count', tight, 155)).toEqual({ call: 5, pulses: null });
+  });
+});
+
+describe('callBuzzSample with a picked call', () => {
+  const quads = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 4, allowedTossCounts: [3, 3.5, 4, 4.5, 5] };
+
+  it('plays the picked call instead of the longest', () => {
+    expect(callBuzzSample('count', quads, 155, 3.5)).toEqual({
+      call: 3.5,
+      pulses: callPulsePattern(3.5, 155, 4),
+    });
+    expect(callBuzzSample('grouped', quads, 155, 4.5)).toEqual({
+      call: 4.5,
+      pulses: callPulsePattern(4.5, 155, 4, 'grouped'),
+    });
+  });
+
+  it('plays the double buzz for a picked call that does not tap out, as practice would', () => {
+    const tight = { ...DEFAULT_TOSS_SETTINGS, leadCounts: 1, allowedTossCounts: [1, 2, 5] };
+    expect(callBuzzSample('count', tight, 155, 5)).toEqual({ call: 5, pulses: null });
+  });
+
+  it('falls back to the default when the picked call is no longer in the set', () => {
+    expect(callBuzzSample('count', quads, 155, 7)).toEqual(callBuzzSample('count', quads, 155));
+    expect(callBuzzSample('count', quads, 155, null)).toEqual(callBuzzSample('count', quads, 155));
+  });
+
+  it('ignores a picked call for the double style', () => {
+    expect(callBuzzSample('double', quads, 155, 4)).toEqual({ call: null, pulses: null });
+  });
+});
+
+describe('callBuzzSampleCalls', () => {
+  it('lists the calls that fit the phrase, shortest first', () => {
+    const set = { ...DEFAULT_TOSS_SETTINGS, phraseLength: 8, allowedTossCounts: [5, 3, 12, 4.5] };
+    expect(callBuzzSampleCalls('count', set)).toEqual([3, 4.5, 5]);
+    expect(callBuzzSampleCalls('grouped', set)).toEqual([3, 4.5, 5]);
+  });
+
+  it('is empty for the double buzz', () => {
+    expect(callBuzzSampleCalls('double', DEFAULT_TOSS_SETTINGS)).toEqual([]);
   });
 });
 
