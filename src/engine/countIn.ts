@@ -87,13 +87,23 @@ const COUNT_OFF_STRAIGHT: readonly (string | null)[] = [
  * - `prep` — "5 6, 5 6 7 8", the usual colorguard prep count (default).
  * - `straight` — "1 2 3 4 5 6 7 8", for drills counted in from a full eight.
  * - `quick` — "5 6 7 8" on the last four counts only.
+ * - `ready` — "ready, and" on the two counts just before the call is spoken,
+ *   the way a tech starts a guard on a cue rather than a full count. It's
+ *   tied to the call, not the release, so it works with any lead (even the
+ *   default 4, where "5 6 7 8" would land on top of the call), and the call
+ *   itself becomes the "go". Needs two counts of count-in before the call.
  *
  * `prep` and `straight` need an 8-count count-in; a shorter one falls back to
  * the quick "5 6 7 8".
  */
-export type CountOffPattern = 'prep' | 'straight' | 'quick';
+export type CountOffPattern = 'prep' | 'straight' | 'quick' | 'ready';
 
-export const COUNT_OFF_PATTERNS: readonly CountOffPattern[] = ['prep', 'straight', 'quick'];
+export const COUNT_OFF_PATTERNS: readonly CountOffPattern[] = [
+  'prep',
+  'straight',
+  'quick',
+  'ready',
+];
 
 export const DEFAULT_COUNT_OFF_PATTERN: CountOffPattern = 'prep';
 
@@ -110,6 +120,8 @@ export function countOffPatternLabel(pattern: CountOffPattern): string {
       return '1 – 8';
     case 'quick':
       return '5 6 7 8';
+    case 'ready':
+      return 'Ready, and';
   }
 }
 
@@ -146,8 +158,23 @@ export function countOffWord(
   if (count > L - settings.leadCounts) return null;
   const fromEnd = L - count;
   if (fromEnd >= used) return null;
+  if (pattern === 'ready')
+    return readyWord(fromEnd - settings.leadCounts, used - settings.leadCounts);
   return patternWords(pattern, used)[fromEnd] ?? null;
 }
+
+/**
+ * "ready, and" for the `ready` pattern: `beforeCall` counts before the count
+ * the call is spoken on (0 = the count just before it), when `room` counts of
+ * count-in come before the call. Both words or none — a lone "and" means nothing.
+ */
+function readyWord(beforeCall: number, room: number): string | null {
+  if (room < READY_AND.length) return null;
+  return READY_AND[beforeCall] ?? null;
+}
+
+/** Indexed back from the call: "and" right before it, "ready" the count before that. */
+const READY_AND: readonly string[] = ['and', 'ready'];
 
 /** The whole count-off for these settings, count by count (for the settings hint and tests). */
 export function countOffWords(
@@ -181,6 +208,8 @@ export function countOffSummary(
   };
   const words = countOffWords(countIn, settings, pattern);
   if (words.length === 0) return null;
+  // Words, not digits: quoted so the toggle reads ('Speak the count-off ("ready, and", then the call)').
+  if (pattern === 'ready') return '"ready, and"';
   // A held count (a gap of more than one count) reads as a comma: "5 6, 5 6 7 8".
   return words
     .map((w, i) => {

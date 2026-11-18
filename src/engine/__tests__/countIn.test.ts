@@ -144,16 +144,18 @@ describe('spoken count-off', () => {
 describe('count-off patterns', () => {
   const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
 
-  it('offers prep (default), straight and quick, with chip labels', () => {
-    expect(COUNT_OFF_PATTERNS).toEqual(['prep', 'straight', 'quick']);
+  it('offers prep (default), straight, quick and ready, with chip labels', () => {
+    expect(COUNT_OFF_PATTERNS).toEqual(['prep', 'straight', 'quick', 'ready']);
     expect(DEFAULT_COUNT_OFF_PATTERN).toBe('prep');
     expect(COUNT_OFF_PATTERNS.map(countOffPatternLabel)).toEqual([
       '5 6, 5 6 7 8',
       '1 – 8',
       '5 6 7 8',
+      'Ready, and',
     ]);
     expect(isCountOffPattern('quick')).toBe(true);
-    expect(isCountOffPattern('ready')).toBe(false);
+    expect(isCountOffPattern('ready')).toBe(true);
+    expect(isCountOffPattern('go')).toBe(false);
     expect(isCountOffPattern(undefined)).toBe(false);
   });
 
@@ -194,5 +196,52 @@ describe('count-off patterns', () => {
     expect(countOffWord(13, 8, lead(4), 'straight')).toBeNull();
     expect(countOffSummary(8, lead(4), 'straight')).toBe('1 2 3 4');
     expect(countOffSummary(8, lead(4), 'quick')).toBeNull();
+  });
+});
+
+describe('"ready, and" count-off', () => {
+  const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
+
+  it('says "ready, and" on the two counts just before the call', () => {
+    // 16 counts, lead 4: the call is spoken on 13, so "ready" on 11 and "and" on 12.
+    expect(countOffWords(8, lead(4), 'ready')).toEqual([
+      { count: 11, word: 'ready' },
+      { count: 12, word: 'and' },
+    ]);
+    expect(countOffSummary(8, lead(4), 'ready')).toBe('"ready, and"');
+  });
+
+  it('follows the lead, unlike the number patterns', () => {
+    // Lead 4 leaves no room for "5 6 7 8" in a 4-count count-in's last counts, but "ready, and" fits.
+    expect(countOffSummary(8, lead(4), 'quick')).toBeNull();
+    expect(countOffWords(8, lead(1), 'ready')).toEqual([
+      { count: 14, word: 'ready' },
+      { count: 15, word: 'and' },
+    ]);
+    expect(countOffWords(FULL_PHRASE_COUNT_IN, lead(8), 'ready')).toEqual([
+      { count: 7, word: 'ready' },
+      { count: 8, word: 'and' },
+    ]);
+    expect(countOffWords(8, lead(4, 8), 'ready')).toEqual([
+      { count: 3, word: 'ready' },
+      { count: 4, word: 'and' },
+    ]);
+  });
+
+  it('says nothing when the count-in leaves under two counts before the call', () => {
+    // A 4-count count-in with lead 3: one count before the call — no lone "and".
+    expect(countOffWords(4, lead(3), 'ready')).toEqual([]);
+    expect(countOffSummary(4, lead(3), 'ready')).toBeNull();
+    // A 4-count count-in with lead 2: exactly two counts, so both words.
+    expect(countOffWords(4, lead(2), 'ready')).toEqual([
+      { count: 13, word: 'ready' },
+      { count: 14, word: 'and' },
+    ]);
+  });
+
+  it('never speaks on or after the call', () => {
+    for (let count = 13; count <= 16; count++) {
+      expect(countOffWord(count, 8, lead(4), 'ready')).toBeNull();
+    }
   });
 });

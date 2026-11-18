@@ -435,6 +435,8 @@ function countOffPatternAccessibilityLabel(pattern: CountOffPattern): string {
       return 'Straight count: 1 to 8';
     case 'quick':
       return 'Quick count: 5 6 7 8';
+    case 'ready':
+      return 'Ready, and: two words just before the call';
   }
 }
 
