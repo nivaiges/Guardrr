@@ -218,6 +218,9 @@ async function main() {
     await page.getByRole('radio', { name: 'Straight count: 1 to 8' }).click();
     await page.waitForTimeout(200);
     await shot(page, '20-count-off-straight');
+    await page.getByRole('radio', { name: /^Ready, and/ }).click();
+    await page.waitForTimeout(200);
+    await shot(page, '28-count-off-ready');
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
 
     // Settings → Sound: the optional call buzz, then "Buzz the number".

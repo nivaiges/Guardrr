@@ -331,6 +331,33 @@ async function main() {
       countedOff.slice(0, 4).join(' ') === 'one two three four' && countedOff.length === 5,
       countedOff.map((t) => `"${t}"`).join(', ') || 'none',
     );
+    // "Ready, and": two words on the counts just before the call.
+    await page.getByRole('radio', { name: /^Ready, and/ }).click();
+    check(
+      '"Ready, and" is summarized in words',
+      await page.getByText('Speak the count-off ("ready, and", then the call)').isVisible(),
+    );
+    await page.evaluate(() => (window.__speech.length = 0));
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    await page.waitForTimeout((COUNT_IN - LEAD_COUNTS + 1.5) * (60_000 / (BPM + 1)));
+    await page.getByRole('button', { name: 'Stop practice' }).click();
+    const readied = await page.evaluate(() => window.__speech.map((u) => u.text));
+    check(
+      '"Ready, and" speaks ready, and, then the call',
+      readied.slice(0, 2).join(' ') === 'ready and' && readied.length === 3,
+      readied.map((t) => `"${t}"`).join(', ') || 'none',
+    );
+    const savedReady = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.countOffPattern ===
+          'ready',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('"Ready, and" is saved', savedReady);
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();
     check(
