@@ -40,6 +40,11 @@ export interface CueOptions {
   countOff?: boolean;
   /** Which words the count-off uses (see CountOffPattern). Default "prep". */
   countOffPattern?: CountOffPattern;
+  /**
+   * The performer's own count-off words, for the "custom" pattern (see
+   * parseCountOffWords). Default "ready set".
+   */
+  countOffWords?: string[];
 }
 
 /**

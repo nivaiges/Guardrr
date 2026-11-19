@@ -22,7 +22,8 @@ const custom: PracticeSettings = {
     callHaptics: true,
     callHapticStyle: 'count',
     countOff: true,
-    countOffPattern: 'straight',
+    countOffPattern: 'custom',
+    countOffWords: ['hit', 'it'],
   },
   countIn: 4,
   voiceRate: 0.8,
@@ -90,7 +91,17 @@ describe('stored settings', () => {
       callHapticStyle: 'double',
       countOff: false,
       countOffPattern: 'prep',
+      countOffWords: ['ready', 'set'],
     });
+  });
+
+  it('keeps custom count-off words and repairs bad ones', () => {
+    const parse = (countOffWords: unknown) =>
+      parseStoredSettings(JSON.stringify({ cue: { countOffWords } })).cue.countOffWords;
+    expect(parse(['and', 'go'])).toEqual(['and', 'go']);
+    expect(parse([])).toEqual([]);
+    expect(parse(['GO!', 7])).toEqual(['go']);
+    expect(parse('go')).toEqual(['ready', 'set']);
   });
 
   it('keeps the count-off pattern and repairs a bad one', () => {
@@ -98,6 +109,7 @@ describe('stored settings', () => {
       parseStoredSettings(JSON.stringify({ cue: { countOffPattern } })).cue.countOffPattern;
     expect(parse('quick')).toBe('quick');
     expect(parse('straight')).toBe('straight');
+    expect(parse('custom')).toBe('custom');
     expect(parse('ready-and')).toBe('prep');
     expect(parse(3)).toBe('prep');
   });

@@ -10,7 +10,14 @@ import {
   countOffPatternLabel,
   countOffWord,
   countOffWords,
+  countsBeforeCall,
+  customCountOffNote,
+  DEFAULT_CUSTOM_COUNT_OFF_WORDS,
+  formatCountOffWords,
   isCountOffPattern,
+  MAX_COUNT_OFF_WORDS,
+  parseCountOffWords,
+  parseStoredCountOffWords,
   effectiveCountIn,
   firstCountIndex,
 } from '../countIn';
@@ -144,15 +151,17 @@ describe('spoken count-off', () => {
 describe('count-off patterns', () => {
   const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
 
-  it('offers prep (default), straight, quick and ready, with chip labels', () => {
-    expect(COUNT_OFF_PATTERNS).toEqual(['prep', 'straight', 'quick', 'ready']);
+  it('offers prep (default), straight, quick, ready and custom, with chip labels', () => {
+    expect(COUNT_OFF_PATTERNS).toEqual(['prep', 'straight', 'quick', 'ready', 'custom']);
     expect(DEFAULT_COUNT_OFF_PATTERN).toBe('prep');
     expect(COUNT_OFF_PATTERNS.map(countOffPatternLabel)).toEqual([
       '5 6, 5 6 7 8',
       '1 – 8',
       '5 6 7 8',
       'Ready, and',
+      'Your words',
     ]);
+    expect(isCountOffPattern('custom')).toBe(true);
     expect(isCountOffPattern('quick')).toBe(true);
     expect(isCountOffPattern('ready')).toBe(true);
     expect(isCountOffPattern('go')).toBe(false);
@@ -243,5 +252,94 @@ describe('"ready, and" count-off', () => {
     for (let count = 13; count <= 16; count++) {
       expect(countOffWord(count, 8, lead(4), 'ready')).toBeNull();
     }
+  });
+});
+
+describe('custom count-off words', () => {
+  const lead = (leadCounts: number, phraseLength = 16) => settings({ leadCounts, phraseLength });
+
+  it('parses typed words: spaces or commas, punctuation dropped, lower case', () => {
+    expect(parseCountOffWords('Hit it!')).toEqual(['hit', 'it']);
+    expect(parseCountOffWords('  ready,set ,  GO  ')).toEqual(['ready', 'set', 'go']);
+    expect(parseCountOffWords("let's go-go")).toEqual(["let's", 'go-go']);
+    expect(parseCountOffWords('... "and" -')).toEqual(['and']);
+    expect(parseCountOffWords('')).toEqual([]);
+    expect(parseCountOffWords(' , ')).toEqual([]);
+  });
+
+  it('keeps accented letters and digits', () => {
+    expect(parseCountOffWords('¡Listos, ya! 2')).toEqual(['listos', 'ya', '2']);
+    expect(parseCountOffWords('prêt')).toEqual(['prêt']);
+  });
+
+  it('caps the number and length of words', () => {
+    expect(parseCountOffWords('a b c d e f g h i j')).toHaveLength(MAX_COUNT_OFF_WORDS);
+    expect(parseCountOffWords('supercalifragilistic')[0]).toBe('supercalifragili');
+  });
+
+  it('formats words back for the text field', () => {
+    expect(formatCountOffWords(['hit', 'it'])).toBe('hit it');
+    expect(formatCountOffWords(parseCountOffWords(formatCountOffWords(['a', 'b'])))).toBe('a b');
+  });
+
+  it('repairs stored words', () => {
+    expect(parseStoredCountOffWords(['Hit', 'it!'])).toEqual(['hit', 'it']);
+    expect(parseStoredCountOffWords(['go', 3, null])).toEqual(['go']);
+    expect(parseStoredCountOffWords([])).toEqual([]);
+    expect(parseStoredCountOffWords('hit it')).toEqual([...DEFAULT_CUSTOM_COUNT_OFF_WORDS]);
+    expect(parseStoredCountOffWords(undefined)).toEqual(['ready', 'set']);
+  });
+
+  it('speaks the words one per count, ending just before the call', () => {
+    // 16 counts, lead 4: the call is on 13.
+    expect(countOffWords(8, lead(4), 'custom', ['hit', 'it'])).toEqual([
+      { count: 11, word: 'hit' },
+      { count: 12, word: 'it' },
+    ]);
+    expect(countOffWords(8, lead(1), 'custom', ['and', 'a', 'one', 'two'])).toEqual([
+      { count: 12, word: 'and' },
+      { count: 13, word: 'a' },
+      { count: 14, word: 'one' },
+      { count: 15, word: 'two' },
+    ]);
+    expect(countOffSummary(8, lead(4), 'custom', ['hit', 'it'])).toBe('"hit, it"');
+  });
+
+  it('defaults to "ready, set"', () => {
+    expect(countOffSummary(8, lead(4), 'custom')).toBe('"ready, set"');
+  });
+
+  it('speaks all the words or none', () => {
+    // A 4-count count-in with lead 2 leaves two counts before the call.
+    expect(countsBeforeCall(4, lead(2))).toBe(2);
+    expect(countOffWords(4, lead(2), 'custom', ['one', 'two', 'three'])).toEqual([]);
+    expect(countOffSummary(4, lead(2), 'custom', ['one', 'two', 'three'])).toBeNull();
+    expect(countOffWords(4, lead(2), 'custom', ['go'])).toEqual([{ count: 14, word: 'go' }]);
+  });
+
+  it('says nothing with no words', () => {
+    expect(countOffWords(8, lead(4), 'custom', [])).toEqual([]);
+    expect(countOffSummary(8, lead(4), 'custom', [])).toBeNull();
+  });
+
+  it('never speaks on or after the call', () => {
+    const words = ['a', 'b', 'c', 'd'];
+    for (let count = 13; count <= 16; count++) {
+      expect(countOffWord(count, FULL_PHRASE_COUNT_IN, lead(4), 'custom', words)).toBeNull();
+    }
+  });
+
+  it('explains when the words are spoken, or why not', () => {
+    expect(customCountOffNote(['hit', 'it'], 8, lead(4))).toBe(
+      'Spoken on counts 11–12, one word per count, then the call.',
+    );
+    expect(customCountOffNote(['go'], 8, lead(4))).toBe('Spoken on count 12, then the call.');
+    expect(customCountOffNote(['a', 'b', 'c'], 4, lead(2))).toBe(
+      '3 words but only 2 counts before the call — shorten the lead, lengthen the count-in or drop a word.',
+    );
+    expect(customCountOffNote(['a', 'b'], 4, lead(3))).toBe(
+      '2 words but only 1 count before the call — shorten the lead, lengthen the count-in or drop a word.',
+    );
+    expect(customCountOffNote([], 8, lead(4))).toBe('Type up to 8 words, one per count.');
   });
 });

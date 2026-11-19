@@ -251,6 +251,21 @@ describe('createPracticeSession', () => {
       session.stop();
     });
 
+    it("speaks the performer's own words just before the call", () => {
+      // Lead 4: "hit" on 11, "it" on 12, the call on 13 (the count-in starts on 9).
+      const { session, voice } = setup(120, 8, {
+        countOff: true,
+        countOffPattern: 'custom',
+        countOffWords: ['hit', 'it'],
+      });
+      session.start();
+      jest.advanceTimersByTime(3 * 500);
+      expect(voice.say.mock.calls.map((c) => c[0])).toEqual(['hit', 'it']);
+      jest.advanceTimersByTime(500);
+      expect(voice.say).toHaveBeenLastCalledWith(speechTextForCall(session.callHistory()[0]));
+      session.stop();
+    });
+
     it('counts off again on the next start', () => {
       const { session, voice } = setup(120, 8, { countOff: true });
       session.start();

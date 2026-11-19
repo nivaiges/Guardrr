@@ -12,7 +12,13 @@ import { AppearancePreference, DEFAULT_APPEARANCE, isAppearancePreference } from
 import { isValidCall } from './calls';
 import { DEFAULT_CALL_BUZZ_STYLE, isCallBuzzStyle } from './callBuzz';
 import { clampBpm } from './editSettings';
-import { DEFAULT_COUNT_IN, DEFAULT_COUNT_OFF_PATTERN, isCountOffPattern } from './countIn';
+import {
+  DEFAULT_COUNT_IN,
+  DEFAULT_COUNT_OFF_PATTERN,
+  DEFAULT_CUSTOM_COUNT_OFF_WORDS,
+  isCountOffPattern,
+  parseStoredCountOffWords,
+} from './countIn';
 import {
   ALL_SESSIONS,
   ALL_TEMPOS,
@@ -61,6 +67,7 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   callHapticStyle: DEFAULT_CALL_BUZZ_STYLE,
   countOff: false,
   countOffPattern: DEFAULT_COUNT_OFF_PATTERN,
+  countOffWords: [...DEFAULT_CUSTOM_COUNT_OFF_WORDS],
 };
 
 export interface PracticeSettings {
@@ -179,6 +186,7 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
       countOffPattern: isCountOffPattern(cue.countOffPattern)
         ? cue.countOffPattern
         : DEFAULT_CUE_OPTIONS.countOffPattern,
+      countOffWords: parseStoredCountOffWords(cue.countOffWords),
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,

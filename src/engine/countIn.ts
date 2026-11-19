@@ -93,17 +93,61 @@ const COUNT_OFF_STRAIGHT: readonly (string | null)[] = [
  *   default 4, where "5 6 7 8" would land on top of the call), and the call
  *   itself becomes the "go". Needs two counts of count-in before the call.
  *
+ * - `custom` — the performer's own words (a captain's cue like "hit it", or
+ *   "and set"), one word per count, ending on the count just before the call,
+ *   like `ready`. All of them or none: a cue cut short means nothing, so with
+ *   more words than counts before the call nothing is spoken (see
+ *   customCountOffNote).
+ *
  * `prep` and `straight` need an 8-count count-in; a shorter one falls back to
  * the quick "5 6 7 8".
  */
-export type CountOffPattern = 'prep' | 'straight' | 'quick' | 'ready';
+export type CountOffPattern = 'prep' | 'straight' | 'quick' | 'ready' | 'custom';
 
 export const COUNT_OFF_PATTERNS: readonly CountOffPattern[] = [
   'prep',
   'straight',
   'quick',
   'ready',
+  'custom',
 ];
+
+/** Most words a custom count-off can have (a full 8-count count-in, one word per count). */
+export const MAX_COUNT_OFF_WORDS = 8;
+
+/** Longest single custom word, in characters; anything longer can't be said in one count. */
+export const MAX_COUNT_OFF_WORD_LENGTH = 16;
+
+/** Words a new custom count-off starts with: a common captain's cue. */
+export const DEFAULT_CUSTOM_COUNT_OFF_WORDS: readonly string[] = ['ready', 'set'];
+
+/**
+ * The custom count-off words typed by the performer: split on spaces and
+ * commas, punctuation other than apostrophes and hyphens dropped ("Hit it!" →
+ * ["hit", "it"]), lower-cased (the voice reads "SET" as letters on some
+ * phones), each word cut to MAX_COUNT_OFF_WORD_LENGTH and at most
+ * MAX_COUNT_OFF_WORDS words.
+ */
+export function parseCountOffWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[\s,;/]+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}'-]/gu, '').replace(/^['-]+|['-]+$/g, ''))
+    .filter((w) => w.length > 0)
+    .map((w) => w.slice(0, MAX_COUNT_OFF_WORD_LENGTH))
+    .slice(0, MAX_COUNT_OFF_WORDS);
+}
+
+/** The words as the text field shows them: "ready set". */
+export function formatCountOffWords(words: readonly string[]): string {
+  return words.join(' ');
+}
+
+/** Stored custom words, cleaned the same way as typed ones; anything else → the defaults. */
+export function parseStoredCountOffWords(value: unknown): string[] {
+  if (!Array.isArray(value)) return [...DEFAULT_CUSTOM_COUNT_OFF_WORDS];
+  return parseCountOffWords(value.filter((w): w is string => typeof w === 'string').join(' '));
+}
 
 export const DEFAULT_COUNT_OFF_PATTERN: CountOffPattern = 'prep';
 
@@ -122,6 +166,8 @@ export function countOffPatternLabel(pattern: CountOffPattern): string {
       return '5 6 7 8';
     case 'ready':
       return 'Ready, and';
+    case 'custom':
+      return 'Your words';
   }
 }
 
@@ -141,13 +187,15 @@ function patternWords(pattern: CountOffPattern, used: number): readonly (string 
  *   on (lead counts before the release), so the count-off never talks over it.
  *   With a 2-count lead the performer hears "five, six, five six" then the
  *   call.
- * - `pattern` picks the words (see CountOffPattern).
+ * - `pattern` picks the words (see CountOffPattern); `customWords` are the
+ *   words of the `custom` pattern.
  */
 export function countOffWord(
   count: number,
   countIn: number,
   settings: TossSettings,
   pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
+  customWords: readonly string[] = DEFAULT_CUSTOM_COUNT_OFF_WORDS,
 ): string | null {
   const L = settings.phraseLength;
   if (!Number.isInteger(count) || count < 1 || count > L) {
@@ -158,33 +206,68 @@ export function countOffWord(
   if (count > L - settings.leadCounts) return null;
   const fromEnd = L - count;
   if (fromEnd >= used) return null;
-  if (pattern === 'ready')
-    return readyWord(fromEnd - settings.leadCounts, used - settings.leadCounts);
+  if (pattern === 'ready' || pattern === 'custom') {
+    const cue = pattern === 'ready' ? READY_AND : customWords;
+    return cueWord(cue, fromEnd - settings.leadCounts, used - settings.leadCounts);
+  }
   return patternWords(pattern, used)[fromEnd] ?? null;
 }
 
 /**
- * "ready, and" for the `ready` pattern: `beforeCall` counts before the count
- * the call is spoken on (0 = the count just before it), when `room` counts of
- * count-in come before the call. Both words or none — a lone "and" means nothing.
+ * A word of a cue that ends just before the call ("ready, and" or the
+ * performer's own words): `beforeCall` counts before the count the call is
+ * spoken on (0 = the count just before it), when `room` counts of count-in
+ * come before the call. All the words or none — a cue cut short means nothing.
  */
-function readyWord(beforeCall: number, room: number): string | null {
-  if (room < READY_AND.length) return null;
-  return READY_AND[beforeCall] ?? null;
+function cueWord(words: readonly string[], beforeCall: number, room: number): string | null {
+  if (words.length === 0 || room < words.length) return null;
+  return words[words.length - 1 - beforeCall] ?? null;
 }
 
-/** Indexed back from the call: "and" right before it, "ready" the count before that. */
-const READY_AND: readonly string[] = ['and', 'ready'];
+/** "ready" two counts before the call, "and" right before it. */
+const READY_AND: readonly string[] = ['ready', 'and'];
+
+/** Counts of count-in before the first call is spoken (where a cue like "ready, and" must fit). */
+export function countsBeforeCall(countIn: number, settings: TossSettings): number {
+  return effectiveCountIn(countIn, settings) - settings.leadCounts;
+}
+
+/**
+ * The note under the custom words field: when they're spoken, or why not.
+ *
+ * - no words: "Type up to 8 words, one per count."
+ * - they fit: "Spoken on counts 13–15, one word per count, then the call."
+ * - too many: "4 words but only 2 counts before the call — shorten the lead,
+ *   lengthen the count-in or drop a word."
+ */
+export function customCountOffNote(
+  words: readonly string[],
+  countIn: number,
+  settings: TossSettings,
+): string {
+  if (words.length === 0) return `Type up to ${MAX_COUNT_OFF_WORDS} words, one per count.`;
+  const room = countsBeforeCall(countIn, settings);
+  if (words.length > room) {
+    const counts = room === 1 ? '1 count' : `${room} counts`;
+    return `${words.length} words but only ${counts} before the call — shorten the lead, lengthen the count-in or drop a word.`;
+  }
+  const last = settings.phraseLength - settings.leadCounts;
+  const first = last - words.length + 1;
+  const where = first === last ? `count ${last}` : `counts ${first}–${last}`;
+  const each = words.length === 1 ? '' : ', one word per count';
+  return `Spoken on ${where}${each}, then the call.`;
+}
 
 /** The whole count-off for these settings, count by count (for the settings hint and tests). */
 export function countOffWords(
   countIn: number,
   settings: TossSettings,
   pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
+  customWords: readonly string[] = DEFAULT_CUSTOM_COUNT_OFF_WORDS,
 ): { count: number; word: string }[] {
   const words: { count: number; word: string }[] = [];
   for (let count = 1; count <= settings.phraseLength; count++) {
-    const word = countOffWord(count, countIn, settings, pattern);
+    const word = countOffWord(count, countIn, settings, pattern, customWords);
     if (word) words.push({ count, word });
   }
   return words;
@@ -195,6 +278,7 @@ export function countOffSummary(
   countIn: number,
   settings: TossSettings,
   pattern: CountOffPattern = DEFAULT_COUNT_OFF_PATTERN,
+  customWords: readonly string[] = DEFAULT_CUSTOM_COUNT_OFF_WORDS,
 ): string | null {
   const digits: Record<string, string> = {
     one: '1',
@@ -206,10 +290,11 @@ export function countOffSummary(
     seven: '7',
     eight: '8',
   };
-  const words = countOffWords(countIn, settings, pattern);
+  const words = countOffWords(countIn, settings, pattern, customWords);
   if (words.length === 0) return null;
   // Words, not digits: quoted so the toggle reads ('Speak the count-off ("ready, and", then the call)').
-  if (pattern === 'ready') return '"ready, and"';
+  if (pattern === 'ready' || pattern === 'custom')
+    return `"${words.map((w) => w.word).join(', ')}"`;
   // A held count (a gap of more than one count) reads as a comma: "5 6, 5 6 7 8".
   return words
     .map((w, i) => {

@@ -80,6 +80,7 @@ describe('practice presets', () => {
         callHapticStyle: 'count' as const,
         countOff: true,
         countOffPattern: 'quick' as const,
+        countOffWords: ['hit', 'it'],
       },
     };
     const quick = presetById('quick-8')!;

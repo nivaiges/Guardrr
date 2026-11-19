@@ -126,6 +126,7 @@ export function createPracticeSession(options: PracticeSessionOptions): Practice
         options.countIn ?? 0,
         startSettings,
         cueOptions.countOffPattern,
+        cueOptions.countOffWords,
       );
       if (word) voice.say(word);
     }
