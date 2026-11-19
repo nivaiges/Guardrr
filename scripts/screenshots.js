@@ -221,6 +221,12 @@ async function main() {
     await page.getByRole('radio', { name: /^Ready, and/ }).click();
     await page.waitForTimeout(200);
     await shot(page, '28-count-off-ready');
+    await page.getByRole('radio', { name: /^Your words/ }).click();
+    await page.getByTestId('count-off-words').fill('hit it');
+    await page.getByTestId('count-off-words').blur();
+    await scrollTo(page.getByText('Count-in before the first toss', { exact: false }).first());
+    await page.waitForTimeout(200);
+    await shot(page, '29-count-off-your-words');
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
 
     // Settings → Sound: the optional call buzz, then "Buzz the number".

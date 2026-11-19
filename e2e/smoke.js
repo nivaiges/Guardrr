@@ -358,6 +358,52 @@ async function main() {
       .then(() => true)
       .catch(() => false);
     check('"Ready, and" is saved', savedReady);
+    // "Your words": the performer's own cue, one word per count, just before the call.
+    await page.getByRole('radio', { name: /^Your words/ }).click();
+    const wordsField = page.getByTestId('count-off-words');
+    await wordsField.fill('Hit it!');
+    check(
+      'your words are summarized as typed, cleaned up',
+      await page.getByText('Speak the count-off ("hit, it", then the call)').isVisible(),
+    );
+    check(
+      'the note says which counts your words land on',
+      (await page.getByTestId('count-off-words-note').textContent()) ===
+        // 16-count phrase: the call is on 16 - lead + 1, so two words on the two counts before it.
+        `Spoken on counts ${16 - LEAD_COUNTS - 1}–${16 - LEAD_COUNTS}, one word per count, then the call.`,
+      await page.getByTestId('count-off-words-note').textContent(),
+    );
+    await page.evaluate(() => (window.__speech.length = 0));
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    await page.waitForTimeout((COUNT_IN - LEAD_COUNTS + 1.5) * (60_000 / (BPM + 1)));
+    await page.getByRole('button', { name: 'Stop practice' }).click();
+    const ownWords = await page.evaluate(() => window.__speech.map((u) => u.text));
+    check(
+      'your words are spoken, then the call',
+      ownWords.slice(0, 2).join(' ') === 'hit it' && ownWords.length === 3,
+      ownWords.map((t) => `"${t}"`).join(', ') || 'none',
+    );
+    const savedWords = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.countOffWords?.join(
+            ' ',
+          ) === 'hit it',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('your words are saved', savedWords);
+    await wordsField.fill('one two three four five six seven eight');
+    check(
+      'too many words are flagged under the field',
+      /^8 words but only \d+ counts? before the call/.test(
+        (await page.getByTestId('count-off-words-note').textContent()) ?? '',
+      ),
+      await page.getByTestId('count-off-words-note').textContent(),
+    );
+    await wordsField.fill('hit it');
     await page.getByRole('radio', { name: 'Prep count: 5 6, 5 6 7 8' }).click();
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();
     check(

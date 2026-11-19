@@ -11,6 +11,7 @@ import {
   CountOffPattern,
   CueOptions,
   DEFAULT_COUNT_OFF_PATTERN,
+  DEFAULT_CUSTOM_COUNT_OFF_WORDS,
   MAX_BPM,
   MIN_BPM,
   PHRASE_LENGTH_OPTIONS,
@@ -44,6 +45,7 @@ import {
 } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 import { CallPicker } from './CallPicker';
+import { CountOffWordsField } from './CountOffWordsField';
 import { Segmented, Stepper, Toggle } from './controls';
 import { VoicePicker } from './VoicePicker';
 
@@ -161,7 +163,8 @@ export function SettingsPanel({
   const liveNote = liveSettingsNote(running, pendingChange);
   const countInUsed = effectiveCountIn(countIn, settings);
   const countOffPattern = cueOptions.countOffPattern ?? DEFAULT_COUNT_OFF_PATTERN;
-  const countOff = countOffSummary(countIn, settings, countOffPattern);
+  const countOffWords = cueOptions.countOffWords ?? DEFAULT_CUSTOM_COUNT_OFF_WORDS;
+  const countOff = countOffSummary(countIn, settings, countOffPattern, countOffWords);
   const callBuzzStyle = cueOptions.callHapticStyle ?? DEFAULT_CALL_BUZZ_STYLE;
   const buzzNote = callBuzzNote(callBuzzStyle, settings, bpm);
   // The call picked under "Feel a …" (not saved: it's only for trying the taps).
@@ -218,7 +221,9 @@ export function SettingsPanel({
         label={
           countOff
             ? `Speak the count-off (${countOff}, then the call)`
-            : 'Speak the count-off (no room before the call: shorten the lead)'
+            : countOffPattern === 'custom'
+              ? 'Speak the count-off (your words, then the call)'
+              : 'Speak the count-off (no room before the call: shorten the lead)'
         }
         value={cueOptions.countOff ?? false}
         onChange={(v) => onCueOptionsChange({ ...cueOptions, countOff: v })}
@@ -232,6 +237,14 @@ export function SettingsPanel({
           optionLabel={countOffPatternLabel}
           optionAccessibilityLabel={countOffPatternAccessibilityLabel}
           testID="count-off-pattern"
+        />
+      ) : null}
+      {cueOptions.countOff && countOffPattern === 'custom' ? (
+        <CountOffWordsField
+          words={countOffWords}
+          onChange={(words) => onCueOptionsChange({ ...cueOptions, countOffWords: words })}
+          countIn={countIn}
+          settings={settings}
         />
       ) : null}
 
