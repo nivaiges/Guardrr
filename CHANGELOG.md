@@ -1,5 +1,57 @@
 # Changelog
 
+## 2026-11-19
+
+### Added
+
+- **Your own count-off words** (roadmap: "Custom count-off words"). A fifth "Count it as" chip
+  under Settings → Phrase → Speak the count-off: **Your words**. Type a cue — a captain's "hit
+  it", "and set", "ready set go" — and the voice says it **one word per count, ending on the
+  count just before the call**, like "Ready, and". The toggle reads _Speak the count-off ("hit,
+  it", then the call)_, and a note under the field says where the words land (_"Spoken on
+  counts 11–12, one word per count, then the call."_) or that there are more words than counts
+  before the call (the field turns red).
+  - Engine: `CountOffPattern` gains `'custom'`; `CueOptions.countOffWords` (saved; older
+    settings start from "ready set"); `parseCountOffWords`, `formatCountOffWords`,
+    `parseStoredCountOffWords`, `countsBeforeCall`, `customCountOffNote`. "Ready, and" now
+    runs through the same code (`cueWord`) as your words.
+  - UI: `CountOffWordsField` (saved as you type).
+- Smoke test: 101 checks (your words are cleaned up, spoken before the call, saved, and flagged
+  when too many). New screenshot `29-count-off-your-words` in the README gallery.
+- 13 new unit tests (575 total).
+
+### Fixed
+
+- The README gallery's last row was shifted one column ("Call to feel" sat under "Taps in
+  fours"); each screenshot now sits under its own heading.
+- **Flaky smoke test**: the catch-rate trend check failed about one run in seven — when the
+  random call dropped earlier in the test was a 2, it shared its call with an older test
+  session and read "100% → 100%, steady". The check now keeps only the two sessions it means.
+  (A test bug, not an app bug.)
+
+### Decisions
+
+- **One word per count, ending just before the call**, the same place as "Ready, and": with the
+  default lead of 4 there's no room for a cue near the release anyway, and the call is the "go".
+- **All the words or none.** A cue cut short ("…it") means nothing, so with more words than
+  counts before the call nothing is spoken and the note says how to make room (shorter lead,
+  longer count-in, fewer words). With the default 8-count count-in and lead 4, up to 4 words fit.
+- **Up to 8 words of up to 16 letters**, lower-cased (some voices spell out "SET" as letters),
+  punctuation dropped except apostrophes and hyphens ("let's", "one-two"). Accented letters are
+  kept, but the voice still speaks English (your chosen voice).
+- **An empty field is allowed** (the count-off is silent, the note says to type words) rather
+  than snapping back to "ready set" while you're editing.
+
+### To test on your phone
+
+- Settings → Phrase → **Speak the count-off** → **Your words**, type your captain's cue, then
+  Start with Quads 155: do the words land on the clicks right before the call, and are short
+  words like "it" clear at 155 BPM?
+- Type a long cue (5+ words) and check the note turns red and explains it; lengthen the
+  count-in to **Phrase** and see it fit.
+- Not verifiable here: speech timing runs only on a device; today's checks cover the word
+  timing logic, the saved words, the spoken words (web speech mock) and the Settings UI.
+
 ## 2026-11-18
 
 ### Added

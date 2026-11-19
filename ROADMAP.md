@@ -28,7 +28,8 @@
         "1 2 3 4 5 6 7 8" or a quick "5 6 7 8" (Settings → Phrase → "Count it as").
   - [x] Prep patterns beyond the count-off: a spoken "ready, and" on the two counts just before
         the call (Settings → Phrase → "Count it as" → "Ready, and").
-  - [ ] Custom count-off words (a word list the performer types, e.g. a captain's own cue).
+  - [x] Custom count-off words (a word list the performer types, e.g. a captain's own cue) —
+        Settings → Phrase → "Count it as" → "Your words", spoken one per count just before the call.
   - [ ] Background audio (keep the metronome going with the screen locked).
   - [ ] Recorded voice option.
 
@@ -143,3 +144,9 @@
 - [x] Smoke test: the live-change check ("changes start with toss 2") was flaky — it read the note
       before the re-render after the tap (not a timing problem in the app); it now waits for it.
 - [x] Stats: "called most" wrapped onto two lines when calls tied ("4, 4 and") — short labels, "+N" past two.
+- [x] Smoke test: the catch-rate trend check failed about one run in seven (when the random dropped
+      call was a 2, the same call as an older test session); it now isolates the dropped call.
+- [ ] Your words: check on device that short words ("it", "and") aren't swallowed at fast tempos,
+      and whether some cues need two words on one count ("and a") — today it's one word per count.
+- [ ] Your words: let a custom cue start earlier than the counts just before the call (e.g. a
+      word on count 1 of the count-in), if performers ask for it.

@@ -46,7 +46,7 @@ Below that you can fine-tune:
 
 - **Tempo** — BPM stepper (±1 / ±5) or **tap tempo**; both work while practicing.
 - **Phrase** — counts per phrase (4 / 8 / 12 / 16 / 24 / 32), how many counts before the release
-  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase), optionally with the voice counting it off ("5 6, 5 6 7 8", a straight 1–8, a quick "5 6 7 8", or just "ready, and" right before the call) up to the first call.
+  the call is spoken, and the **count-in** before the first toss (4, 8 or a full phrase), optionally with the voice counting it off ("5 6, 5 6 7 8", a straight 1–8, a quick "5 6 7 8", just "ready, and" right before the call, or your own words such as "hit it") up to the first call.
 - **Calls** — shortest and longest toss, optional "and" calls, a chip per call to **hand-pick**
   exactly which ones come up (e.g. only 3, 5 and 7), **All / Odd / Even** shortcuts to pick a
   whole group in one tap, and whether the same call may come twice in a
