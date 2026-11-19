@@ -648,6 +648,12 @@ async function main() {
       const stored = JSON.parse(json);
       const dropped = stored.sessions.find((r) => r.drops > 0);
       const droppedCall = Object.keys(dropped.timesDropped)[0];
+      // Only the dropped session and the clean one below may have this call: the older
+      // hand-tuned session (5d) is a 2, and the random call dropped can be a 2 as well.
+      // (History is restored right after this check.)
+      stored.sessions = stored.sessions.filter(
+        (r) => r === dropped || !(r.timesCalled[droppedCall] > 0),
+      );
       stored.sessions.unshift({
         startedAt: Date.now(),
         durationMs: 60_000,
