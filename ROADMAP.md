@@ -30,7 +30,12 @@
         the call (Settings → Phrase → "Count it as" → "Ready, and").
   - [x] Custom count-off words (a word list the performer types, e.g. a captain's own cue) —
         Settings → Phrase → "Count it as" → "Your words", spoken one per count just before the call.
-  - [ ] Background audio (keep the metronome going with the screen locked).
+  - [ ] Background audio (keep the metronome going with the screen locked). Researched
+        ([docs/background-audio.md](docs/background-audio.md)): Android pauses JS timers in the
+        background, so it needs clicks _and_ calls on a native audio clock (react-native-audio-api
+        plus recorded calls). Until then practice stops cleanly when the app leaves the screen.
+  - [x] Stop practice when the app goes to the background (lock button, app switch) instead of
+        resuming mid-phrase with the time away counted; a note on the practice page says why.
   - [ ] Recorded voice option.
 
 - [x] **Niv's feedback 2026-11-05:** front camera on by default behind the practice display, with a
@@ -150,3 +155,10 @@
       and whether some cues need two words on one count ("and a") — today it's one word per count.
 - [ ] Your words: let a custom cue start earlier than the counts just before the call (e.g. a
       word on count 1 of the count-in), if performers ask for it.
+- [x] Unit tests: the History date test failed in US time zones (Nov 1, when clocks fall back, is
+      25 hours long); it now builds "yesterday" from the local date.
+- [ ] Left the screen: a "Resume" button that continues the same session (same stats, a fresh
+      count-in), if performers get interrupted often (a phone call, a message).
+- [ ] Left the screen: check on device that a short trip to Control Center / a notification
+      banner doesn't stop practice (iOS reports `inactive`, not `background`), and what Android
+      reports for the notification shade.

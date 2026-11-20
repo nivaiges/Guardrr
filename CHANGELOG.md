@@ -1,5 +1,56 @@
 # Changelog
 
+## 2026-11-20
+
+### Added
+
+- **Practice stops when Guardrr leaves the screen** (roadmap: "Background audio" — researched
+  first, see below). Pressing the lock button or switching apps mid-practice now stops the
+  session like Stop: it's saved to History with the time actually practiced, and when you come
+  back the practice page says _"Stopped when Guardrr left the screen, after 7 tosses (2:15).
+  They're saved in History. Tap Start to go again."_ The note goes away on the next Start.
+  Before, the metronome went silent in the background and, on return, picked up mid-phrase with
+  the time away counted in the session's duration.
+  - Engine: `shouldStopForAppState`, `interruptedNote` (`src/engine/interruption.ts`).
+- **Research: `docs/background-audio.md`** — what keeping the metronome going with the screen
+  locked would take, read from the exact Expo SDK 58 / React Native 0.88 code in use.
+- Smoke test: 104 checks (going to the background stops the clicks; coming back shows Start and
+  the note; Start clears it). New screenshot `30-left-the-screen` in the README gallery.
+- 7 new unit tests (582 total).
+
+### Fixed
+
+- **A unit test failed in US time zones**: the History date test put "yesterday" 25 hours
+  before 6:30 PM on Nov 1 — the day US clocks fall back, so that's 6:30 PM, not 5:30 PM. CI
+  runs in UTC, so it only showed up locally. The test now builds the date from the calendar
+  (checked in New York, Los Angeles, London, UTC, Tokyo and Sydney). A test bug, not an app bug.
+
+### Decisions
+
+- **No background playback yet.** React Native on Android stops JS timers while the app is in
+  the background (`JavaTimerManager.onHostPause`), and Guardrr's clicks, calls and buzzes are
+  all started from JS. expo-audio's background mode keeps the audio session alive but doesn't
+  restart those timers. iOS could be kept alive with a silent loop, but one setting that works
+  on iPhone and silently doesn't on Android is worse than a clean stop. Real background
+  practice needs clicks and recorded calls on a native audio clock (react-native-audio-api),
+  which is also the fix for the click- and speech-latency items still on the roadmap.
+- **Stop, not pause.** Calls are random, so there's nothing to resume mid-phrase; a fresh
+  Start gives a fresh count-in to get back in time. A "Resume" that keeps the same session's
+  stats is on the roadmap if interruptions turn out to be common.
+- **Only `background` stops it.** iOS reports `inactive` for Control Center, notification
+  banners and the app switcher opening; timers keep running then, so practice continues.
+- The expo-audio config plugin is **not** added to `app.json`: it would turn on background
+  playback and add the microphone permission by default, and neither is used yet.
+
+### To test on your phone
+
+- Start practice, press the lock button for a few seconds, unlock: practice should be stopped,
+  with the note above Start, and the session in History with roughly the time before you left.
+- Swipe down Control Center (iPhone) or the notification shade (Android) mid-practice: does
+  practice keep going? (Expected on iPhone; on Android the shade may count as leaving.)
+- Not verifiable here: app-state changes on a real phone. Today's checks cover the logic, and
+  the web build (a hidden browser tab counts as the background).
+
 ## 2026-11-19
 
 ### Added
