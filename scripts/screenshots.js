@@ -4,8 +4,8 @@
  * and captures the main screens — ready (over a fake camera), the call,
  * the release, the catch, stats and history, History in edit mode, shared
  * as CSV and filtered to one preset, the call picker, dark theme, and
- * saving, updating and moving a preset of your own, and Appearance forced
- * to Dark.
+ * saving, updating and moving a preset of your own, Appearance forced
+ * to Dark, and the note after leaving the screen mid-practice.
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -305,6 +305,22 @@ async function main() {
     await page.waitForTimeout(200);
     await shot(page, '24-appearance-dark');
     await context.close();
+
+    // Leaving the screen mid-practice stops the session and says so.
+    const away = await open('light');
+    await away.page.getByRole('button', { name: 'Start practice' }).click();
+    await exact(away.page, 'Release!').waitFor({ timeout: 10_000 });
+    await away.page.waitForTimeout(1500);
+    for (const state of ['hidden', 'visible']) {
+      await away.page.evaluate((v) => {
+        Object.defineProperty(document, 'visibilityState', { value: v, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+      }, state);
+    }
+    await away.page.getByTestId('interrupted-note').waitFor();
+    await away.page.waitForTimeout(300);
+    await shot(away.page, '30-left-the-screen');
+    await away.context.close();
 
     // Dark theme, mid-toss.
     const dark = await open('dark');

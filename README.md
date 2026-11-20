@@ -67,7 +67,10 @@ hasn't been called yet — the toss in the air finishes its phrase first, and Se
 toss the change starts with. Only choosing and testing voices waits for Stop. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
 settings. Settings are saved on the phone and come back the next time you open the app.
-The screen stays on while practicing, and the app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
+The screen stays on while practicing; if you lock the phone or switch apps, practice stops (the
+metronome can't keep time in the background yet — see
+[docs/background-audio.md](docs/background-audio.md)) and the practice page says so when you come
+back. The app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
 With VoiceOver or TalkBack on, Start and Stop are announced (tempo and call count, then the
 session summary) and the big display reads its whole state when focused — but the screen reader
 never narrates counts during practice, so it can't talk over the metronome or the call.
@@ -108,9 +111,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) | ![Call to feel: 4& picked, the button says "Feel a 4 and"](docs/screenshots/27-feel-a-call.png) | ![Count it as "Ready, and": two words just before the call](docs/screenshots/28-count-off-ready.png) |
 
-| Your own count-off words                                                                                                  |
-| ------------------------------------------------------------------------------------------------------------------------- |
-| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) |
+| Your own count-off words                                                                                                  | Left the screen                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss](docs/screenshots/30-left-the-screen.png) |
 
 ## Tech
 

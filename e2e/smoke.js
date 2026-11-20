@@ -893,6 +893,46 @@ async function main() {
     await livePage.getByRole('button', { name: 'Stop practice' }).click();
     await live.close();
 
+    // 5d. Leaving the screen stops the session and says so (timers pause in the background).
+    const away = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await away.addInitScript(instrument);
+    const awayPage = await away.newPage();
+    awayPage.on('pageerror', (e) => errors.push(`pageerror (away): ${e.message}`));
+    await awayPage.goto(base);
+    await awayPage.getByTestId('go-to-settings').click();
+    await awayPage.getByRole('radio', { name: 'Standard 16' }).click();
+    await awayPage.getByTestId('go-to-practice').click();
+    await awayPage.getByRole('button', { name: 'Start practice' }).click();
+    await awayPage.waitForTimeout((COUNT_IN + 2.5) * MS_PER_COUNT); // just past the first release
+    const setVisibility = (state) =>
+      awayPage.evaluate((v) => {
+        Object.defineProperty(document, 'visibilityState', { value: v, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+      }, state);
+    await setVisibility('hidden');
+    const awayStoppedAt = (await awayPage.evaluate(() => window.__plays)).length;
+    await awayPage.waitForTimeout(3 * MS_PER_COUNT);
+    check(
+      'going to the background stops the metronome',
+      (await awayPage.evaluate(() => window.__plays)).length === awayStoppedAt,
+    );
+    await setVisibility('visible');
+    const awayNote = awayPage.getByTestId('interrupted-note');
+    const awayNoteText = (await awayNote.isVisible()) ? await awayNote.textContent() : null;
+    check(
+      'coming back shows Start and why it stopped',
+      (await awayPage.getByRole('button', { name: 'Start practice' }).isVisible()) &&
+        /^Stopped when Guardrr left the screen, after 1 toss \(0:0\d\)\. It's saved in History\./.test(
+          awayNoteText ?? '',
+        ),
+      `"${awayNoteText}"`,
+    );
+    await awayPage.screenshot({ path: path.join(outDir, 'left-the-screen.png'), fullPage: true });
+    await awayPage.getByRole('button', { name: 'Start practice' }).click();
+    check('Start clears the note', (await awayNote.count()) === 0);
+    await awayPage.getByRole('button', { name: 'Stop practice' }).click();
+    await away.close();
+
     // 6. Dark theme renders.
     const dark = await browser.newContext({
       colorScheme: 'dark',

@@ -38,6 +38,7 @@ import {
   VOICE_TEST_PHRASE,
   applyPreset,
   dropButtonText,
+  interruptedNote,
   otherPage,
   pageFromOffset,
   practiceDisplay,
@@ -47,6 +48,7 @@ import {
   resolveVoice,
   sessionRecord,
   settingsLinkLabel,
+  shouldStopForAppState,
   summarizeStats,
 } from './src/engine';
 import { createHapticPlayer, HapticPlayer } from './src/feedback';
@@ -164,15 +166,30 @@ export default function App() {
     // Re-save only when the totals change (a late drop), not on every new object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, record?.tosses, record?.drops, saveSession]);
+  // Shown on the practice page after leaving the screen stopped the session.
+  const [interrupted, setInterrupted] = useState<string | null>(null);
+  // Timers pause in the background (docs/background-audio.md): stop the
+  // session instead of resuming mid-phrase with the time away counted.
+  const onBackground = useRef<(state: string) => void>(() => {});
+  useEffect(() => {
+    onBackground.current = (state) => {
+      if (!shouldStopForAppState(state, running)) return;
+      setStoppedWith(playing);
+      stop();
+      setInterrupted(interruptedNote(summarizeStats(stats)));
+    };
+  }, [running, playing, stop, stats]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active' && latestRecord.current) saveSession(latestRecord.current);
+      onBackground.current(state);
     });
     return () => sub.remove();
   }, [saveSession]);
   // One short screen-reader announcement per Start/Stop (no-op without one).
   const onStart = () => {
     setStoppedWith(null);
+    setInterrupted(null);
     start();
     AccessibilityInfo.announceForAccessibility(practiceStartedAnnouncement(bpm, settings));
   };
@@ -250,6 +267,11 @@ export default function App() {
             </View>
 
             <View style={styles.controls}>
+              {interrupted && !running ? (
+                <View style={styles.notePill} testID="interrupted-note">
+                  <Text style={styles.noteText}>{interrupted}</Text>
+                </View>
+              ) : null}
               <View style={styles.buttonRow}>
                 <Pressable
                   style={[styles.startButton, running && styles.stopButton]}
@@ -426,6 +448,14 @@ const getStyles = themed((t: Theme) =>
       paddingHorizontal: 16,
     },
     controls: { alignItems: 'center', paddingHorizontal: 16, paddingBottom: 40, gap: 10 },
+    notePill: {
+      maxWidth: 420,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      backgroundColor: t.background + 'E6',
+    },
+    noteText: { fontSize: 14, lineHeight: 19, color: t.text, textAlign: 'center' },
     dots: { position: 'absolute', left: 0, right: 0, bottom: 12, alignItems: 'center' },
     buttonRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
     startButton: {
