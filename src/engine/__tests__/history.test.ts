@@ -195,7 +195,9 @@ describe('summarizeHistory', () => {
         timesDropped: { '5': 1, '7': 1 },
       }),
       record({
-        startedAt: NOW - 90_000_000,
+        // Built from the local date, not NOW − 25 h: Nov 1 is when US clocks fall back,
+        // so 25 hours before 6:30 PM there is 6:30 PM the day before.
+        startedAt: new Date(2026, 9, 31, 17, 30).getTime(),
         durationMs: 120_000,
         tosses: 6,
         drops: 1,
