@@ -34,14 +34,17 @@ import {
   PageIndex,
   PracticePreset,
   SessionContext,
+  StatsSummary,
   TossSettings,
   VOICE_TEST_PHRASE,
   applyPreset,
+  canResume,
   dropButtonText,
   interruptedNote,
   otherPage,
   pageFromOffset,
   practiceDisplay,
+  practiceResumedAnnouncement,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
   presetForToss,
@@ -125,8 +128,18 @@ export default function App() {
     updatePreset,
     movePreset,
   } = useCustomPresets();
-  const { running, cue, stats, startedAt, activeSettings, pendingChange, start, stop, toggleDrop } =
-    usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
+  const {
+    running,
+    cue,
+    stats,
+    startedAt,
+    activeSettings,
+    pendingChange,
+    start,
+    resume,
+    stop,
+    toggleDrop,
+  } = usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
   // Right after a release Drop marks the toss before it (see DROP_GRACE_COUNTS).
   const drop = dropButtonText(stats);
   const {
@@ -166,23 +179,36 @@ export default function App() {
     // Re-save only when the totals change (a late drop), not on every new object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, record?.tosses, record?.drops, saveSession]);
-  // Shown on the practice page after leaving the screen stopped the session.
-  const [interrupted, setInterrupted] = useState<string | null>(null);
+  // Shown on the practice page after leaving the screen stopped the session:
+  // when it stopped (for Resume) and the session's summary at that moment.
+  const [interrupted, setInterrupted] = useState<{
+    atMs: number;
+    summary: StatsSummary;
+  } | null>(null);
+  // Resume is offered for a while after leaving the screen (RESUME_WINDOW_MS);
+  // re-checked each time the app comes back to the screen.
+  const [resumable, setResumable] = useState(false);
   // Timers pause in the background (docs/background-audio.md): stop the
   // session instead of resuming mid-phrase with the time away counted.
-  const onBackground = useRef<(state: string) => void>(() => {});
+  const onAppState = useRef<(state: string) => void>(() => {});
   useEffect(() => {
-    onBackground.current = (state) => {
+    onAppState.current = (state) => {
+      if (state === 'active' && interrupted && !running) {
+        setResumable(canResume(interrupted.atMs, Date.now(), interrupted.summary.tosses));
+      }
       if (!shouldStopForAppState(state, running)) return;
+      const summary = summarizeStats(stats);
+      const atMs = Date.now();
       setStoppedWith(playing);
       stop();
-      setInterrupted(interruptedNote(summarizeStats(stats)));
+      setInterrupted({ atMs, summary });
+      setResumable(canResume(atMs, atMs, summary.tosses));
     };
-  }, [running, playing, stop, stats]);
+  }, [running, playing, stop, stats, interrupted]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active' && latestRecord.current) saveSession(latestRecord.current);
-      onBackground.current(state);
+      onAppState.current(state);
     });
     return () => sub.remove();
   }, [saveSession]);
@@ -190,8 +216,23 @@ export default function App() {
   const onStart = () => {
     setStoppedWith(null);
     setInterrupted(null);
+    setResumable(false);
     start();
     AccessibilityInfo.announceForAccessibility(practiceStartedAnnouncement(bpm, settings));
+  };
+  // Continue the interrupted session (same History entry), with a fresh count-in.
+  const onResume = () => {
+    if (!interrupted || !canResume(interrupted.atMs, Date.now(), interrupted.summary.tosses)) {
+      setResumable(false);
+      return;
+    }
+    setStoppedWith(null);
+    setInterrupted(null);
+    setResumable(false);
+    resume();
+    AccessibilityInfo.announceForAccessibility(
+      practiceResumedAnnouncement(interrupted.summary.tosses),
+    );
   };
   const onStop = () => {
     setStoppedWith(playing);
@@ -268,8 +309,24 @@ export default function App() {
 
             <View style={styles.controls}>
               {interrupted && !running ? (
-                <View style={styles.notePill} testID="interrupted-note">
-                  <Text style={styles.noteText}>{interrupted}</Text>
+                <View style={styles.notePill}>
+                  <Text style={styles.noteText} testID="interrupted-note">
+                    {interruptedNote(interrupted.summary, resumable)}
+                  </Text>
+                  {resumable ? (
+                    <Pressable
+                      testID="resume-practice"
+                      style={({ pressed }) => [styles.resumeButton, pressed && styles.pressed]}
+                      onPress={onResume}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Resume practice at toss ${interrupted.summary.tosses + 1}`}
+                      accessibilityHint="Keeps counting this session, after a fresh count-in"
+                    >
+                      <Text style={styles.resumeText}>
+                        Resume · toss {interrupted.summary.tosses + 1}
+                      </Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               ) : null}
               <View style={styles.buttonRow}>
@@ -456,6 +513,16 @@ const getStyles = themed((t: Theme) =>
       backgroundColor: t.background + 'E6',
     },
     noteText: { fontSize: 14, lineHeight: 19, color: t.text, textAlign: 'center' },
+    resumeButton: {
+      alignSelf: 'center',
+      marginTop: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 22,
+      borderRadius: 22,
+      borderWidth: 2,
+      borderColor: t.primary,
+    },
+    resumeText: { fontSize: 17, fontWeight: '700', color: t.text },
     dots: { position: 'absolute', left: 0, right: 0, bottom: 12, alignItems: 'center' },
     buttonRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
     startButton: {

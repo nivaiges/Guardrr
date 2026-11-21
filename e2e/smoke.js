@@ -928,6 +928,45 @@ async function main() {
       `"${awayNoteText}"`,
     );
     await awayPage.screenshot({ path: path.join(outDir, 'left-the-screen.png'), fullPage: true });
+    const resumeButton = awayPage.getByTestId('resume-practice');
+    check(
+      'coming back offers Resume at the next toss',
+      (await resumeButton.isVisible()) &&
+        (await resumeButton.textContent()) === 'Resume · toss 2' &&
+        /Resume keeps counting this session; Start begins a new one\.$/.test(awayNoteText ?? ''),
+      `"${(await resumeButton.count()) ? await resumeButton.textContent() : 'no Resume'}"`,
+    );
+    // Resume: a fresh count-in, then toss 2 of the same session.
+    const resumedFrom = (await awayPage.evaluate(() => window.__plays)).length;
+    await resumeButton.click();
+    check('Resume clears the note', (await awayNote.count()) === 0);
+    await awayPage.waitForTimeout((COUNT_IN + 2.5) * MS_PER_COUNT);
+    const resumedCounts = (await awayPage.evaluate(() => window.__plays))
+      .slice(resumedFrom)
+      .filter((p) => p.kind !== 'and');
+    const resumedAccent = resumedCounts.findIndex((p) => p.kind === 'accent');
+    check(
+      'Resume plays a fresh count-in before the next release',
+      resumedAccent === COUNT_IN,
+      `first accent at click ${resumedAccent + 1}`,
+    );
+    await awayPage.getByRole('button', { name: 'Stop practice' }).click();
+    await awayPage.getByTestId('go-to-settings').click();
+    const awayTotals = awayPage.getByLabel(/^\d+ sessions?, \d+ toss(es)?/);
+    const awayTotalsText = (await awayTotals.count())
+      ? await awayTotals.first().getAttribute('aria-label')
+      : null;
+    check(
+      'a resumed session stays one History entry (1 session, 2 tosses)',
+      /^1 session, 2 tosses/.test(awayTotalsText ?? ''),
+      `"${awayTotalsText}"`,
+    );
+    await awayPage.getByTestId('go-to-practice').click();
+    // Leaving again, then Start: a new session, and the note goes away.
+    await awayPage.getByRole('button', { name: 'Start practice' }).click();
+    await awayPage.waitForTimeout((COUNT_IN + 2.5) * MS_PER_COUNT);
+    await setVisibility('hidden');
+    await setVisibility('visible');
     await awayPage.getByRole('button', { name: 'Start practice' }).click();
     check('Start clears the note', (await awayNote.count()) === 0);
     await awayPage.getByRole('button', { name: 'Stop practice' }).click();

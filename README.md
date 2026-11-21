@@ -111,9 +111,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) | ![Call to feel: 4& picked, the button says "Feel a 4 and"](docs/screenshots/27-feel-a-call.png) | ![Count it as "Ready, and": two words just before the call](docs/screenshots/28-count-off-ready.png) |
 
-| Your own count-off words                                                                                                  | Left the screen                                                                                |
-| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss](docs/screenshots/30-left-the-screen.png) |
+| Your own count-off words                                                                                                  | Left the screen                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss, with Resume · toss 2](docs/screenshots/30-left-the-screen.png) |
 
 ## Tech
 

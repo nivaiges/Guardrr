@@ -1,5 +1,6 @@
 import {
   displayAccessibilityLabel,
+  practiceResumedAnnouncement,
   practiceStartedAnnouncement,
   practiceStoppedAnnouncement,
   spokenCallLabel,
@@ -133,5 +134,15 @@ describe('practice announcements', () => {
     expect(practiceStoppedAnnouncement(dropped)).toBe(
       'Stopped. 4 tosses, 1 drop, 75% caught, in 1 minute.',
     );
+  });
+});
+
+describe('practiceResumedAnnouncement', () => {
+  it('says which toss comes next and that a count-in comes first', () => {
+    expect(practiceResumedAnnouncement(7)).toBe('Resumed. Toss 8 is next, after the count-in.');
+  });
+
+  it('never says toss 0 or a negative toss', () => {
+    expect(practiceResumedAnnouncement(-3)).toBe('Resumed. Toss 1 is next, after the count-in.');
   });
 });

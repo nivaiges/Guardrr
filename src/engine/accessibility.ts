@@ -72,6 +72,14 @@ export function practiceStartedAnnouncement(bpm: number, settings: TossSettings)
 }
 
 /** Said once when practice stops: how many tosses and how long. */
+/**
+ * Spoken when Resume continues a session after leaving the screen, e.g.
+ * "Resumed. Toss 8 is next, after the count-in."
+ */
+export function practiceResumedAnnouncement(tossesSoFar: number): string {
+  return `Resumed. Toss ${Math.max(0, tossesSoFar) + 1} is next, after the count-in.`;
+}
+
 export function practiceStoppedAnnouncement(summary: StatsSummary): string {
   if (summary.tosses === 0) return 'Stopped before the first toss.';
   const drops =

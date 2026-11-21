@@ -9,6 +9,7 @@ import {
   SessionStats,
   TossSettings,
   recordCue,
+  resumeStats,
   toggleDrop,
 } from '../engine';
 import { createHapticPlayer, useKeepAwakeWhile } from '../feedback';
@@ -27,6 +28,12 @@ export interface PracticeSessionState {
   /** Settings changed while practicing that wait for their phrase, or null. */
   pendingChange: PendingSettingsChange | null;
   start(): void;
+  /**
+   * Start a new run that continues the last session's stats (same start
+   * time, tosses, drops; the time stopped isn't counted), with a fresh
+   * count-in. Used after leaving the screen stopped practice.
+   */
+  resume(): void;
   stop(): void;
   /** Mark (or un-mark) the latest toss as dropped; also works after Stop. */
   toggleDrop(): void;
@@ -115,33 +122,43 @@ export function usePracticeSession(
     setPendingChange(null);
   }, []);
 
-  const start = useCallback(() => {
-    if (session.current?.running || !clicks.current) return;
-    setStats(EMPTY_STATS);
-    setStartedAt(Date.now());
-    const s = createPracticeSession({
-      bpm: bpmRef.current,
-      settings,
-      cueOptions,
-      countIn,
-      clicks: clicks.current,
-      voice: createVoice({ rate: voiceRate, voice }),
-      haptics: createHapticPlayer(),
-      onCue: (c) => {
-        // recordCue returns the same object for silent ticks, so this only
-        // re-renders when something was counted.
-        const now = performance.now();
-        setStats((prev) => recordCue(prev, c, now));
-        // Re-render on counts, and on an "and" only when a catch lands there.
-        if (c.subdivision === 0 || c.catch) setCue(c);
-        if (c.subdivision === 0) syncFromSession(s);
-      },
-    });
-    session.current = s;
-    s.start();
-    setRunning(true);
-    syncFromSession(s);
-  }, [settings, cueOptions, countIn, voiceRate, voice, syncFromSession]);
+  const begin = useCallback(
+    (continueSession: boolean) => {
+      if (session.current?.running || !clicks.current) return;
+      if (continueSession) {
+        setStats((prev) => resumeStats(prev));
+        setStartedAt((prev) => prev ?? Date.now());
+      } else {
+        setStats(EMPTY_STATS);
+        setStartedAt(Date.now());
+      }
+      const s = createPracticeSession({
+        bpm: bpmRef.current,
+        settings,
+        cueOptions,
+        countIn,
+        clicks: clicks.current,
+        voice: createVoice({ rate: voiceRate, voice }),
+        haptics: createHapticPlayer(),
+        onCue: (c) => {
+          // recordCue returns the same object for silent ticks, so this only
+          // re-renders when something was counted.
+          const now = performance.now();
+          setStats((prev) => recordCue(prev, c, now));
+          // Re-render on counts, and on an "and" only when a catch lands there.
+          if (c.subdivision === 0 || c.catch) setCue(c);
+          if (c.subdivision === 0) syncFromSession(s);
+        },
+      });
+      session.current = s;
+      s.start();
+      setRunning(true);
+      syncFromSession(s);
+    },
+    [settings, cueOptions, countIn, voiceRate, voice, syncFromSession],
+  );
+  const start = useCallback(() => begin(false), [begin]);
+  const resume = useCallback(() => begin(true), [begin]);
 
   const toggleLatestDrop = useCallback(() => setStats((prev) => toggleDrop(prev)), []);
 
@@ -153,6 +170,7 @@ export function usePracticeSession(
     activeSettings: running ? activeSettings : settings,
     pendingChange,
     start,
+    resume,
     stop,
     toggleDrop: toggleLatestDrop,
   };
