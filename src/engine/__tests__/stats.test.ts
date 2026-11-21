@@ -13,9 +13,12 @@ import {
   mostCalledLabel,
   mostCalledSpoken,
   recordCue,
+  resumeStats,
+  statsDurationMs,
   summarizeStats,
   toggleDrop,
 } from '../stats';
+import { sessionRecord } from '../history';
 
 const MS_PER_TICK = 250; // 120 BPM, two ticks per count
 
@@ -378,5 +381,81 @@ describe('formatDuration', () => {
   it('treats negative and invalid input as zero', () => {
     expect(formatDuration(-5)).toBe('0:00');
     expect(formatDuration(NaN)).toBe('0:00');
+  });
+});
+
+describe('resumeStats (Resume after leaving the screen)', () => {
+  const settings: TossSettings = { ...DEFAULT_TOSS_SETTINGS, phraseLength: 8, leadCounts: 4 };
+
+  /** Fold `counts` more counts into `stats`, starting at time `t0`. */
+  function playOn(stats: SessionStats, counts: number, t0: number, seed = 5) {
+    const calls = new CallSequence(settings, createRng(seed));
+    let s = stats;
+    for (let tick = 0; tick < counts * 2; tick++) {
+      const cue = cueForTick(
+        { tick, countIndex: Math.floor(tick / 2), subdivision: tick % 2 },
+        settings,
+        calls,
+      );
+      s = recordCue(s, cue, t0 + tick * MS_PER_TICK);
+    }
+    return s;
+  }
+
+  it('keeps tosses, drops and calls, and keeps counting tosses up', () => {
+    const before = toggleDrop(playOn(EMPTY_STATS, 24, 1000));
+    const resumed = resumeStats(before);
+    expect(resumed).toMatchObject({
+      tosses: before.tosses,
+      drops: 1,
+      timesCalled: before.timesCalled,
+      timesDropped: before.timesDropped,
+      recent: before.recent,
+    });
+    const after = playOn(resumed, 24, 10_000_000);
+    expect(after.tosses).toBeGreaterThan(before.tosses);
+    expect(after.drops).toBe(1);
+    // Drop now marks a toss numbered after the ones before Resume.
+    expect(dropTarget(playOn(after, 6, 20_000_000))?.toss).toBeGreaterThan(before.tosses);
+  });
+
+  /** Time from the first to the last counted cue of one run. */
+  const span = (stats: SessionStats) => (stats.lastCueAtMs ?? 0) - (stats.startedAtMs ?? 0);
+
+  it("doesn't count the time away as practice", () => {
+    const before = playOn(EMPTY_STATS, 24, 1000);
+    const first = span(before);
+    expect(first).toBeGreaterThan(10_000);
+    expect(statsDurationMs(before)).toBe(first);
+    const resumed = resumeStats(before);
+    expect(statsDurationMs(resumed)).toBe(first);
+    // Come back 20 minutes later and play 24 more counts.
+    const after = playOn(resumed, 24, 1000 + 20 * 60_000);
+    expect(statsDurationMs(after)).toBe(first + span(after));
+    expect(statsDurationMs(after)).toBeLessThan(30_000);
+  });
+
+  it('saves the resumed session under the same start with the summed time', () => {
+    const before = playOn(EMPTY_STATS, 24, 1000);
+    const after = playOn(resumeStats(before), 24, 5_000_000);
+    const context = { startedAt: 42, bpm: 120, phraseLength: 8, preset: null };
+    const first = sessionRecord(before, context);
+    const second = sessionRecord(after, context);
+    expect(second?.startedAt).toBe(first?.startedAt);
+    expect(second?.durationMs).toBe(span(before) + span(after));
+    expect(second?.tosses).toBe(after.tosses);
+  });
+
+  it('can be resumed more than once', () => {
+    const a = playOn(EMPTY_STATS, 8, 0);
+    const b = playOn(resumeStats(a), 8, 1e6);
+    const c = playOn(resumeStats(b), 8, 2e6);
+    expect(statsDurationMs(c)).toBe(span(a) + span(b) + span(c));
+    expect(summarizeStats(c).durationMs).toBe(statsDurationMs(c));
+  });
+
+  it('treats stats from before Resume existed (no earlierMs) as no earlier time', () => {
+    const { earlierMs: _gone, ...old } = playOn(EMPTY_STATS, 8, 0);
+    expect(statsDurationMs(old)).toBe(span(old));
   });
 });

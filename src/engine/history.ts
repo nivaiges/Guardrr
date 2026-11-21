@@ -11,7 +11,7 @@
  */
 
 import { callLabel, isValidCall } from './calls';
-import { SessionStats, formatDuration } from './stats';
+import { SessionStats, formatDuration, statsDurationMs } from './stats';
 
 export const HISTORY_STORAGE_KEY = 'guardrr.history';
 export const HISTORY_VERSION = 1;
@@ -66,10 +66,7 @@ const withPreset = (raw: unknown): { preset?: string } => {
 /** The record for a session, or null when nothing was tossed (not worth keeping). */
 export function sessionRecord(stats: SessionStats, context: SessionContext): SessionRecord | null {
   if (stats.tosses === 0) return null;
-  const durationMs =
-    stats.startedAtMs !== null && stats.lastCueAtMs !== null
-      ? Math.max(0, Math.round(stats.lastCueAtMs - stats.startedAtMs))
-      : 0;
+  const durationMs = Math.round(statsDurationMs(stats));
   return {
     startedAt: context.startedAt,
     durationMs,

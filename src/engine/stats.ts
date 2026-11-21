@@ -53,6 +53,11 @@ export interface SessionStats {
   drops: number;
   /** How often each call was dropped, over the whole session. */
   timesDropped: Readonly<Record<string, number>>;
+  /**
+   * Practice time from before a Resume (see resumeStats), in ms. The time
+   * between leaving the screen and Resume isn't counted. Absent = 0.
+   */
+  earlierMs?: number;
 }
 
 export const EMPTY_STATS: SessionStats = {
@@ -65,7 +70,27 @@ export const EMPTY_STATS: SessionStats = {
   timesCalled: {},
   drops: 0,
   timesDropped: {},
+  earlierMs: 0,
 };
+
+/** Time practiced: earlier segments (before a Resume) plus the current one. */
+export function statsDurationMs(stats: SessionStats): number {
+  const current =
+    stats.startedAtMs !== null && stats.lastCueAtMs !== null
+      ? Math.max(0, stats.lastCueAtMs - stats.startedAtMs)
+      : 0;
+  return (stats.earlierMs ?? 0) + current;
+}
+
+/**
+ * Continue a stopped session's stats in a new run (Resume after leaving the
+ * screen): tosses, drops and calls carry on, the time so far is banked in
+ * `earlierMs`, and the clock restarts at the next cue so the time away isn't
+ * counted. Toss numbers keep counting up ("toss 8" after 7).
+ */
+export function resumeStats(stats: SessionStats): SessionStats {
+  return { ...stats, earlierMs: statsDurationMs(stats), startedAtMs: null, lastCueAtMs: null };
+}
 
 /** Fold one cue into the stats. Returns the same object when nothing changed. */
 export function recordCue(stats: SessionStats, cue: PracticeCue, nowMs: number): SessionStats {
@@ -228,10 +253,7 @@ export function formatDuration(ms: number): string {
 }
 
 export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSummary {
-  const durationMs =
-    stats.startedAtMs !== null && stats.lastCueAtMs !== null
-      ? stats.lastCueAtMs - stats.startedAtMs
-      : 0;
+  const durationMs = statsDurationMs(stats);
   const tally = Object.entries(stats.timesCalled)
     .map(([key, times]) => {
       const call = Number(key);
