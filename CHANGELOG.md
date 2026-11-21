@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-11-21
+
+### Added
+
+- **Resume after leaving the screen** (roadmap: "Left the screen: a Resume button"). When the
+  lock button or an app switch stopped practice, the note on the practice page now ends with
+  _"Resume keeps counting this session; Start begins a new one."_ and a **Resume · toss 8**
+  button under it. Resume plays a fresh count-in (your count-in setting), then carries on with
+  the same session: toss numbers keep counting up, earlier drops and calls stay in the stats, and
+  History keeps **one entry** for it, with the time away **not** counted in its duration. Start
+  still begins a brand-new session. Screen readers hear _"Resumed. Toss 8 is next, after the
+  count-in."_
+  - Engine: `resumeStats`, `statsDurationMs` and `SessionStats.earlierMs` (`stats.ts`);
+    `canResume`, `RESUME_WINDOW_MS` and `interruptedNote(summary, resumable)`
+    (`interruption.ts`); `practiceResumedAnnouncement`.
+  - `usePracticeSession` gains `resume()`.
+- Smoke test: 108 checks (Resume is offered at toss 2, clears the note, plays a full count-in
+  before the next release, and the History totals read "1 session, 2 tosses"). Screenshot
+  `30-left-the-screen` now shows the Resume button.
+- 13 new unit tests (595 total).
+
+### Decisions
+
+- **Offered for 30 minutes after leaving the screen**, then only Start. A phone call or a text is
+  a pause; coming back after a long break is a new practice (you'd re-warm up anyway). The window
+  is checked again each time the app comes back to the screen, and when Resume is tapped.
+- **Only after leaving the screen, not after Stop.** Stop is a deliberate end; the note (and
+  its Resume) disappears on the next Start.
+- **Only with at least one toss.** Before the first toss, Resume and Start would be the same.
+- **Fresh count-in, new calls.** Calls are random and the phrase position is lost, so Resume
+  starts a new phrase after the count-in rather than trying to rejoin the old one.
+- Settings changed while stopped apply to the resumed run, and the History entry is labelled with
+  the tempo/phrase/preset at the final Stop (the same rule as live changes).
+
+### To test on your phone
+
+- Start Quads 155, make a few tosses, lock the phone for a few seconds, unlock: the note should
+  offer **Resume · toss N**. Tap it: a count-in, then the next toss. Stop and check History shows
+  one session with all the tosses and about the time you actually practiced.
+- Lock the phone for more than 30 minutes mid-practice: on return only Start should be offered.
+- Not verifiable here: app-state changes on a real phone; the web build (a hidden tab counts as
+  the background) and the unit tests cover the logic.
+
 ## 2026-11-20
 
 ### Added

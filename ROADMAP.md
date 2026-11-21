@@ -157,8 +157,12 @@
       word on count 1 of the count-in), if performers ask for it.
 - [x] Unit tests: the History date test failed in US time zones (Nov 1, when clocks fall back, is
       25 hours long); it now builds "yesterday" from the local date.
-- [ ] Left the screen: a "Resume" button that continues the same session (same stats, a fresh
-      count-in), if performers get interrupted often (a phone call, a message).
+- [x] Left the screen: a "Resume" button that continues the same session (same stats, a fresh
+      count-in) — "Resume · toss 8" in the note for 30 minutes; one History entry, time away not counted.
+- [ ] Resume: check on device that 30 minutes is the right window (a water break vs. the end of a
+      rehearsal block), and whether Resume should also be offered after a plain Stop.
+- [ ] Resume: a session resumed with different settings is saved with the last tempo/phrase (like a
+      live change); consider showing "resumed" in History if that turns out confusing.
 - [ ] Left the screen: check on device that a short trip to Control Center / a notification
       banner doesn't stop practice (iOS reports `inactive`, not `background`), and what Android
       reports for the notification shade.

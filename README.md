@@ -70,7 +70,8 @@ settings. Settings are saved on the phone and come back the next time you open t
 The screen stays on while practicing; if you lock the phone or switch apps, practice stops (the
 metronome can't keep time in the background yet — see
 [docs/background-audio.md](docs/background-audio.md)) and the practice page says so when you come
-back. The app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
+back, with a **Resume** button for 30 minutes that keeps counting the same session after a fresh
+count-in (one History entry; the time away isn't counted). The app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
 With VoiceOver or TalkBack on, Start and Stop are announced (tempo and call count, then the
 session summary) and the big display reads its whole state when focused — but the screen reader
 never narrates counts during practice, so it can't talk over the metronome or the call.
