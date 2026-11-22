@@ -236,3 +236,42 @@ export function liveSettingsNote(
     ? `Your changes start with toss ${pending.phrase} — its call is in.`
     : `Your changes start with toss ${pending.phrase}.`;
 }
+
+/** A button under the live-settings note that starts the changes right away. */
+export interface ApplyNowOffer {
+  label: string;
+  accessibilityLabel: string;
+  /** Counts sooner than waiting for the pending change's own release. */
+  countsSooner: number;
+}
+
+/**
+ * Whether to offer "Start changes now": restart the phrase straight away —
+ * a fresh count-in under the new settings, the same session (stats keep
+ * counting, see resumeStats) — instead of waiting for the toss the change
+ * was scheduled for. Only offered when that's actually sooner: waiting
+ * takes until the pending release, restarting takes the count-in. A change
+ * whose call is already in is always closer than any count-in (a count-in is
+ * never shorter than the lead counts), so it's never offered then.
+ *
+ * @param nextCountIndex session count index of the next count to be played.
+ * @param countInCounts length of the count-in under the NEW settings (effectiveCountIn).
+ * @param tossesSoFar tosses released in this session (the next one is +1).
+ */
+export function applyNowOffer(
+  pending: PendingSettingsChange | null,
+  nextCountIndex: number,
+  countInCounts: number,
+  tossesSoFar: number,
+): ApplyNowOffer | null {
+  if (!pending || pending.committed) return null;
+  const countsToWait = pending.startsAtCountIndex - nextCountIndex;
+  const countsSooner = countsToWait - countInCounts;
+  if (countsSooner <= 0) return null;
+  const nextToss = Math.max(0, tossesSoFar) + 1;
+  return {
+    label: 'Start changes now',
+    accessibilityLabel: `Start your changes now: count-in of ${countInCounts}, then toss ${nextToss}`,
+    countsSooner,
+  };
+}

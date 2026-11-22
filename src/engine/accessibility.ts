@@ -71,7 +71,6 @@ export function practiceStartedAnnouncement(bpm: number, settings: TossSettings)
   return `Started. ${bpm} BPM, ${settings.phraseLength}-count phrase, call on count ${callCount}.`;
 }
 
-/** Said once when practice stops: how many tosses and how long. */
 /**
  * Spoken when Resume continues a session after leaving the screen, e.g.
  * "Resumed. Toss 8 is next, after the count-in."
@@ -79,6 +78,16 @@ export function practiceStartedAnnouncement(bpm: number, settings: TossSettings)
 export function practiceResumedAnnouncement(tossesSoFar: number): string {
   return `Resumed. Toss ${Math.max(0, tossesSoFar) + 1} is next, after the count-in.`;
 }
+
+/**
+ * Spoken when "Start changes now" restarts the phrase with the new settings,
+ * e.g. "Changes start now. Toss 8 is next, after the count-in."
+ */
+export function changesStartedNowAnnouncement(tossesSoFar: number): string {
+  return `Changes start now. Toss ${Math.max(0, tossesSoFar) + 1} is next, after the count-in.`;
+}
+
+/** Said once when practice stops: how many tosses and how long. */
 
 export function practiceStoppedAnnouncement(summary: StatsSummary): string {
   if (summary.tosses === 0) return 'Stopped before the first toss.';

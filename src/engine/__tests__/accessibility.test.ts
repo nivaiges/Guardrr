@@ -1,4 +1,5 @@
 import {
+  changesStartedNowAnnouncement,
   displayAccessibilityLabel,
   practiceResumedAnnouncement,
   practiceStartedAnnouncement,
@@ -144,5 +145,16 @@ describe('practiceResumedAnnouncement', () => {
 
   it('never says toss 0 or a negative toss', () => {
     expect(practiceResumedAnnouncement(-3)).toBe('Resumed. Toss 1 is next, after the count-in.');
+  });
+});
+
+describe('changesStartedNowAnnouncement', () => {
+  it('says the changes start now and which toss comes next', () => {
+    expect(changesStartedNowAnnouncement(7)).toBe(
+      'Changes start now. Toss 8 is next, after the count-in.',
+    );
+    expect(changesStartedNowAnnouncement(0)).toBe(
+      'Changes start now. Toss 1 is next, after the count-in.',
+    );
   });
 });

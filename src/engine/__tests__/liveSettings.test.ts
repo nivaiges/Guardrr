@@ -1,5 +1,5 @@
 import { CallSequence, DEFAULT_TOSS_SETTINGS, TossSettings } from '../announce';
-import { LiveCueTimeline, liveSettingsNote } from '../liveSettings';
+import { LiveCueTimeline, applyNowOffer, liveSettingsNote } from '../liveSettings';
 import { PracticeCue, cueForTick, speechTextForCall } from '../practice';
 import { createRng } from '../random';
 
@@ -203,5 +203,38 @@ describe('liveSettingsNote', () => {
     expect(liveSettingsNote(true, { ...pending, committed: true })).toBe(
       'Your changes start with toss 3 — its call is in.',
     );
+  });
+});
+
+describe('applyNowOffer', () => {
+  // Toss 3 under the new settings is released at session count 48.
+  const pending = { settings: EIGHT, phrase: 3, startsAtCountIndex: 48, committed: false };
+
+  it('offers nothing without a pending change', () => {
+    expect(applyNowOffer(null, 20, 8, 1)).toBeNull();
+  });
+
+  it('offers to start now when a count-in is sooner than waiting', () => {
+    const offer = applyNowOffer(pending, 30, 8, 1);
+    expect(offer).toEqual({
+      label: 'Start changes now',
+      accessibilityLabel: 'Start your changes now: count-in of 8, then toss 2',
+      countsSooner: 10,
+    });
+  });
+
+  it('stops offering once waiting is as quick as a count-in', () => {
+    expect(applyNowOffer(pending, 39, 8, 1)?.countsSooner).toBe(1);
+    expect(applyNowOffer(pending, 40, 8, 1)).toBeNull();
+    expect(applyNowOffer(pending, 47, 4, 1)).toBeNull();
+  });
+
+  it('never offers once the change’s call is in', () => {
+    expect(applyNowOffer({ ...pending, committed: true }, 0, 4, 1)).toBeNull();
+  });
+
+  it('counts the next toss from the tosses so far', () => {
+    expect(applyNowOffer(pending, 0, 16, 0)?.accessibilityLabel).toMatch(/then toss 1$/);
+    expect(applyNowOffer(pending, 0, 16, 6)?.accessibilityLabel).toMatch(/then toss 7$/);
   });
 });
