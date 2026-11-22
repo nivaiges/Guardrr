@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { VoiceInfo, voiceLabel } from '../engine';
+import { VoiceInfo, voiceLabel, voicePickerMode } from '../engine';
 import { Theme, themed, useTheme } from '../theme';
 
 export interface VoicePickerProps {
@@ -14,12 +14,17 @@ export interface VoicePickerProps {
   onPreview: (voice: string | null) => void;
   /** Called when the list opens, so it can be re-read. */
   onOpen?: () => void;
-  disabled: boolean;
+  /**
+   * While practicing, tapping a voice only picks it (a sample would talk
+   * over the calls); the next call is spoken with it.
+   */
+  running: boolean;
 }
 
 /**
  * A row showing the current voice that opens a list: tapping a voice picks
- * it and speaks a sample, so voices can be compared by ear.
+ * it and speaks a sample, so voices can be compared by ear. While practicing
+ * it picks without a sample; the next call is the sample.
  */
 export function VoicePicker({
   voices,
@@ -27,8 +32,9 @@ export function VoicePicker({
   onChange,
   onPreview,
   onOpen,
-  disabled,
+  running,
 }: VoicePickerProps) {
+  const mode = voicePickerMode(running);
   const styles = getStyles(useTheme());
   const [open, setOpen] = useState(false);
   const current = value ? voices.find((v) => v.identifier === value) : undefined;
@@ -43,7 +49,7 @@ export function VoicePicker({
   };
   const choose = (id: string | null) => {
     onChange(id);
-    onPreview(id);
+    if (mode.previews) onPreview(id);
   };
   const options: { id: string | null; label: string }[] = [
     { id: null, label: 'System default' },
@@ -53,20 +59,20 @@ export function VoicePicker({
   return (
     <View>
       <Pressable
-        style={[styles.row, disabled && styles.disabled]}
+        style={styles.row}
         onPress={toggle}
-        disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={`Voice: ${currentLabel}`}
         accessibilityHint={open ? 'Closes the voice list' : 'Opens the list of voices'}
-        accessibilityState={{ disabled, expanded: open }}
+        accessibilityState={{ expanded: open }}
+        testID="voice-picker"
       >
         <Text style={styles.label}>Voice</Text>
         <Text style={styles.value} numberOfLines={1}>
           {currentLabel} {open ? '▴' : '▾'}
         </Text>
       </Pressable>
-      {open && !disabled ? (
+      {open ? (
         <ScrollView
           style={styles.list}
           nestedScrollEnabled
@@ -88,7 +94,7 @@ export function VoicePicker({
                 accessibilityState={{ selected }}
                 aria-checked={selected}
                 accessibilityLabel={o.label}
-                accessibilityHint="Selects this voice and speaks a sample call"
+                accessibilityHint={mode.optionHint}
               >
                 <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
                   {o.label}
@@ -119,7 +125,6 @@ const getStyles = themed((t: Theme) =>
     },
     label: { fontSize: 16, color: t.text },
     value: { fontSize: 16, fontWeight: '600', color: t.text, flexShrink: 1 },
-    disabled: { opacity: 0.4 },
     list: { maxHeight: 320, borderRadius: 12, backgroundColor: t.control },
     option: { paddingVertical: 12, paddingHorizontal: 14 },
     optionSelected: { backgroundColor: t.primary },

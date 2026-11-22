@@ -37,6 +37,7 @@ import {
   settingsWarnings,
   tapTempoBpm,
   tossRangeOf,
+  voicePickerMode,
   withAllowRepeats,
   withAndCalls,
   withLeadCounts,
@@ -75,7 +76,8 @@ export interface SettingsPanelProps {
   /**
    * While practicing everything can change: tempo, sounds and voice speed
    * right away, phrase and calls from the next toss not yet called (see
-   * `pendingChange`). Only voice previews wait for Stop (they'd talk over the calls).
+   * `pendingChange`). A voice picked while practicing is heard on the next
+   * call; only previews (Test voice, Feel a 5) wait for Stop, as they'd talk over the practice.
    */
   running: boolean;
   /** Phrase/call changes waiting for their toss while practicing. */
@@ -161,6 +163,7 @@ export function SettingsPanel({
   // Previews speak, so they'd talk over the practice calls.
   const previewLocked = running;
   const liveNote = liveSettingsNote(running, pendingChange);
+  const voiceNote = voicePickerMode(running).note;
   const countInUsed = effectiveCountIn(countIn, settings);
   const countOffPattern = cueOptions.countOffPattern ?? DEFAULT_COUNT_OFF_PATTERN;
   const countOffWords = cueOptions.countOffWords ?? DEFAULT_CUSTOM_COUNT_OFF_WORDS;
@@ -372,7 +375,7 @@ export function SettingsPanel({
         onChange={onVoiceChange}
         onPreview={onTestVoice}
         onOpen={onReloadVoices}
-        disabled={previewLocked}
+        running={running}
       />
       <VoiceRatePicker value={voiceRate} onChange={onVoiceRateChange} disabled={false} />
       <Pressable
@@ -386,7 +389,11 @@ export function SettingsPanel({
       >
         <Text style={[styles.tapText, previewLocked && styles.dimmed]}>Test voice</Text>
       </Pressable>
-      {previewLocked ? <Text style={styles.note}>Stop to choose or test a voice.</Text> : null}
+      {voiceNote ? (
+        <Text style={styles.note} testID="voice-note">
+          {voiceNote}
+        </Text>
+      ) : null}
 
       {warnings.length > 0 ? (
         <View style={styles.warnings} accessibilityRole="summary" accessibilityLiveRegion="polite">

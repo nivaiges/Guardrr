@@ -874,6 +874,19 @@ async function main() {
       /^toss 1 · /.test(dropTargetText ?? ''),
       `"${dropTargetText}"`,
     );
+    // A voice can be picked while practicing (no sample: the next call is spoken with it).
+    const voiceNote = (await livePage.getByTestId('voice-note').textContent()) ?? '';
+    await livePage.getByTestId('voice-picker').click();
+    const voiceListOpen = await livePage
+      .getByRole('radiogroup', { name: 'Voices' })
+      .isVisible()
+      .catch(() => false);
+    check(
+      'while practicing, the voice list opens and says the next call uses the pick',
+      voiceListOpen && /next call/.test(voiceNote),
+      `list open: ${voiceListOpen}, note "${voiceNote}"`,
+    );
+    await livePage.getByTestId('voice-picker').click();
     await livePage.waitForTimeout(Math.max(0, 29 * MS_PER_COUNT - (Date.now() - waitStart)));
     const liveClicks = (await livePage.evaluate(() => window.__plays)).filter(
       (p) => p.kind !== 'and',

@@ -120,3 +120,32 @@ export function resolveVoice(
 export function isStoredVoiceId(v: unknown): v is string | null {
   return v === null || (typeof v === 'string' && v.length > 0 && v.length <= 256);
 }
+
+/**
+ * What tapping a voice in the list does. Stopped, it picks the voice and
+ * speaks a sample. While practicing a sample would talk over the calls, so
+ * it only picks it: the session already switches voices live, so the next
+ * call is spoken with it — which is the sample.
+ */
+export interface VoicePickerMode {
+  /** Whether tapping a voice also speaks a sample. */
+  previews: boolean;
+  /** Screen-reader hint for each voice in the list. */
+  optionHint: string;
+  /** Note under the voice settings, or null when nothing needs saying. */
+  note: string | null;
+}
+
+export function voicePickerMode(running: boolean): VoicePickerMode {
+  return running
+    ? {
+        previews: false,
+        optionHint: 'Selects this voice; the next call is spoken with it',
+        note: 'Pick a voice and hear it on the next call. Stop to test one on its own.',
+      }
+    : {
+        previews: true,
+        optionHint: 'Selects this voice and speaks a sample call',
+        note: null,
+      };
+}

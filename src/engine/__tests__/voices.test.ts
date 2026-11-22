@@ -7,6 +7,7 @@ import {
   normalizeLanguageTag,
   resolveVoice,
   voiceLabel,
+  voicePickerMode,
 } from '../voices';
 
 const v = (identifier: string, language: string, quality = 'Default', name = identifier) =>
@@ -116,5 +117,22 @@ describe('isStoredVoiceId', () => {
     expect(isStoredVoiceId('')).toBe(false);
     expect(isStoredVoiceId(42)).toBe(false);
     expect(isStoredVoiceId('x'.repeat(300))).toBe(false);
+  });
+});
+
+describe('voicePickerMode', () => {
+  it('previews a voice when stopped, with no note', () => {
+    const mode = voicePickerMode(false);
+    expect(mode.previews).toBe(true);
+    expect(mode.note).toBeNull();
+    expect(mode.optionHint).toMatch(/speaks a sample/);
+  });
+
+  it('only picks while practicing, and says the next call uses it', () => {
+    const mode = voicePickerMode(true);
+    expect(mode.previews).toBe(false);
+    expect(mode.optionHint).toMatch(/next call/);
+    expect(mode.note).toMatch(/next call/);
+    expect(mode.note).toMatch(/Stop to test/);
   });
 });
