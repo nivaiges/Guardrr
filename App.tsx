@@ -41,6 +41,9 @@ import {
   canResume,
   dropButtonText,
   interruptedNote,
+  applyNowOffer,
+  changesStartedNowAnnouncement,
+  effectiveCountIn,
   otherPage,
   pageFromOffset,
   practiceDisplay,
@@ -137,6 +140,8 @@ export default function App() {
     pendingChange,
     start,
     resume,
+    applyNow,
+    nextCountIndex,
     stop,
     toggleDrop,
   } = usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
@@ -233,6 +238,19 @@ export default function App() {
     AccessibilityInfo.announceForAccessibility(
       practiceResumedAnnouncement(interrupted.summary.tosses),
     );
+  };
+  // Start pending phrase/call changes now instead of at their toss (a fresh count-in).
+  const applyNowButton = running
+    ? applyNowOffer(
+        pendingChange,
+        nextCountIndex,
+        effectiveCountIn(countIn, settings),
+        stats.tosses,
+      )
+    : null;
+  const onApplyNow = () => {
+    applyNow();
+    AccessibilityInfo.announceForAccessibility(changesStartedNowAnnouncement(stats.tosses));
   };
   const onStop = () => {
     setStoppedWith(playing);
@@ -454,6 +472,8 @@ export default function App() {
               onFeelBuzz={feelBuzz}
               running={running}
               pendingChange={pendingChange}
+              applyNow={applyNowButton}
+              onApplyNow={onApplyNow}
             />
           </ScrollView>
         </ScrollView>

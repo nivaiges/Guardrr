@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  ApplyNowOffer,
   CALL_BUZZ_STYLES,
   COUNT_IN_OPTIONS,
   CallBuzzSample,
@@ -82,6 +83,9 @@ export interface SettingsPanelProps {
   running: boolean;
   /** Phrase/call changes waiting for their toss while practicing. */
   pendingChange?: PendingSettingsChange | null;
+  /** "Start changes now" under the live note, when restarting is sooner (applyNowOffer). */
+  applyNow?: ApplyNowOffer | null;
+  onApplyNow?: () => void;
 }
 
 function TapTempoButton({ onBpm }: { onBpm: (bpm: number) => void }) {
@@ -154,6 +158,8 @@ export function SettingsPanel({
   onFeelBuzz,
   running,
   pendingChange = null,
+  applyNow = null,
+  onApplyNow,
 }: SettingsPanelProps) {
   const styles = getStyles(useTheme());
   const range = tossRangeOf(settings);
@@ -198,6 +204,19 @@ export function SettingsPanel({
         <Text style={styles.note} accessibilityLiveRegion="polite" testID="live-settings-note">
           {liveNote}
         </Text>
+      ) : null}
+      {applyNow && onApplyNow ? (
+        <Pressable
+          style={({ pressed }) => [styles.tap, pressed && styles.tapPressed]}
+          onPress={onApplyNow}
+          accessibilityRole="button"
+          accessibilityLabel={applyNow.accessibilityLabel}
+          accessibilityHint="Restarts the phrase with a fresh count-in; this session keeps counting"
+          testID="apply-now"
+        >
+          <Text style={styles.tapText}>{applyNow.label}</Text>
+          <Text style={styles.tapHint}>after a count-in</Text>
+        </Pressable>
       ) : null}
       <Segmented
         label="Counts per phrase"

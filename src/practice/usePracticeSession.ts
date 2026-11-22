@@ -27,6 +27,8 @@ export interface PracticeSessionState {
   activeSettings: TossSettings;
   /** Settings changed while practicing that wait for their phrase, or null. */
   pendingChange: PendingSettingsChange | null;
+  /** Session count index of the next count (counts played since the latest Start). */
+  nextCountIndex: number;
   start(): void;
   /**
    * Start a new run that continues the last session's stats (same start
@@ -34,6 +36,12 @@ export interface PracticeSessionState {
    * count-in. Used after leaving the screen stopped practice.
    */
   resume(): void;
+  /**
+   * While practicing, restart the phrase now with the latest settings: a
+   * fresh count-in, the same session (like resume, without stopping), so a
+   * pending change doesn't wait for its toss. See applyNowOffer.
+   */
+  applyNow(): void;
   stop(): void;
   /** Mark (or un-mark) the latest toss as dropped; also works after Stop. */
   toggleDrop(): void;
@@ -62,6 +70,7 @@ export function usePracticeSession(
   const bpmRef = useRef(bpm);
   const [activeSettings, setActiveSettings] = useState(settings);
   const [pendingChange, setPendingChange] = useState<PendingSettingsChange | null>(null);
+  const [nextCountIndex, setNextCountIndex] = useState(0);
   useKeepAwakeWhile(running);
 
   // Keep the latest pending change object only when it differs, so ticks don't re-render.
@@ -132,6 +141,7 @@ export function usePracticeSession(
         setStats(EMPTY_STATS);
         setStartedAt(Date.now());
       }
+      setNextCountIndex(0);
       const s = createPracticeSession({
         bpm: bpmRef.current,
         settings,
@@ -147,7 +157,10 @@ export function usePracticeSession(
           setStats((prev) => recordCue(prev, c, now));
           // Re-render on counts, and on an "and" only when a catch lands there.
           if (c.subdivision === 0 || c.catch) setCue(c);
-          if (c.subdivision === 0) syncFromSession(s);
+          if (c.subdivision === 0) {
+            setNextCountIndex((n) => n + 1);
+            syncFromSession(s);
+          }
         },
       });
       session.current = s;
@@ -159,6 +172,15 @@ export function usePracticeSession(
   );
   const start = useCallback(() => begin(false), [begin]);
   const resume = useCallback(() => begin(true), [begin]);
+  const applyNow = useCallback(() => {
+    if (!session.current?.running) return;
+    // Not stop(): `running` stays true, so the session isn't saved or ended.
+    session.current.stop();
+    session.current = null;
+    setCue(null);
+    setPendingChange(null);
+    begin(true);
+  }, [begin]);
 
   const toggleLatestDrop = useCallback(() => setStats((prev) => toggleDrop(prev)), []);
 
@@ -169,8 +191,10 @@ export function usePracticeSession(
     startedAt,
     activeSettings: running ? activeSettings : settings,
     pendingChange,
+    nextCountIndex,
     start,
     resume,
+    applyNow,
     stop,
     toggleDrop: toggleLatestDrop,
   };

@@ -906,7 +906,65 @@ async function main() {
     await livePage.getByRole('button', { name: 'Stop practice' }).click();
     await live.close();
 
-    // 5d. Leaving the screen stops the session and says so (timers pause in the background).
+    // 5d. "Start changes now": a live change starts after a fresh count-in, same session.
+    const now = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await now.addInitScript(instrument);
+    const nowPage = await now.newPage();
+    nowPage.on('pageerror', (e) => errors.push(`pageerror (apply now): ${e.message}`));
+    await nowPage.goto(base);
+    await nowPage.getByTestId('go-to-settings').click();
+    await nowPage.getByRole('radio', { name: 'Standard 16' }).click();
+    await nowPage.getByTestId('go-to-practice').click();
+    await nowPage.getByRole('button', { name: 'Start practice' }).click();
+    await nowPage.waitForTimeout((COUNT_IN + 2.5) * MS_PER_COUNT); // toss 1 in the air
+    await nowPage.getByTestId('go-to-settings').click();
+    await nowPage
+      .getByRole('radiogroup', { name: 'Counts per phrase' })
+      .getByRole('radio', { name: '8 counts', exact: true })
+      .click();
+    const applyNowButton = nowPage.getByTestId('apply-now');
+    await applyNowButton.waitFor({ timeout: MS_PER_COUNT }).catch(() => {});
+    const applyNowLabel = (await applyNowButton.count())
+      ? await applyNowButton.getAttribute('aria-label')
+      : null;
+    check(
+      'a live change that waits longer than a count-in offers "Start changes now"',
+      applyNowLabel === 'Start your changes now: count-in of 8, then toss 2',
+      `"${applyNowLabel}"`,
+    );
+    await nowPage.screenshot({ path: path.join(outDir, 'apply-now.png'), fullPage: true });
+    const appliedFrom = (await nowPage.evaluate(() => window.__plays)).length;
+    if (applyNowLabel) await applyNowButton.click();
+    check('starting the changes hides the offer', (await applyNowButton.count()) === 0);
+    await nowPage.waitForTimeout((COUNT_IN + 8 + 1.5) * MS_PER_COUNT);
+    const appliedCounts = (await nowPage.evaluate(() => window.__plays))
+      .slice(appliedFrom)
+      .filter((p) => p.kind !== 'and');
+    const appliedAccents = appliedCounts.flatMap((p, i) => (p.kind === 'accent' ? [i + 1] : []));
+    check(
+      'the new 8-count phrase starts right after a count-in (releases on clicks 9, 17)',
+      // (A count-in as long as the phrase starts on its count 1, so click 1 may be accented too.)
+      appliedAccents
+        .filter((c) => c > 1)
+        .slice(0, 2)
+        .join(',') === '9,17',
+      `accents on clicks ${appliedAccents.join(', ')}`,
+    );
+    await nowPage.getByTestId('go-to-practice').click();
+    await nowPage.getByRole('button', { name: 'Stop practice' }).click();
+    await nowPage.getByTestId('go-to-settings').click();
+    const nowTotals = nowPage.getByLabel(/^\d+ sessions?, \d+ toss(es)?/);
+    const nowTotalsText = (await nowTotals.count())
+      ? await nowTotals.first().getAttribute('aria-label')
+      : null;
+    check(
+      'starting changes now keeps one History entry (1 session, 3 tosses)',
+      /^1 session, 3 tosses/.test(nowTotalsText ?? ''),
+      `"${nowTotalsText}"`,
+    );
+    await now.close();
+
+    // 5e. Leaving the screen stops the session and says so (timers pause in the background).
     const away = await browser.newContext({ viewport: { width: 390, height: 844 } });
     await away.addInitScript(instrument);
     const awayPage = await away.newPage();
