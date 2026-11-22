@@ -285,6 +285,13 @@ async function main() {
     await scrollTo(exact(page, 'Tempo'));
     await page.waitForTimeout(200);
     await shot(page, '12-live-change');
+    // A voice can be picked while practicing; the next call is spoken with it.
+    await scrollTo(page.getByTestId('voice-picker'));
+    await page.getByTestId('voice-picker').click();
+    await page.getByTestId('voice-note').waitFor();
+    await page.waitForTimeout(200);
+    await shot(page, '31-voice-while-practicing');
+    await page.getByTestId('voice-picker').click();
     await page.getByTestId('go-to-practice').click();
     await page.getByRole('button', { name: 'Stop practice' }).click();
 

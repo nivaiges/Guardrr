@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-11-22
+
+### Added
+
+- **Pick a voice while practicing** (roadmap: "Live changes: choose a voice while practicing").
+  The voice list no longer locks during practice. Tapping a voice only picks it — no sample,
+  which would talk over the calls — and the next call is spoken with it, so the next call _is_
+  the sample. The note under Voice says _"Pick a voice and hear it on the next call. Stop to test
+  one on its own."_ Test voice and Feel a 5 still wait for Stop.
+  - Engine: `voicePickerMode(running)` (`voices.ts`).
+- **Start changes now** (roadmap: "Live changes: optional apply now"). When a phrase or call
+  change made mid-practice is waiting for a toss that's further away than a count-in, a
+  **Start changes now** button appears under _"Your changes start with toss N."_ It restarts
+  the phrase straight away with a fresh count-in under the new settings and keeps the same
+  session: toss numbers keep counting, stats carry on, and History keeps one entry. Screen
+  readers hear _"Changes start now. Toss 8 is next, after the count-in."_
+  - Engine: `applyNowOffer` (`liveSettings.ts`), `changesStartedNowAnnouncement`.
+  - `usePracticeSession` gains `applyNow()` and `nextCountIndex`.
+- Smoke test: 113 checks (voice list opens mid-practice; the offer appears for a 16 → 8 change
+  during toss 1; after it, the 8-count releases land on clicks 9 and 17; still one session
+  with 3 tosses). New screenshot `31-voice-while-practicing`; `12-live-change` now shows the
+  button.
+- 8 new unit tests (603 total).
+
+### Decisions
+
+- **Only offered when it's actually sooner.** Waiting takes until the pending toss's release;
+  restarting takes the count-in (your count-in setting under the new phrase). The button
+  disappears as the change gets closer, and never shows once the change's call has been spoken
+  (a count-in is never shorter than the lead counts, so waiting is always quicker then).
+- **A fresh count-in, not a mid-phrase jump.** The new settings need their lead counts to speak
+  the first call anyway, and a count-in gives the performer time to reset. It reuses Resume's
+  machinery (`resumeStats`), so the restart gap isn't counted in the session's time.
+- **The toss in the air still counts** as a toss (it was released); only its catch cue is cut.
+  Drop still marks it during the grace counts.
+- **Voice picks don't preview while practicing** rather than previewing quietly between calls:
+  any sample would land near a count-off or call at practice tempos.
+
+### To test on your phone
+
+- Start Standard 16, go to Settings mid-toss, pick 8 counts: **Start changes now** should
+  appear; tap it — a count-in, then 8-count phrases. Stop and check History shows one session.
+- While practicing, open Voice and pick another voice: the next call should be in that voice,
+  with no sample spoken over the clicks.
+- Not verifiable here: real TTS voice switching latency and how the cut-off call sounds; the
+  web build (speech recorded, not played) and the unit tests cover the logic.
+
 ## 2026-11-21
 
 ### Added

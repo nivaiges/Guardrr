@@ -138,8 +138,14 @@
 - [ ] Custom presets: optionally include sound options (accent, "and" clicks, voice) — today a preset is tempo + toss settings only, like the built-ins.
 - [x] Show which preset a History session used (the preset's name at save time, under each session's date).
 - [ ] History: a session whose phrase length changed mid-practice is saved with the last phrase length; consider saving each segment.
-- [ ] Live changes: choose a voice while practicing (today voice previews wait for Stop because they'd talk over the calls) — e.g. pick without previewing.
-- [ ] Live changes: optional "apply now" that restarts the phrase immediately, for a performer who wants the new drill without finishing the current toss.
+- [x] Live changes: choose a voice while practicing — the list stays open during practice and
+      picks without a sample; the next call is spoken with the new voice.
+- [x] Live changes: optional "apply now" — **Start changes now** under the live note restarts the
+      phrase with a fresh count-in (same session), shown only while that's sooner than waiting.
+- [ ] Start changes now: check on device that the restart sounds clean (the old call or count-off
+      cut off mid-word) and whether the toss in the air should be marked somehow in the stats.
+- [ ] Voice mid-practice: check on device that switching voices between calls doesn't add a delay
+      to the next call (some engines load a voice on first use).
 - [x] History: changing the tempo or preset after Stop no longer relabels the finished session.
 - [ ] History share: check on device what Messages/Mail/Notes do with the CSV text; if a coach
       needs a real attachment, share a .csv file instead (needs `expo-sharing` + `expo-file-system`).

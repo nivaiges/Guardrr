@@ -61,10 +61,12 @@ Below that you can fine-tune:
   it's spoken (Slow / Normal / Fast / Faster) and a **Test voice** button to check speed and
   volume before you start.
 
-Everything can be changed while practicing, without pressing Stop: tempo, sounds and voice speed
-apply right away; phrase, lead counts and calls (or a preset) start with the next toss that
-hasn't been called yet — the toss in the air finishes its phrase first, and Settings says which
-toss the change starts with. Only choosing and testing voices waits for Stop. Combinations that work but may be
+Everything can be changed while practicing, without pressing Stop: tempo, sounds, voice and voice
+speed apply right away (a voice picked mid-practice is heard on the next call); phrase, lead counts
+and calls (or a preset) start with the next toss that hasn't been called yet — the toss in the air
+finishes its phrase first, and Settings says which toss the change starts with. When that's further
+away than a count-in, **Start changes now** restarts the phrase with a fresh count-in instead
+(same session, same stats). Only previews (Test voice, Feel a 5) wait for Stop. Combinations that work but may be
 surprising (e.g. the next call spoken before a long toss is caught) are explained under the
 settings. Settings are saved on the phone and come back the next time you open the app.
 The screen stays on while practicing; if you lock the phone or switch apps, practice stops (the
@@ -92,9 +94,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![Stats and history after Stop](docs/screenshots/05-stats-history.png) | ![History in edit mode](docs/screenshots/06-history-edit.png) | ![Settings → Calls with Odd picked](docs/screenshots/07-settings-calls.png) | ![Dark theme on the release](docs/screenshots/08-dark-release.png) |
 
-| Saving a preset                                             | Your preset                                                      | Updating it                                                                                  | Changing while practicing                                                                              |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2"](docs/screenshots/12-live-change.png) |
+| Saving a preset                                             | Your preset                                                      | Updating it                                                                                  | Changing while practicing                                                                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| ![Naming a new preset](docs/screenshots/09-save-preset.png) | ![The saved preset, selected](docs/screenshots/10-my-preset.png) | ![Changed calls: update the preset or save a new one](docs/screenshots/11-update-preset.png) | ![8 counts picked mid-practice: "Your changes start with toss 2", with Start changes now](docs/screenshots/12-live-change.png) |
 
 | Sharing History                                                        | History of one preset                                                      | Moving a preset                                                                          | Spoken count-off                                                                |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -112,9 +114,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | ![Call buzz set to "Buzz the number": a 5 is five taps](docs/screenshots/25-buzz-the-number.png) | ![Call buzz set to "Taps in fours": a 7 is four taps, a pause, three](docs/screenshots/26-taps-in-fours.png) | ![Call to feel: 4& picked, the button says "Feel a 4 and"](docs/screenshots/27-feel-a-call.png) | ![Count it as "Ready, and": two words just before the call](docs/screenshots/28-count-off-ready.png) |
 
-| Your own count-off words                                                                                                  | Left the screen                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss, with Resume · toss 2](docs/screenshots/30-left-the-screen.png) |
+| Your own count-off words                                                                                                  | Left the screen                                                                                                      | A voice mid-practice                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss, with Resume · toss 2](docs/screenshots/30-left-the-screen.png) | ![The voice list open while practicing: the next call uses the pick](docs/screenshots/31-voice-while-practicing.png) |
 
 ## Tech
 
