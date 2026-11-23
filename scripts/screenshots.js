@@ -5,7 +5,8 @@
  * the release, the catch, stats and history, History in edit mode, shared
  * as CSV and filtered to one preset, the call picker, dark theme, and
  * saving, updating and moving a preset of your own, Appearance forced
- * to Dark, and the note after leaving the screen mid-practice.
+ * to Dark, the note after leaving the screen mid-practice, and the big
+ * practice display (Settings → Appearance → Practice display: Big).
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -335,6 +336,28 @@ async function main() {
     await exact(dark.page, 'Release!').waitFor({ timeout: 10_000 });
     await shot(dark.page, '08-dark-release');
     await dark.context.close();
+
+    // Settings → Appearance → Practice display: Big, then the big display mid-toss.
+    const big = await open('light');
+    await big.page.getByTestId('go-to-settings').click();
+    await big.page.waitForTimeout(600);
+    await big.page
+      .getByRole('radio', { name: 'Big practice display, for across the floor' })
+      .click();
+    await scrollTo(exact(big.page, 'Appearance'));
+    await big.page.waitForTimeout(200);
+    await shot(big.page, '32-big-display-setting');
+    await big.page.getByTestId('go-to-practice').click();
+    await big.page.waitForTimeout(600);
+    await big.page.getByRole('button', { name: 'Start practice' }).click();
+    await exact(big.page, 'Release!').waitFor({ timeout: 10_000 });
+    await shot(big.page, '33-big-display-release');
+    await big.page
+      .getByText(/ to catch$/)
+      .first()
+      .waitFor({ timeout: 5_000 });
+    await shot(big.page, '34-big-display-in-air');
+    await big.context.close();
   } catch (e) {
     errors.push(e instanceof Error ? e.message : String(e));
   } finally {

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
+  DisplayMetrics,
+  NORMAL_DISPLAY_METRICS,
   PhraseBeat,
   PracticeDisplay as DisplayModel,
   displayAccessibilityLabel,
@@ -10,6 +12,8 @@ import {
 import { Theme, themed, useTheme } from '../theme';
 
 function Beat({ beat, size }: { beat: PhraseBeat; size: number }) {
+  // The "and" marker hangs off the right edge; it grows with the dot.
+  const and = Math.max(5, Math.round(size / 3));
   const theme = useTheme();
   const styles = getStyles(theme);
   const color = theme.marker[beat.marker ?? 'idle'];
@@ -22,7 +26,14 @@ function Beat({ beat, size }: { beat: PhraseBeat; size: number }) {
         beat.current && styles.beatCurrent,
       ]}
     >
-      {beat.catchOnAnd && <View style={[styles.andDot, { backgroundColor: color }]} />}
+      {beat.catchOnAnd && (
+        <View
+          style={[
+            styles.andDot,
+            { backgroundColor: color, width: and, height: and, borderRadius: and / 2 },
+          ]}
+        />
+      )}
     </View>
   );
 }
@@ -43,8 +54,11 @@ function countdownText(model: DisplayModel): string {
 export function PracticeDisplay({
   model,
   overlay = false,
+  metrics = NORMAL_DISPLAY_METRICS,
 }: {
   model: DisplayModel;
+  /** Font and dot sizes: normal, or big for across the floor (see displaySize.ts). */
+  metrics?: DisplayMetrics;
   /**
    * Shown over the camera: slightly see-through, tighter, no legend (the
    * legend's colors are explained on the settings page).
@@ -56,12 +70,15 @@ export function PracticeDisplay({
   const highlight = model.phase === 'release' || model.phase === 'catch';
   // Fit the strip to the measured width (0 until the first layout pass).
   const [stripWidth, setStripWidth] = useState(0);
-  const strip = phraseStripLayout(model.beats.length, stripWidth);
+  const strip = phraseStripLayout(model.beats.length, stripWidth, metrics.maxDotSize);
+  const big = metrics.maxWidth === null;
+  const callValue = { fontSize: metrics.callValueFontSize };
   return (
     <View
       style={[
         styles.display,
         overlay && styles.overlay,
+        { maxWidth: metrics.maxWidth ?? '100%' },
         // 85% opaque over the camera: the phase color still reads at a glance.
         { backgroundColor: theme.phase[model.phase] + (overlay ? 'D9' : '') },
       ]}
@@ -70,27 +87,44 @@ export function PracticeDisplay({
     >
       <View style={styles.callRow}>
         <Text style={styles.callLabel}>Toss</Text>
-        <Text style={styles.callValue} maxFontSizeMultiplier={1.5}>
+        <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
           {model.callLabel ?? '–'}
         </Text>
         <Text style={styles.callLabel}>Next</Text>
-        <Text style={styles.callValue} maxFontSizeMultiplier={1.5}>
+        <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
           {model.nextCallLabel ?? '–'}
         </Text>
       </View>
 
       {/* Already huge: don't let large-text settings push it off screen. */}
-      <Text style={styles.count} maxFontSizeMultiplier={1}>
+      <Text
+        style={[
+          styles.count,
+          { fontSize: metrics.countFontSize, lineHeight: metrics.countLineHeight },
+        ]}
+        maxFontSizeMultiplier={1}
+        testID="display-count"
+      >
         {model.count ?? '–'}
       </Text>
       <Text
-        style={[styles.headline, highlight && styles.headlineHighlight]}
-        maxFontSizeMultiplier={1.4}
+        style={[
+          styles.headline,
+          {
+            fontSize: highlight ? metrics.headlineHighlightFontSize : metrics.headlineFontSize,
+          },
+        ]}
+        // Big is already sized to the screen: don't let large text push it off.
+        maxFontSizeMultiplier={big ? 1 : 1.4}
+        numberOfLines={big ? 1 : undefined}
+        adjustsFontSizeToFit={big}
       >
         {model.headline}
       </Text>
-      <Text style={styles.detail}>{model.detail}</Text>
-      <Text style={styles.countdown}>{countdownText(model)}</Text>
+      <Text style={[styles.detail, { fontSize: metrics.detailFontSize }]}>{model.detail}</Text>
+      <Text style={[styles.countdown, { fontSize: metrics.countdownFontSize }]}>
+        {countdownText(model)}
+      </Text>
 
       <View
         style={[styles.strip, { gap: strip.gap }]}
@@ -108,7 +142,7 @@ export function PracticeDisplay({
           </View>
         ))}
       </View>
-      {overlay ? null : (
+      {overlay || big ? null : (
         <View style={styles.legend}>
           {(['release', 'catch', 'call'] as const).map((marker) => (
             <Text key={marker} style={styles.legendItem}>
@@ -126,7 +160,6 @@ const getStyles = themed((t: Theme) =>
     display: {
       marginTop: 24,
       width: '100%',
-      maxWidth: 360,
       alignItems: 'center',
       paddingVertical: 20,
       paddingHorizontal: 16,
@@ -156,7 +189,6 @@ const getStyles = themed((t: Theme) =>
       fontVariant: ['tabular-nums'],
     },
     headline: { fontSize: 30, fontWeight: '700', color: t.text, textAlign: 'center' },
-    headlineHighlight: { fontSize: 36 },
     detail: { fontSize: 18, marginTop: 6, color: t.text, textAlign: 'center' },
     countdown: { fontSize: 16, marginTop: 4, color: t.textMuted, fontVariant: ['tabular-nums'] },
     strip: { marginTop: 16, alignSelf: 'stretch', alignItems: 'center' },
@@ -167,7 +199,7 @@ const getStyles = themed((t: Theme) =>
       justifyContent: 'center',
     },
     beatCurrent: { transform: [{ scale: 1.4 }] },
-    andDot: { position: 'absolute', right: -6, width: 5, height: 5, borderRadius: 3 },
+    andDot: { position: 'absolute', right: -6 },
     legend: { flexDirection: 'row', gap: 12, marginTop: 10 },
     legendItem: { fontSize: 12, color: t.textMuted },
   }),

@@ -40,7 +40,7 @@ export function displaySizeAccessibilityLabel(size: DisplaySize): string {
 export function displaySizeNote(size: DisplaySize): string {
   return size === 'normal'
     ? 'Big makes the count and cues readable from a few meters away.'
-    : 'The count fills the width; the legend is hidden and the strip is larger.';
+    : 'The count fills the width, with larger cues and phrase dots.';
 }
 
 /** Sizes, in points, the practice display uses. */

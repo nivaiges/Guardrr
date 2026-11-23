@@ -39,6 +39,7 @@ import {
   VOICE_TEST_PHRASE,
   applyPreset,
   canResume,
+  displayMetrics,
   dropButtonText,
   interruptedNote,
   applyNowOffer,
@@ -263,6 +264,7 @@ export default function App() {
 
   // Two pages side by side: practice (camera) and settings & stats.
   const { width, height } = useWindowDimensions();
+  const displaySizeMetrics = displayMetrics(saved.displaySize, width, height);
   const pager = useRef<ScrollViewInstance>(null);
   const [page, setPage] = useState<PageIndex>(0);
   const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
@@ -322,7 +324,7 @@ export default function App() {
             </View>
 
             <View style={styles.displayArea}>
-              <PracticeDisplay model={display} overlay />
+              <PracticeDisplay model={display} overlay metrics={displaySizeMetrics} />
             </View>
 
             <View style={styles.controls}>
@@ -451,6 +453,8 @@ export default function App() {
             <AppearanceSettings
               value={appearance}
               onChange={(next) => update((s) => ({ ...s, appearance: next }))}
+              displaySize={saved.displaySize}
+              onDisplaySizeChange={(next) => update((s) => ({ ...s, displaySize: next }))}
             />
 
             <SettingsPanel
