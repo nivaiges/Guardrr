@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-11-23
+
+### Added
+
+- **Big practice display** (roadmap: "Display: optional full-screen practice mode … for propping
+  the phone up across the floor"). Settings → Appearance → **Practice display: Normal / Big**.
+  Big sizes the count to the screen — as large as a two-digit count can be while fitting the
+  width and taking at most ~30% of the height: **250 pt on a 390 × 844 phone, up from 120**.
+  The headline ("Release!", "4 count"), the "Catch on" line, the countdown and the Toss / Next
+  values grow with it, and the phrase dots go up to 22 pt (they still shrink to fit 16 on a row).
+  Saved with the other settings; Normal looks exactly as before.
+  - Engine: `src/engine/displaySize.ts` (`displayMetrics(size, width, height)`, labels and note);
+    `phraseStripLayout` takes an optional larger full dot size.
+- Smoke test: 116 checks (Big makes the count 120 → 250 px, is saved, Normal restores it).
+  New screenshots `32-big-display-setting`, `33-big-display-release`, `34-big-display-in-air`
+  in the README gallery.
+- 10 new unit tests (613 total).
+
+### Decisions
+
+- **A size option, not a separate "practice mode".** Since 2026-11-05 the practice page already
+  shows only the display, Stop/Drop and the camera (settings are a swipe away), so the missing
+  piece for across-the-floor practice was just size. Big keeps the same screen and controls.
+- **Sized by math, not a fixed number**: the count fits "16" (phrases go up to 32 counts) across
+  the card and leaves room for the headline, strip and buttons; never smaller than Normal and
+  capped at 300 pt on tablets. Words grow by half as much as the count so "Mark time" stays on
+  one line on a 320-pt phone; on iOS/Android the headline also shrinks to fit if needed.
+- **Large-text settings don't enlarge Big further** (it's already sized to the screen and would
+  push the buttons off), while Normal keeps honouring them as before.
+- Lives under Appearance rather than Camera or Phrase, next to Light/Dark — it's about how the
+  display looks, not what's practiced.
+
+### To test on your phone
+
+- Settings → Appearance → Practice display → Big, prop the phone 2–3 m away and Start Quads 155:
+  can you read the count and "Catch on 4" mid-toss? Try with the front camera on and off.
+- Try a 32-count phrase (counts 10–32 are two digits) and check nothing is clipped.
+- Not verifiable here: real-device font metrics and readability at a distance; the web build
+  (screenshots 33–34) and the unit tests cover the layout math.
+
 ## 2026-11-22
 
 ### Added

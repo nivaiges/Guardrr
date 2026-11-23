@@ -66,7 +66,13 @@
 - [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
 - [ ] UI component tests (needs `@testing-library/react-native`); today only the pure logic behind the UI is tested.
-- [ ] Display: optional full-screen "practice mode" (hide settings, larger count) for propping the phone up across the floor.
+- [x] Display: a larger count for propping the phone up across the floor — Settings → Appearance →
+      Practice display → **Big** (count sized to the screen, about 2×; bigger cues and phrase dots).
+      Settings already live on the second page, so no separate "practice mode" was needed.
+- [ ] Big display: check on device how far away it actually reads (gym lighting, camera behind it),
+      and whether performers want the Toss/Next row hidden or the camera off in Big.
+- [ ] Big display: in landscape (phone on its side) the count is capped by the height; consider a
+      side-by-side layout (count left, cues right) if performers prop the phone sideways.
 - [ ] Display: flash/animate on "and" ticks too (today the screen only re-renders on counts and on "and" catches).
 - [ ] Saved settings: migrate by `version` if the stored shape ever changes (v1 today; unknown fields are ignored).
 - [x] Save past sessions (date, tosses, duration, tally) so stats survive Stop → Start and app restarts; a simple history list (History card).

@@ -74,6 +74,8 @@ metronome can't keep time in the background yet — see
 [docs/background-audio.md](docs/background-audio.md)) and the practice page says so when you come
 back, with a **Resume** button for 30 minutes that keeps counting the same session after a fresh
 count-in (one History entry; the time away isn't counted). The app follows the phone's light/dark appearance (or always light / always dark: Settings → Appearance).
+If the phone is propped up across the floor, Settings → Appearance → Practice display → **Big**
+roughly doubles the count and enlarges the cues so they read from a few meters away.
 With VoiceOver or TalkBack on, Start and Stop are announced (tempo and call count, then the
 session summary) and the big display reads its whole state when focused — but the screen reader
 never narrates counts during practice, so it can't talk over the metronome or the call.
@@ -118,6 +120,10 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | ![Count it as "Your words": "hit it" spoken on counts 11–12, then the call](docs/screenshots/29-count-off-your-words.png) | ![Stopped when Guardrr left the screen, after 1 toss, with Resume · toss 2](docs/screenshots/30-left-the-screen.png) | ![The voice list open while practicing: the next call uses the pick](docs/screenshots/31-voice-while-practicing.png) |
 
+| Practice display: Big                                                                               | Big display on the release                                                                   | Big display in the air                                                                         |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| ![Settings → Appearance → Practice display set to Big](docs/screenshots/32-big-display-setting.png) | ![The big display on the release: a 250-pt "1"](docs/screenshots/33-big-display-release.png) | ![The big display mid-toss: "4 count", 2 to catch](docs/screenshots/34-big-display-in-air.png) |
+
 ## Tech
 
 - [Expo](https://expo.dev) (SDK 58) + React Native + TypeScript
@@ -158,7 +164,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, the Big practice display, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on
