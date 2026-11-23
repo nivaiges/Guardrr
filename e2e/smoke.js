@@ -533,6 +533,29 @@ async function main() {
     await page.getByRole('radio', { name: "Match the phone's appearance" }).click();
     check('Appearance → System follows the browser again', (await pageBackground()) === LIGHT_BG);
 
+    // 5c'. Practice display: Big makes the count much larger, and is saved.
+    const countFontSize = () =>
+      page.getByTestId('display-count').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    const normalCount = await countFontSize();
+    await page.getByRole('radio', { name: 'Big practice display, for across the floor' }).click();
+    const bigCount = await countFontSize();
+    check(
+      'Practice display → Big about doubles the count',
+      normalCount === 120 && bigCount >= 240,
+      `${normalCount}px → ${bigCount}px`,
+    );
+    const savedBig = await page
+      .waitForFunction(
+        () => JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').displaySize === 'big',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('the practice display size is saved', savedBig);
+    await page.getByRole('radio', { name: 'Normal practice display' }).click();
+    check('Practice display → Normal restores the count', (await countFontSize()) === 120);
+
     // 5d. History filters: with an older hand-tuned session added, chips narrow
     // the totals and rows to one preset.
     await page.evaluate(() => {
