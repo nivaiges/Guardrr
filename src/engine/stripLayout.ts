@@ -48,16 +48,24 @@ function split(phraseLength: number, rows: number): number[][] {
 /**
  * Rows and dot size for a phrase strip `width` points wide. An unknown or
  * non-positive width (before the first layout pass) gets full-size dots.
+ * `maxDotSize` raises the full size (the big practice display uses larger
+ * dots); the gap grows in proportion.
  */
-export function phraseStripLayout(phraseLength: number, width: number): StripLayout {
+export function phraseStripLayout(
+  phraseLength: number,
+  width: number,
+  maxDotSize: number = STRIP_DOT_SIZE,
+): StripLayout {
   const length = Math.max(1, Math.floor(phraseLength));
   const known = Number.isFinite(width) && width > 0;
+  const fullDot = Math.max(STRIP_DOT_SIZE, Math.floor(maxDotSize));
+  const fullGap = Math.round((STRIP_GAP * fullDot) / STRIP_DOT_SIZE);
   for (let rows = Math.ceil(length / STRIP_MAX_PER_ROW); rows <= length; rows++) {
     const perRow = Math.ceil(length / rows);
-    if (!known) return { rows: split(length, rows), dotSize: STRIP_DOT_SIZE, gap: STRIP_GAP };
-    const scale = Math.min(1, width / rowWidth(perRow, STRIP_DOT_SIZE, STRIP_GAP));
-    const dotSize = Math.floor(STRIP_DOT_SIZE * scale);
-    const gap = Math.floor(STRIP_GAP * scale);
+    if (!known) return { rows: split(length, rows), dotSize: fullDot, gap: fullGap };
+    const scale = Math.min(1, width / rowWidth(perRow, fullDot, fullGap));
+    const dotSize = Math.floor(fullDot * scale);
+    const gap = Math.floor(fullGap * scale);
     if (
       dotSize >= STRIP_MIN_DOT_SIZE &&
       gap >= STRIP_MIN_GAP &&

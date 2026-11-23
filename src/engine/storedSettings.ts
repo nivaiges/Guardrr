@@ -11,6 +11,7 @@ import { TossSettings, validateTossSettings } from './announce';
 import { AppearancePreference, DEFAULT_APPEARANCE, isAppearancePreference } from './appearance';
 import { isValidCall } from './calls';
 import { DEFAULT_CALL_BUZZ_STYLE, isCallBuzzStyle } from './callBuzz';
+import { DEFAULT_DISPLAY_SIZE, DisplaySize, isDisplaySize } from './displaySize';
 import { clampBpm } from './editSettings';
 import {
   DEFAULT_COUNT_IN,
@@ -96,6 +97,8 @@ export interface PracticeSettings {
   historyTempoFilter: HistoryFilterKey;
   /** Light/dark: follow the phone ("system", default) or force one (see appearance.ts). */
   appearance: AppearancePreference;
+  /** Practice display: the normal card, or big for reading across the floor (displaySize.ts). */
+  displaySize: DisplaySize;
 }
 
 export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
@@ -110,6 +113,7 @@ export const DEFAULT_PRACTICE_SETTINGS: PracticeSettings = {
   historyFilter: ALL_SESSIONS,
   historyTempoFilter: ALL_TEMPOS,
   appearance: DEFAULT_APPEARANCE,
+  displaySize: DEFAULT_DISPLAY_SIZE,
 };
 
 export function serializeSettings(settings: PracticeSettings): string {
@@ -196,5 +200,6 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
     historyFilter: parseHistoryFilterKey(raw.historyFilter),
     historyTempoFilter: parseTempoFilterKey(raw.historyTempoFilter),
     appearance: isAppearancePreference(raw.appearance) ? raw.appearance : DEFAULT_APPEARANCE,
+    displaySize: isDisplaySize(raw.displaySize) ? raw.displaySize : DEFAULT_DISPLAY_SIZE,
   };
 }

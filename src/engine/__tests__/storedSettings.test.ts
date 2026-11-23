@@ -33,6 +33,7 @@ const custom: PracticeSettings = {
   historyFilter: 'preset:Quads 155',
   historyTempoFilter: 'tempo:155/16',
   appearance: 'dark',
+  displaySize: 'big',
 };
 
 describe('stored settings', () => {
@@ -240,5 +241,17 @@ describe('stored settings', () => {
     expect(parse(true)).toBe('system');
     // Settings saved before the option existed follow the phone, as before.
     expect(parseStoredSettings(JSON.stringify({ bpm: 120 })).appearance).toBe('system');
+  });
+
+  it('keeps the normal practice display unless Big was chosen', () => {
+    expect(DEFAULT_PRACTICE_SETTINGS.displaySize).toBe('normal');
+    const parse = (displaySize: unknown) =>
+      parseStoredSettings(JSON.stringify({ displaySize })).displaySize;
+    expect(parse('big')).toBe('big');
+    expect(parse('normal')).toBe('normal');
+    expect(parse('huge')).toBe('normal');
+    expect(parse(2)).toBe('normal');
+    // Settings saved before the option existed keep the normal display.
+    expect(parseStoredSettings(JSON.stringify({ bpm: 120 })).displaySize).toBe('normal');
   });
 });

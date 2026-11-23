@@ -60,4 +60,15 @@ describe('phraseStripLayout', () => {
     expect(layout.rows).toEqual([[1], [2], [3], [4]]);
     expect(layout).toMatchObject({ dotSize: STRIP_MIN_DOT_SIZE, gap: STRIP_MIN_GAP });
   });
+
+  it('uses larger dots when asked (big display), shrinking them to fit as usual', () => {
+    expect(phraseStripLayout(8, 400, 22)).toMatchObject({ dotSize: 22, gap: 9 });
+    expect(phraseStripLayout(8, 0, 22)).toMatchObject({ dotSize: 22, gap: 9 });
+    const tight = phraseStripLayout(16, 326, 22);
+    expect(tight.rows).toHaveLength(1);
+    expect(tight.dotSize).toBeLessThan(22);
+    expect(widthOf(16, tight.dotSize, tight.gap)).toBeLessThanOrEqual(326);
+    // Never smaller than the normal full size when asked for less.
+    expect(phraseStripLayout(8, 400, 4).dotSize).toBe(STRIP_DOT_SIZE);
+  });
 });
