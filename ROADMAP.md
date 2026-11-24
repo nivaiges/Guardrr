@@ -65,7 +65,14 @@
 - [x] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7) — call chips in Settings → Calls.
 - [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
-- [ ] UI component tests (needs `@testing-library/react-native`); today only the pure logic behind the UI is tested.
+- [x] UI component tests (`@testing-library/react-native`): practice display, call picker, page
+      dots, settings controls (stepper, segments, switch) and the preset picker's save / rename /
+      update / delete-undo / move flows.
+- [ ] Component tests for the rest: SettingsPanel, SessionStatsCard, SessionHistoryCard (edit,
+      filters, share), VoicePicker, AppearanceSettings, CountOffWordsField; then App-level flows
+      (Start/Stop with fake timers and mocked audio/speech).
+- [ ] Accessibility: the Segmented and preset "radio" chips pass `selected` (plus `aria-checked`);
+      check on device whether TalkBack reads them as "selected" or wants `checked` for radios.
 - [x] Display: a larger count for propping the phone up across the floor — Settings → Appearance →
       Practice display → **Big** (count sized to the screen, about 2×; bigger cues and phrase dots).
       Settings already live on the second page, so no separate "practice mode" was needed.

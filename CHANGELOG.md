@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-11-24
+
+### Added
+
+- **UI component tests** (roadmap: "UI component tests (needs `@testing-library/react-native`)").
+  Until today only the pure logic behind the screens was tested; now the components themselves
+  are rendered and tapped in Jest with React Native Testing Library 14 (dev dependency only, no
+  native code, nothing changes in the app):
+  - `PracticeDisplay` — ready dash and legend, the single screen-reader label, release headline
+    and toss, "3 to catch", one phrase dot per count, Big sizes (no legend, no large-text scaling),
+    phase color (see-through over the camera) and a forced Dark appearance.
+  - `CallPicker` — tap chips to add/remove calls with the summary following, All / Odd / Even
+    marking which is in use, the last call can't be removed, "Call 3 and" labels, disabled state.
+  - `PageDots` — page label and hint, tap to switch, plain indicator without a handler.
+  - `Stepper` / `Segmented` / `Toggle` — ±1 and ±5 steps, a big step clamped at the limits
+    (238 + 5 → 240), buttons disabled at the limits, radios with the chosen one selected.
+  - `PresetPicker`, wired to the real preset logic — apply, save under a tidied name, taken and
+    empty names refused, rename, "Save 136 BPM to …", delete with Undo, Move earlier / later.
+- 34 new tests (647 total). CI runs them with the rest (`npx jest`).
+
+### Decisions
+
+- **RNTL 14 + `test-renderer`**, the current pairing for React 19.3 / RN 0.88, rather than the
+  deprecated `react-test-renderer`. Tests live next to the components in
+  `src/components/__tests__/` and use the same `jest-expo` preset as the engine tests.
+- **Test through real state**: each picker is rendered inside a small harness holding the
+  settings in `useState` and calling the same engine functions Settings uses, so a test catches a
+  component and its logic drifting apart, not just a callback firing.
+- No visible change today, so the README screenshots weren't regenerated.
+
+### To test on your phone
+
+- Nothing new to try — the app behaves exactly as yesterday. (Still open from yesterday: the Big
+  practice display from 2–3 m away.)
+
 ## 2026-11-23
 
 ### Added

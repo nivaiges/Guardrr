@@ -137,6 +137,7 @@ practice screen is Chromium's fake camera; on the phone it's you.
   audio in [`src/audio/`](src/audio), the practice session/hook in [`src/practice/`](src/practice),
   saved settings (AsyncStorage) in [`src/storage/`](src/storage), haptics/keep-awake in [`src/feedback/`](src/feedback), light/dark palettes in
   [`src/theme/`](src/theme) (contrast-tested), UI components in [`src/components/`](src/components)
+  with component tests (React Native Testing Library) in `src/components/__tests__/`
 - ESLint (`eslint-config-expo`) + Prettier; GitHub Actions CI runs typecheck, lint, format check and tests
 
 ## Development
