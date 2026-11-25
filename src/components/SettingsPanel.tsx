@@ -48,6 +48,7 @@ import {
 import { Theme, themed, useTheme } from '../theme';
 import { CallPicker } from './CallPicker';
 import { CountOffWordsField } from './CountOffWordsField';
+import { RotationNamesSettings } from './RotationNamesSettings';
 import { Segmented, Stepper, Toggle } from './controls';
 import { VoicePicker } from './VoicePicker';
 
@@ -298,6 +299,15 @@ export function SettingsPanel({
         label="Allow the same call twice in a row"
         value={settings.allowRepeats}
         onChange={(v) => onSettingsChange(withAllowRepeats(settings, v))}
+      />
+      <RotationNamesSettings
+        naming={cueOptions.callNaming}
+        map={cueOptions.rotationMap}
+        onChange={(callNaming, rotationMap) =>
+          onCueOptionsChange({ ...cueOptions, callNaming, rotationMap })
+        }
+        settings={settings}
+        onSettingsChange={onSettingsChange}
       />
 
       <Text style={styles.heading} accessibilityRole="header">

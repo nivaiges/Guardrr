@@ -51,6 +51,11 @@ export interface StepperProps {
   /** Extra coarse step shown as an outer pair of buttons (e.g. 5 for BPM). */
   bigStep?: number;
   format?: (value: number) => string;
+  /**
+   * Screen-reader labels of the − and + buttons when "minus 1" / "plus 1"
+   * would be wrong (e.g. a stepper over a list of calls).
+   */
+  stepLabels?: { minus: string; plus: string };
   disabled?: boolean;
 }
 
@@ -62,6 +67,7 @@ export function Stepper({
   onChange,
   bigStep,
   format = String,
+  stepLabels,
   disabled = false,
 }: StepperProps) {
   const styles = getStyles(useTheme());
@@ -80,7 +86,7 @@ export function Stepper({
         text="−"
         onPress={() => set(value - 1)}
         disabled={disabled || value <= min}
-        accessibilityLabel={`${label} minus 1`}
+        accessibilityLabel={stepLabels?.minus ?? `${label} minus 1`}
       />
       <Text
         style={styles.value}
@@ -93,7 +99,7 @@ export function Stepper({
         text="+"
         onPress={() => set(value + 1)}
         disabled={disabled || value >= max}
-        accessibilityLabel={`${label} plus 1`}
+        accessibilityLabel={stepLabels?.plus ?? `${label} plus 1`}
       />
       {bigStep ? (
         <StepButton

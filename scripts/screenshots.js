@@ -358,6 +358,31 @@ async function main() {
       .waitFor({ timeout: 5_000 });
     await shot(big.page, '34-big-display-in-air');
     await big.context.close();
+
+    // Settings → Calls → Say calls as: Rotations, then a named call while practicing.
+    const rot = await open('light');
+    await rot.page.getByTestId('go-to-settings').click();
+    await rot.page.waitForTimeout(600);
+    await rot.page.getByRole('radio', { name: /Say calls as rotations/ }).click();
+    await rot.page.getByTestId('use-rotation-calls').click();
+    await scrollTo(exact(rot.page, 'Say calls as'));
+    await rot.page.waitForTimeout(200);
+    await shot(rot.page, '35-rotation-names');
+    await rot.page.getByTestId('go-to-practice').click();
+    await rot.page.waitForTimeout(600);
+    await rot.page.getByRole('button', { name: 'Start practice' }).click();
+    await rot.page
+      .getByText(/^Release in /)
+      .first()
+      .waitFor({ timeout: 10_000 });
+    await shot(rot.page, '36-rotation-call');
+    await exact(rot.page, 'Release!').waitFor({ timeout: 10_000 });
+    await rot.page
+      .getByText(/ to catch$/)
+      .first()
+      .waitFor({ timeout: 5_000 });
+    await shot(rot.page, '37-rotation-in-air');
+    await rot.context.close();
   } catch (e) {
     errors.push(e instanceof Error ? e.message : String(e));
   } finally {

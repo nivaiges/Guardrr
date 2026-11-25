@@ -86,14 +86,18 @@ export function PracticeDisplay({
       accessibilityLabel={displayAccessibilityLabel(model)}
     >
       <View style={styles.callRow}>
-        <Text style={styles.callLabel}>Toss</Text>
-        <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
-          {model.callLabel ?? '–'}
-        </Text>
-        <Text style={styles.callLabel}>Next</Text>
-        <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
-          {model.nextCallLabel ?? '–'}
-        </Text>
+        <View style={styles.callPair}>
+          <Text style={styles.callLabel}>Toss</Text>
+          <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
+            {model.callLabel ?? '–'}
+          </Text>
+        </View>
+        <View style={styles.callPair}>
+          <Text style={styles.callLabel}>Next</Text>
+          <Text style={[styles.callValue, callValue]} maxFontSizeMultiplier={big ? 1 : 1.5}>
+            {model.nextCallLabel ?? '–'}
+          </Text>
+        </View>
       </View>
 
       {/* Already huge: don't let large-text settings push it off screen. */}
@@ -171,8 +175,11 @@ const getStyles = themed((t: Theme) =>
       flexWrap: 'wrap',
       justifyContent: 'center',
       alignItems: 'baseline',
-      gap: 8,
+      // Rotation names ("Triple") are wider than counts: keep the pairs apart.
+      columnGap: 16,
+      rowGap: 4,
     },
+    callPair: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
     callLabel: { fontSize: 14, color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1 },
     callValue: {
       fontSize: 24,
