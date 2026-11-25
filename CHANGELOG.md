@@ -1,5 +1,51 @@
 # Changelog
 
+## 2026-11-25
+
+### Added
+
+- **Say calls by rotation name** (roadmap: "Optional preset mapping rotation names
+  (single/double/triple/quad) to count calls"). Settings → Calls → **Say calls as: Counts /
+  Rotations**. With Rotations the voice says **"double"** instead of "two and" for a named call,
+  and the practice display shows "Double" as the headline and in Toss / Next — while **"Catch on
+  2&"** keeps the count the catch lands on. Calls without a name are still said as counts.
+  - A stepper per name (**Single, Double, Triple, Quad**) sets the count each is caught on, one
+    call at a time (2 → 2& → 3 …). Names stay in order: a double can't be caught before the single.
+    Default: The DrillMaster's single 2, double 2&, triple 3, quad 3&.
+  - **Use these calls** practices only the named calls that fit the phrase ("Practicing these
+    calls" once it's in use); a note lists picked calls that have no name, e.g. _"4, 4 and, 5 have
+    no name and are still called as counts."_ on Quads 155.
+  - Saved with the other settings; a bad stored map falls back to the default.
+  - Engine: `src/engine/rotations.ts`; `speechTextForCall` / `displayLabelForCall` take the naming
+    options, and `practiceDisplay` takes them as a third argument.
+- Practice display: the Toss and Next pairs are spaced apart so a name like "Triple" doesn't run
+  into "NEXT".
+- Smoke test: 120 checks (Use these calls, a call spoken as "triple", the choice saved). New
+  screenshots `35-rotation-names`, `36-rotation-call`, `37-rotation-in-air` in the README gallery.
+- 23 new unit and component tests (670 total).
+
+### Decisions
+
+- **Names map to counts, not the other way round.** Research (2026-10-23) showed a double's
+  count length depends on the performer, the height and the tempo, so the count stays the model
+  and a name is a label the performer sets. That keeps the release/catch timing, the phrase
+  strip, warnings and stats exactly as they were.
+- **The screen keeps the count** ("Catch on 2&"): the name tells you what to throw, the count
+  tells you when it lands — the one thing the metronome can actually cue.
+- **Four names** (single to quad), the common flag/rifle vocabulary; "fives"/"sixes" can come
+  later. A name maps to one call; two names can't share a count.
+- A **cue option**, like the voice and sounds: it isn't part of a preset and changes apply to the
+  next call even while practicing. History and stats still show counts for now.
+
+### To test on your phone
+
+- Settings → Calls → Say calls as → Rotations, tap **Use these calls** and practice at 155 BPM:
+  are "single", "double", "triple" and "quad" clear and finished before the release?
+- Set the counts to how your guard actually catches them at that tempo (e.g. Quad on 4) and check
+  the steppers feel right.
+- Not verifiable here: real TTS timing of the longer words; the web build recorded "triple"
+  being spoken on the call count.
+
 ## 2026-11-24
 
 ### Added

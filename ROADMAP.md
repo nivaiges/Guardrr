@@ -61,7 +61,15 @@
 - [x] Audio (#5) should tick with `ticksPerCount: 2` so "and" catches get a cue; consider an optional quieter "and" click. (Engine/audio support `andClicks`; needs a toggle in #7.)
 - [x] Settings UI: toggles for the count-1 accent and the quiet "and" click (`CueOptions`).
 - [ ] Measure click latency on device; if expo-audio player start jitter is audible, move clicks to react-native-audio-api with lookahead scheduling (the scheduler already supports `lookaheadMs`).
-- [ ] Optional preset mapping rotation names (single/double/triple/quad) to count calls.
+- [x] Optional preset mapping rotation names (single/double/triple/quad) to count calls —
+      Settings → Calls → **Say calls as: Rotations**, a stepper per name, "Use these calls".
+- [ ] Rotation names: check on device that "single", "double", "triple", "quad" are clear and
+      quick enough at 155 BPM (two syllables vs. one for "four"), and whether "quad" needs to be
+      said "quads" as some guards call it.
+- [ ] Rotation names: optionally "fives" / "sixes" for rifle and sabre, and save the map with a
+      custom preset (a quad's count changes with the tempo).
+- [ ] History / stats still label calls as counts ("2 and"); show the rotation name there too if
+      performers who use names find the counts confusing.
 - [x] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7) — call chips in Settings → Calls.
 - [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).

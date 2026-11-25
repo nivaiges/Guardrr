@@ -62,9 +62,12 @@ a single depends on height and tempo. Guardrr's calls are **count-based**
    on the same count is physically impossible, and a pop toss (a quick, low
    toss) is the only toss short enough. So "1" and "1 and" catch at the same
    moment; "1" is kept as the name because that's how it's called.
-6. Rotation names (single/double/…) are **not** modelled: how many counts a
-   double takes depends on the performer and the tempo. A future preset could
-   map them to count calls.
+6. Rotation names (single/double/…) are **not** built into the count model:
+   how many counts a double takes depends on the performer and the tempo.
+   Since 2026-11-25 the performer can map each name to a count (Settings →
+   Calls → Say calls as: Rotations), defaulting to The DrillMaster's single 2,
+   double "2 and", triple 3, quad "3 and"; the voice then says the name and the
+   screen keeps the catch count.
 
 ## Sources
 
