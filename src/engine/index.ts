@@ -27,3 +27,4 @@ export * from './appearance';
 export * from './callBuzz';
 export * from './interruption';
 export * from './displaySize';
+export * from './rotations';
