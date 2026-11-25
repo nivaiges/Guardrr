@@ -313,6 +313,40 @@ async function main() {
     await page.getByTestId('call-shortcut-all').click();
     check('All picks every call', await page.getByText('Calls: 1–16').isVisible());
 
+    // 5c1. Say calls as rotations: the named calls only, spoken by name, saved.
+    await page.getByRole('radio', { name: /Say calls as rotations/ }).click();
+    await page.getByTestId('use-rotation-calls').click();
+    check(
+      '"Use these calls" picks the named calls (2, 2&, 3, 3&)',
+      await page.getByText('Calls: 2, 2 and, 3, 3 and').isVisible(),
+    );
+    await page.evaluate(() => (window.__speech.length = 0));
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    // Stop after the call but before the release, so no session is recorded.
+    await page.waitForTimeout((COUNT_IN - LEAD_COUNTS + 1.5) * (60_000 / (BPM + 1)));
+    await page.getByRole('button', { name: 'Stop practice' }).click();
+    const named = await page.evaluate(() => window.__speech.map((u) => u.text));
+    check(
+      'a named call is spoken by its rotation name',
+      named.length === 1 && ['single', 'double', 'triple', 'quad'].includes(named[0]),
+      named.map((t) => `"${t}"`).join(', ') || 'none',
+    );
+    const savedNaming = await page
+      .waitForFunction(
+        () =>
+          JSON.parse(localStorage.getItem('guardrr.settings') ?? '{}').cue?.callNaming ===
+          'rotations',
+        null,
+        { timeout: 3000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    check('"Say calls as: Rotations" is saved', savedNaming);
+    await page.getByRole('radio', { name: /Say calls as counts/ }).click();
+    await page.getByRole('switch', { name: 'Include "and" calls (e.g. "2 and")' }).click();
+    await page.getByTestId('call-shortcut-all').click();
+    check('back to counts and every call', await page.getByText('Calls: 1–16').isVisible());
+
     // 5c2. Count-off patterns: a straight "1 2 3 4" over the count-in, then the call.
     await page.getByRole('switch', { name: /Speak the count-off/ }).click();
     await page.getByRole('radio', { name: 'Straight count: 1 to 8' }).click();
