@@ -28,6 +28,12 @@ import {
   parseTempoFilterKey,
 } from './historyFilter';
 import { CueOptions } from './practice';
+import {
+  DEFAULT_CALL_NAMING,
+  DEFAULT_ROTATION_MAP,
+  isCallNaming,
+  parseStoredRotationMap,
+} from './rotations';
 import { DEFAULT_VOICE_RATE, isVoiceRateOption } from './voiceRate';
 import { isStoredVoiceId } from './voices';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
@@ -69,6 +75,8 @@ export const DEFAULT_CUE_OPTIONS: Required<CueOptions> = {
   countOff: false,
   countOffPattern: DEFAULT_COUNT_OFF_PATTERN,
   countOffWords: [...DEFAULT_CUSTOM_COUNT_OFF_WORDS],
+  callNaming: DEFAULT_CALL_NAMING,
+  rotationMap: DEFAULT_ROTATION_MAP,
 };
 
 export interface PracticeSettings {
@@ -191,6 +199,8 @@ export function parseStoredSettings(json: string | null | undefined): PracticeSe
         ? cue.countOffPattern
         : DEFAULT_CUE_OPTIONS.countOffPattern,
       countOffWords: parseStoredCountOffWords(cue.countOffWords),
+      callNaming: isCallNaming(cue.callNaming) ? cue.callNaming : DEFAULT_CUE_OPTIONS.callNaming,
+      rotationMap: parseStoredRotationMap(cue.rotationMap),
     },
     countIn: int(raw.countIn, 0, MAX_PHRASE_LENGTH, DEFAULT_COUNT_IN),
     voiceRate: isVoiceRateOption(raw.voiceRate) ? raw.voiceRate : DEFAULT_VOICE_RATE,

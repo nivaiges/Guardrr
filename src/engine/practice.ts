@@ -11,6 +11,7 @@ import { CallSequence, CountEvents, TossSettings, eventsAtCount } from './announ
 import { CallBuzzStyle } from './callBuzz';
 import { callLabel } from './calls';
 import { CountOffPattern } from './countIn';
+import { CallNaming, RotationMap, rotationForCall, rotationLabel } from './rotations';
 
 export type ClickKind = 'accent' | 'count' | 'and';
 
@@ -45,6 +46,23 @@ export interface CueOptions {
    * parseCountOffWords). Default "ready set".
    */
   countOffWords?: string[];
+  /**
+   * Say and show calls as counts ("two and", default) or by rotation name
+   * ("double") where `rotationMap` names the call (see rotations.ts).
+   */
+  callNaming?: CallNaming;
+  /** The count each rotation is caught on, for `callNaming: "rotations"`. */
+  rotationMap?: RotationMap;
+}
+
+/** The parts of the cue options that decide how a call is said and shown. */
+export type CallNameOptions = Pick<CueOptions, 'callNaming' | 'rotationMap'>;
+
+/** The rotation name for a call when calls are named by rotation, else null. */
+export function rotationNameForCall(call: number, options: CallNameOptions = {}): string | null {
+  if (options.callNaming !== 'rotations' || !options.rotationMap) return null;
+  const rotation = rotationForCall(call, options.rotationMap);
+  return rotation === null ? null : rotationLabel(rotation);
 }
 
 /**
@@ -119,14 +137,22 @@ export function numberWord(n: number): string {
 /**
  * What the voice says for a call. Spelled out so every TTS engine reads
  * "five" rather than "number five" or "5.0": 5 → "five", 2.5 → "two and".
+ * With rotation names on, a named call is said by its name ("double").
  */
-export function speechTextForCall(call: number): string {
+export function speechTextForCall(call: number, options: CallNameOptions = {}): string {
+  const name = rotationNameForCall(call, options);
+  if (name !== null) return name.toLowerCase();
   const whole = Math.floor(call);
   return Number.isInteger(call) ? numberWord(whole) : `${numberWord(whole)} and`;
 }
 
-/** Short label for the display: 5 → "5", 2.5 → "2&". */
-export function displayLabelForCall(call: number): string {
+/**
+ * Short label for the display: 5 → "5", 2.5 → "2&". With rotation names on,
+ * a named call shows its name ("Double").
+ */
+export function displayLabelForCall(call: number, options: CallNameOptions = {}): string {
+  const name = rotationNameForCall(call, options);
+  if (name !== null) return name;
   return callLabel(call).replace(' and', '&');
 }
 
@@ -179,7 +205,7 @@ export function cueForTick(
     countIndex: tick.countIndex,
     subdivision: tick.subdivision,
     click: clickFor(tick.subdivision, events, options),
-    speak: announce ? speechTextForCall(announce.call) : null,
+    speak: announce ? speechTextForCall(announce.call, options) : null,
     announcedPhrase: announce ? announce.phrase : null,
     nextCall,
     count: events.position.count,

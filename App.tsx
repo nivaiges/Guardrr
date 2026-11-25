@@ -260,7 +260,7 @@ export default function App() {
   };
 
   // While practicing, show what is playing: changed settings wait for their toss.
-  const display = practiceDisplay(cue, activeSettings);
+  const display = practiceDisplay(cue, activeSettings, cueOptions);
 
   // Two pages side by side: practice (camera) and settings & stats.
   const { width, height } = useWindowDimensions();

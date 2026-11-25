@@ -292,7 +292,10 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
  */
 export function mostCalledLabel(mostCalled: readonly number[], max = 2): string {
   if (mostCalled.length === 0) return '–';
-  const shown = mostCalled.slice(0, max).map(displayLabelForCall).join(', ');
+  const shown = mostCalled
+    .slice(0, max)
+    .map((call) => displayLabelForCall(call))
+    .join(', ');
   const more = mostCalled.length - max;
   return more > 0 ? `${shown} +${more}` : shown;
 }

@@ -8,7 +8,7 @@
 
 import { TossSettings, announceCountInPhrase } from './announce';
 import { catchPositionOf, catchesOnAnd } from './calls';
-import { PracticeCue, displayLabelForCall } from './practice';
+import { CallNameOptions, PracticeCue, displayLabelForCall } from './practice';
 
 export type DisplayPhase =
   /** Not practicing. */
@@ -46,7 +46,10 @@ export interface PracticeDisplay {
   detail: string;
   /** The current count (1-based), or null when not practicing. */
   count: number | null;
-  /** The call for the current phrase as a label ("5", "2&"), or null. */
+  /**
+   * The call for the current phrase as a label ("5", "2&", or "Double" with
+   * rotation names on), or null.
+   */
   callLabel: string | null;
   /** The call spoken for the next phrase, once spoken. */
   nextCallLabel: string | null;
@@ -90,8 +93,22 @@ function plural(n: number, word: string): string {
   return `${n} ${word}${n === 1 ? '' : 's'}`;
 }
 
-/** Display model for a cue (null cue = not practicing). */
-export function practiceDisplay(cue: PracticeCue | null, settings: TossSettings): PracticeDisplay {
+/** "5 count" for a count call; a rotation name ("Double") stands on its own. */
+function callHeadline(call: number, names: CallNameOptions): string {
+  const label = displayLabelForCall(call, names);
+  return label === displayLabelForCall(call) ? `${label} count` : label;
+}
+
+/**
+ * Display model for a cue (null cue = not practicing). With rotation names on
+ * (`names`), named calls show their name in the headline and the Toss / Next
+ * values, while "Catch on …" keeps the count the catch lands on.
+ */
+export function practiceDisplay(
+  cue: PracticeCue | null,
+  settings: TossSettings,
+  names: CallNameOptions = {},
+): PracticeDisplay {
   if (!cue) {
     return {
       phase: 'ready',
@@ -107,8 +124,11 @@ export function practiceDisplay(cue: PracticeCue | null, settings: TossSettings)
   }
 
   const call = cue.currentCall;
-  const label = call === null ? null : displayLabelForCall(call);
-  const nextLabel = cue.nextCall === null ? null : displayLabelForCall(cue.nextCall);
+  const label = call === null ? null : displayLabelForCall(call, names);
+  const nextLabel = cue.nextCall === null ? null : displayLabelForCall(cue.nextCall, names);
+  // "Catch on 2&": always the count, even when the call has a name.
+  const catchLabel = call === null ? null : displayLabelForCall(call);
+  const nextHeadline = cue.nextCall === null ? null : callHeadline(cue.nextCall, names);
   // Position in counts within the phrase, with "and"s as .5.
   const position = cue.count + cue.subdivision * 0.5;
   const toRelease = nextLabel === null ? null : settings.phraseLength - cue.count + 1;
@@ -121,12 +141,12 @@ export function practiceDisplay(cue: PracticeCue | null, settings: TossSettings)
 
   if (call === null) {
     phase = 'lead-in';
-    headline = nextLabel === null ? 'Lead-in' : `${nextLabel} count`;
+    headline = nextHeadline ?? 'Lead-in';
     detail = prep || 'Listen for the call';
   } else if (cue.release) {
     phase = 'release';
     headline = 'Release!';
-    detail = `Catch on ${label}`;
+    detail = `Catch on ${catchLabel}`;
   } else if (cue.catch) {
     phase = 'catch';
     headline = 'Catch!';
@@ -134,11 +154,11 @@ export function practiceDisplay(cue: PracticeCue | null, settings: TossSettings)
   } else if (position < catchPositionOf(call)) {
     phase = 'in-air';
     countsToCatch = catchPositionOf(call) - position;
-    headline = `${label} count`;
-    detail = `Catch on ${label}`;
+    headline = callHeadline(call, names);
+    detail = `Catch on ${catchLabel}`;
   } else {
     phase = 'marking';
-    headline = nextLabel === null ? 'Mark time' : `${nextLabel} count`;
+    headline = nextHeadline ?? 'Mark time';
     detail = prep || 'Listen for the call';
   }
 

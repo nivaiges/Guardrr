@@ -24,6 +24,8 @@ const custom: PracticeSettings = {
     countOff: true,
     countOffPattern: 'custom',
     countOffWords: ['hit', 'it'],
+    callNaming: 'rotations',
+    rotationMap: { single: 3, double: 4, triple: 5, quad: 6 },
   },
   countIn: 4,
   voiceRate: 0.8,
@@ -42,6 +44,17 @@ describe('stored settings', () => {
     expect(parseStoredSettings(serializeSettings(DEFAULT_PRACTICE_SETTINGS))).toEqual(
       DEFAULT_PRACTICE_SETTINGS,
     );
+  });
+
+  it('keeps rotation names and repairs a bad map', () => {
+    const parse = (cue: unknown) => parseStoredSettings(JSON.stringify({ cue })).cue;
+    expect(parse({ callNaming: 'rotations' }).callNaming).toBe('rotations');
+    expect(parse({ callNaming: 'names' }).callNaming).toBe('counts');
+    expect(parse({}).rotationMap).toEqual({ single: 2, double: 2.5, triple: 3, quad: 3.5 });
+    // Out of order (a double before the single): back to the default map.
+    expect(
+      parse({ rotationMap: { single: 4, double: 3, triple: 5, quad: 6 } }).rotationMap,
+    ).toEqual(DEFAULT_PRACTICE_SETTINGS.cue.rotationMap);
   });
 
   it('stores a version number', () => {
@@ -93,6 +106,8 @@ describe('stored settings', () => {
       countOff: false,
       countOffPattern: 'prep',
       countOffWords: ['ready', 'set'],
+      callNaming: 'counts',
+      rotationMap: { single: 2, double: 2.5, triple: 3, quad: 3.5 },
     });
   });
 

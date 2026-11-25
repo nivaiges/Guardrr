@@ -81,6 +81,8 @@ describe('practice presets', () => {
         countOff: true,
         countOffPattern: 'quick' as const,
         countOffWords: ['hit', 'it'],
+        callNaming: 'rotations' as const,
+        rotationMap: { single: 2, double: 3, triple: 4, quad: 5 },
       },
     };
     const quick = presetById('quick-8')!;

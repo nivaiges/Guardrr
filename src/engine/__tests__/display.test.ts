@@ -1,12 +1,17 @@
 import { CallSequence, DEFAULT_TOSS_SETTINGS, TossSettings } from '../announce';
 import { PracticeDisplay, practiceDisplay } from '../display';
-import { PracticeCue, cueForTick } from '../practice';
+import { CallNameOptions, PracticeCue, cueForTick } from '../practice';
 import { Rng } from '../random';
+import { DEFAULT_ROTATION_MAP } from '../rotations';
 
 /** Calls are predictable here: each test allows a single call. */
 const fixedCallRng = (): Rng => () => 0;
 
-function displays(settings: TossSettings, counts: number): PracticeDisplay[] {
+function displays(
+  settings: TossSettings,
+  counts: number,
+  names: CallNameOptions = {},
+): PracticeDisplay[] {
   const calls = new CallSequence(settings, fixedCallRng());
   const out: PracticeDisplay[] = [];
   for (let tick = 0; tick < counts * 2; tick++) {
@@ -15,7 +20,7 @@ function displays(settings: TossSettings, counts: number): PracticeDisplay[] {
       settings,
       calls,
     );
-    out.push(practiceDisplay(cue, settings));
+    out.push(practiceDisplay(cue, settings, names));
   }
   return out;
 }
@@ -32,6 +37,29 @@ describe('practiceDisplay', () => {
     expect(d.beats).toHaveLength(16);
     expect(d.beats.filter((b) => b.marker === 'call').map((b) => b.count)).toEqual([13]);
     expect(d.beats.some((b) => b.current || b.past)).toBe(false);
+  });
+
+  describe('with rotation names on and a double (2&)', () => {
+    const settings: TossSettings = { ...DEFAULT_TOSS_SETTINGS, allowedTossCounts: [2.5] };
+    const names: CallNameOptions = { callNaming: 'rotations', rotationMap: DEFAULT_ROTATION_MAP };
+    const all = displays(settings, 32, names);
+
+    it('names the toss but keeps the catch count', () => {
+      expect(onCount(all, 12)).toMatchObject({ headline: 'Double', nextCallLabel: 'Double' });
+      expect(onCount(all, 16)).toMatchObject({
+        phase: 'release',
+        detail: 'Catch on 2&',
+        callLabel: 'Double',
+      });
+      expect(onAnd(all, 16)).toMatchObject({ phase: 'in-air', headline: 'Double' });
+      expect(onAnd(all, 16).detail).toBe('Catch on 2&');
+    });
+
+    it('still says "5 count" for a call without a name', () => {
+      const fives = displays({ ...settings, allowedTossCounts: [5] }, 20, names);
+      expect(onCount(fives, 12).headline).toBe('5 count');
+      expect(onCount(fives, 17).headline).toBe('5 count');
+    });
   });
 
   describe('with a 5 count in a 16-count phrase', () => {

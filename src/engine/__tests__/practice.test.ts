@@ -4,9 +4,11 @@ import {
   cueForTick,
   displayLabelForCall,
   numberWord,
+  rotationNameForCall,
   speechTextForCall,
 } from '../practice';
 import { createRng } from '../random';
+import { DEFAULT_ROTATION_MAP } from '../rotations';
 
 function walk(
   settings: TossSettings,
@@ -58,6 +60,32 @@ describe('call text', () => {
   it('labels calls compactly for the display', () => {
     expect(displayLabelForCall(5)).toBe('5');
     expect(displayLabelForCall(2.5)).toBe('2&');
+  });
+
+  describe('with rotation names', () => {
+    const names = { callNaming: 'rotations' as const, rotationMap: DEFAULT_ROTATION_MAP };
+
+    it('says and shows a named call by its name', () => {
+      expect(speechTextForCall(2.5, names)).toBe('double');
+      expect(speechTextForCall(3.5, names)).toBe('quad');
+      expect(displayLabelForCall(2, names)).toBe('Single');
+      expect(rotationNameForCall(3, names)).toBe('Triple');
+    });
+
+    it('keeps counts for calls without a name, and when names are off', () => {
+      expect(speechTextForCall(5, names)).toBe('five');
+      expect(displayLabelForCall(4.5, names)).toBe('4&');
+      const off = { ...names, callNaming: 'counts' as const };
+      expect(speechTextForCall(2.5, off)).toBe('two and');
+      expect(rotationNameForCall(2.5, off)).toBeNull();
+      expect(rotationNameForCall(2.5, { callNaming: 'rotations' })).toBeNull();
+    });
+
+    it('speaks the name on the announcement count', () => {
+      const doubles = { ...DEFAULT_TOSS_SETTINGS, allowedTossCounts: [2.5] };
+      const spoken = walk(doubles, 32, names).cues.filter((c) => c.speak !== null);
+      expect(spoken.map((c) => c.speak)).toEqual(['double', 'double']);
+    });
   });
 });
 
