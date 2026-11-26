@@ -53,7 +53,8 @@ Below that you can fine-tune:
   row. **Say calls as: Rotations** speaks a call by its name — "double" instead of "two and" —
   once you've set the count each **Single / Double / Triple / Quad** is caught on at your tempo
   (default single 2, double 2&, triple 3, quad 3&); **Use these calls** drills just those. The
-  screen still shows "Catch on 2&", and calls without a name are said as counts.
+  screen still shows "Catch on 2&", and calls without a name are said as counts. The session
+  stats, History and the Drop button name calls the same way ("Triple ✗").
 - **Sound** — accent on count 1, an optional quiet click on the "and"s, a vibration on every
   release (count 1) you can feel even when the gym is loud, an optional lighter tap on every
   catch, and an optional **buzz with the call** — a double buzz ("look at the screen") or **Buzz
@@ -130,6 +131,10 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | Say calls as: Rotations                                                                                                      | A named call                                                                                            | Named toss in the air                                                                 |
 | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | ![Settings → Calls → Say calls as Rotations: Single 2, Double 2&, Triple 3, Quad 3&](docs/screenshots/35-rotation-names.png) | ![The call spoken as "triple": Next Triple, release in 4 counts](docs/screenshots/36-rotation-call.png) | ![A triple in the air: "Triple", catch on 3](docs/screenshots/37-rotation-in-air.png) |
+
+| Stats by rotation name                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Last session named by rotation: Triple called most, Triple (3) — every session, Latest: Triple · Quad · Triple ✗](docs/screenshots/38-rotation-stats.png) |
 
 ## Tech
 

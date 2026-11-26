@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-11-26
+
+### Added
+
+- **Stats and History name calls by rotation** (roadmap: "History / stats still label calls as
+  counts; show the rotation name there too"). With Settings → Calls → **Say calls as:
+  Rotations**, everything that lists calls now reads them the way the voice said them:
+  - Session stats: the tally ("Triple", "Quad"), **called most** and **Latest: Triple · Quad ·
+    Triple ✗**.
+  - History: **Dropped most: Double (63% caught)** and the catch-rate trend rows.
+  - The Drop button's grace-period label and hint: "toss 3 · Quad".
+  - A call's detail list keeps the count in its heading — **"Triple (3) — every session"** — so
+    an older session still makes sense after you remap a name.
+  - Calls without a name (e.g. 4 on the default map) still read as counts. With **Counts**
+    nothing changes.
+- Label columns in the stats tally and History trends widen for names, and "called most" shows
+  one name plus "+N" when calls tie (the full list is read to screen readers), so nothing wraps.
+- **Component tests** for `SessionStatsCard` (totals, tally, latest, names, call detail) and
+  `SessionHistoryCard` over real history state (totals, preset filter narrowing totals and Share,
+  "Dropped most" and trends as counts or names, call detail open/close, Edit → delete with Undo,
+  Clear all with its confirm).
+- New screenshot `38-rotation-stats` in the README gallery. 21 new tests (691 total).
+
+### Decisions
+
+- **Today's names label saved sessions.** Sessions are stored as counts (as before); History
+  shows each call by the name it has now. That keeps one label per call across the screen, and
+  the detail heading's count ("Double (2 and)") makes a remap visible.
+- **The CSV export keeps counts** — it's for a coach who may not use your names; a name column
+  is on the roadmap if wanted.
+- The engine functions (`summarizeStats`, `summarizeHistory`, `callTrend(s)`, `callDetail`,
+  `dropButtonText`, `mostCalledLabel/Spoken`) take the naming options as an optional last
+  argument, so every other caller is unchanged.
+
+### To test on your phone
+
+- With **Say calls as: Rotations** on, practice a few phrases, mark a drop, Stop and swipe to
+  the second page: do "Triple ✗" and "Dropped most: Double" read naturally?
+- Remap a name (e.g. Quad on 4) and check that History's labels follow and the detail heading
+  shows the new count.
+- Nothing here depends on audio/TTS; verified in the web build (screenshot 38).
+
 ## 2026-11-25
 
 ### Added

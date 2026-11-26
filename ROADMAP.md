@@ -68,17 +68,20 @@
       said "quads" as some guards call it.
 - [ ] Rotation names: optionally "fives" / "sixes" for rifle and sabre, and save the map with a
       custom preset (a quad's count changes with the tempo).
-- [ ] History / stats still label calls as counts ("2 and"); show the rotation name there too if
-      performers who use names find the counts confusing.
+- [x] History / stats name calls by rotation too ("Triple ✗", "Dropped most: Double") with
+      "Say calls as: Rotations"; a call's detail keeps the count ("Double (2 and)").
+- [ ] Rotation names in the History CSV export (a "name" column) if a coach wants them; today the
+      CSV keeps counts only.
 - [x] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7) — call chips in Settings → Calls.
 - [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
 - [x] UI component tests (`@testing-library/react-native`): practice display, call picker, page
       dots, settings controls (stepper, segments, switch) and the preset picker's save / rename /
       update / delete-undo / move flows.
-- [ ] Component tests for the rest: SettingsPanel, SessionStatsCard, SessionHistoryCard (edit,
-      filters, share), VoicePicker, AppearanceSettings, CountOffWordsField; then App-level flows
-      (Start/Stop with fake timers and mocked audio/speech).
+- [x] Component tests: SessionStatsCard (totals, tally, latest, call detail) and
+      SessionHistoryCard (filters, share, trends, call detail, delete/undo, clear all).
+- [ ] Component tests for the rest: SettingsPanel, VoicePicker, AppearanceSettings,
+      CountOffWordsField; then App-level flows (Start/Stop with fake timers and mocked audio/speech).
 - [ ] Accessibility: the Segmented and preset "radio" chips pass `selected` (plus `aria-checked`);
       check on device whether TalkBack reads them as "selected" or wants `checked` for radios.
 - [x] Display: a larger count for propping the phone up across the floor — Settings → Appearance →

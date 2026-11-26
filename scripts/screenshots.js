@@ -6,7 +6,8 @@
  * as CSV and filtered to one preset, the call picker, dark theme, and
  * saving, updating and moving a preset of your own, Appearance forced
  * to Dark, the note after leaving the screen mid-practice, and the big
- * practice display (Settings → Appearance → Practice display: Big).
+ * practice display (Settings → Appearance → Practice display: Big), and calls
+ * said as rotation names (the setting, a named call, and the stats naming them).
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -382,6 +383,18 @@ async function main() {
       .first()
       .waitFor({ timeout: 5_000 });
     await shot(rot.page, '37-rotation-in-air');
+    // A few named tosses (one marked dropped), then the stats name them too.
+    await rot.page.getByTestId('drop-target').waitFor({ timeout: 15_000 });
+    await rot.page.getByRole('button', { name: 'Drop' }).click();
+    await rot.page.waitForTimeout(7_000);
+    await rot.page.getByRole('button', { name: 'Stop practice' }).click();
+    await rot.page.getByTestId('go-to-settings').click();
+    await rot.page.waitForTimeout(600);
+    const rotStats = exact(rot.page, 'Last session').locator('xpath=..');
+    await scrollTo(rotStats);
+    await rotStats.locator('[data-testid^="stats-call-"]').first().click();
+    await rot.page.waitForTimeout(300);
+    await shot(rotStats, '38-rotation-stats');
     await rot.context.close();
   } catch (e) {
     errors.push(e instanceof Error ? e.message : String(e));
