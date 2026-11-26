@@ -147,7 +147,12 @@ export default function App() {
     toggleDrop,
   } = usePracticeSession(bpm, settings, cueOptions, countIn, voiceRate, voice);
   // Right after a release Drop marks the toss before it (see DROP_GRACE_COUNTS).
-  const drop = dropButtonText(stats);
+  // "Say calls as": stats and History name calls the way the voice says them.
+  const callNames = useMemo(
+    () => ({ callNaming: cueOptions.callNaming, rotationMap: cueOptions.rotationMap }),
+    [cueOptions.callNaming, cueOptions.rotationMap],
+  );
+  const drop = dropButtonText(stats, callNames);
   const {
     history,
     saveSession,
@@ -419,11 +424,13 @@ export default function App() {
             <SessionStatsCard
               stats={stats}
               running={running}
+              names={callNames}
               history={history}
               nowMs={historyUpdatedAt}
             />
             <SessionHistoryCard
               history={history}
+              names={callNames}
               nowMs={historyUpdatedAt}
               onDelete={deleteSession}
               onClear={clearHistory}

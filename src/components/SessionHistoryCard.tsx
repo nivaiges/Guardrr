@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
+  CallNameOptions,
   ALL_SESSIONS,
   ALL_TEMPOS,
   HistoryFilter,
@@ -33,6 +34,8 @@ const MANY_ROWS = 25;
 
 export interface SessionHistoryCardProps {
   history: readonly SessionRecord[];
+  /** "Say calls as": with Rotations, named calls read "Double" instead of "2 and". */
+  names?: CallNameOptions;
   /** "Today"/"Yesterday" are relative to this time (epoch ms). */
   nowMs: number;
   /** Delete one session; returns what was removed (for Undo). */
@@ -139,6 +142,7 @@ function FilterChips({
  */
 export function SessionHistoryCard({
   history,
+  names,
   nowMs,
   onDelete,
   onClear,
@@ -178,8 +182,8 @@ export function SessionHistoryCard({
   const activeTempo = resolveTempoFilter(byPreset, tempoKey);
   const shown = useMemo(() => filterByTempo(byPreset, activeTempo), [byPreset, activeTempo]);
   const summary = useMemo(
-    () => summarizeHistory(shown, nowMs, expanded ? MANY_ROWS : FEW_ROWS),
-    [shown, nowMs, expanded],
+    () => summarizeHistory(shown, nowMs, expanded ? MANY_ROWS : FEW_ROWS, names),
+    [shown, nowMs, expanded, names],
   );
   // How the calls dropped most are doing lately (follows the filter).
   const trends = useMemo(
@@ -187,14 +191,16 @@ export function SessionHistoryCard({
       callTrends(
         shown,
         summary.hardest.map((c) => c.call),
+        undefined,
+        names,
       ),
-    [shown, summary.hardest],
+    [shown, summary.hardest, names],
   );
   // The call whose sessions are listed (tap a trend row); follows the filters.
   const [detailCall, setDetailCall] = useState<number | null>(null);
   const detail = useMemo(
-    () => (detailCall === null ? null : callDetail(shown, detailCall, nowMs)),
-    [shown, detailCall, nowMs],
+    () => (detailCall === null ? null : callDetail(shown, detailCall, nowMs, undefined, names)),
+    [shown, detailCall, nowMs, names],
   );
   const detailAnchor = callDetailAnchor(
     trends.map((t) => t.call),
@@ -207,6 +213,8 @@ export function SessionHistoryCard({
       testID="history-call-detail"
     />
   ) : null;
+  // Rotation names ("Triple") need a wider label column than counts ("4 and").
+  const namedTrends = trends.some((t) => t.label.length > 5);
   const editable = Boolean(onDelete || onClear);
   if (history.length === 0 && !editing && !undo) return null;
   const more = Math.min(shown.length, MANY_ROWS) - summary.rows.length;
@@ -398,7 +406,9 @@ export function SessionHistoryCard({
                         pressed && styles.morePressed,
                       ]}
                     >
-                      <Text style={styles.trendCall}>{trend.label}</Text>
+                      <Text style={[styles.trendCall, namedTrends && styles.trendCallNamed]}>
+                        {trend.label}
+                      </Text>
                       <View style={styles.trendBars}>
                         {trend.points.map((p) => (
                           <View key={p.startedAt} style={styles.trendSlot}>
@@ -581,6 +591,7 @@ const getStyles = themed((t: Theme) =>
     },
     trendRowOpen: { backgroundColor: t.control },
     trendCall: { width: 44, fontSize: 14, fontWeight: '700', color: t.dangerText },
+    trendCallNamed: { width: 60 },
     trendBars: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 24 },
     trendSlot: {
       flex: 1,

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Theme, themed, useTheme } from '../theme';
 import {
+  CallNameOptions,
   SessionRecord,
   SessionStats,
   callDetail,
@@ -15,6 +16,8 @@ import { CallDetailPanel } from './CallDetailPanel';
 export interface SessionStatsCardProps {
   stats: SessionStats;
   running: boolean;
+  /** "Say calls as": with Rotations, named calls read "Double" instead of "2 and". */
+  names?: CallNameOptions;
   /**
    * Saved sessions: when given, a call's row opens every session it came up
    * in (all of History, not its filters).
@@ -35,16 +38,16 @@ function Figure({ value, label, spoken }: { value: string; label: string; spoken
 }
 
 /** Tosses called, time, which calls came up and the latest ones. */
-export function SessionStatsCard({ stats, running, history, nowMs }: SessionStatsCardProps) {
+export function SessionStatsCard({ stats, running, names, history, nowMs }: SessionStatsCardProps) {
   const styles = getStyles(useTheme());
-  const summary = summarizeStats(stats);
+  const summary = summarizeStats(stats, undefined, names);
   const [detailCall, setDetailCall] = useState<number | null>(null);
   const detail = useMemo(
     () =>
       history && nowMs !== undefined && detailCall !== null
-        ? callDetail(history, detailCall, nowMs)
+        ? callDetail(history, detailCall, nowMs, undefined, names)
         : null,
-    [history, detailCall, nowMs],
+    [history, detailCall, nowMs, names],
   );
   // Calls with saved sessions (the running session is saved at Stop).
   const openable = useMemo(() => {
@@ -58,6 +61,9 @@ export function SessionStatsCard({ stats, running, history, nowMs }: SessionStat
   if (!running && stats.countsPlayed === 0) return null;
   const anyOpenable = summary.tally.some((t) => openable.has(String(t.call)));
   const top = Math.max(1, ...summary.tally.map((t) => t.times));
+  // Rotation names ("Triple") need a wider label column than counts ("4 and"),
+  // and "called most" shows one name ("Double +1") so its column doesn't wrap.
+  const named = summary.tally.some((t) => t.label.length > 5);
 
   return (
     <View style={styles.card}>
@@ -69,8 +75,8 @@ export function SessionStatsCard({ stats, running, history, nowMs }: SessionStat
         <Figure value={summary.duration} label="time" />
         {summary.drops > 0 ? <Figure value={summary.catchRateLabel} label="caught" /> : null}
         <Figure
-          value={mostCalledLabel(summary.mostCalled)}
-          spoken={mostCalledSpoken(summary.mostCalled)}
+          value={mostCalledLabel(summary.mostCalled, named ? 1 : 2, names)}
+          spoken={mostCalledSpoken(summary.mostCalled, names)}
           label="called most"
         />
       </View>
@@ -81,7 +87,13 @@ export function SessionStatsCard({ stats, running, history, nowMs }: SessionStat
             const spoken = `${t.label}: called ${t.times} ${t.times === 1 ? 'time' : 'times'}${t.drops ? `, dropped ${t.drops}` : ''}`;
             const row = (
               <>
-                <Text style={[styles.tallyLabel, openable.has(String(t.call)) && styles.link]}>
+                <Text
+                  style={[
+                    styles.tallyLabel,
+                    named && styles.tallyLabelNamed,
+                    openable.has(String(t.call)) && styles.link,
+                  ]}
+                >
                   {t.label}
                 </Text>
                 <View style={styles.barTrack}>
@@ -183,6 +195,7 @@ const getStyles = themed((t: Theme) =>
     link: { textDecorationLine: 'underline' },
     hint: { fontSize: 12, color: t.textMuted, marginTop: 4 },
     tallyLabel: { width: 48, fontSize: 14, fontWeight: '600', textAlign: 'right', color: t.text },
+    tallyLabelNamed: { width: 60 },
     barTrack: { flex: 1, height: 10, borderRadius: 5, backgroundColor: t.track },
     bar: { height: 10, borderRadius: 5, backgroundColor: t.primary },
     tallyTimes: { minWidth: 32, fontSize: 14, color: t.text, fontVariant: ['tabular-nums'] },
