@@ -10,7 +10,8 @@
  * `parseStoredHistory` never throws and skips records it can't read.
  */
 
-import { callLabel, isValidCall } from './calls';
+import { isValidCall } from './calls';
+import { CallNameOptions, statsLabelForCall } from './practice';
 import { SessionStats, formatDuration, statsDurationMs } from './stats';
 
 export const HISTORY_STORAGE_KEY = 'guardrr.history';
@@ -237,10 +238,16 @@ export interface HistorySummary {
   rows: SessionRow[];
 }
 
+/**
+ * Totals over saved sessions. With rotation names on (`names`), named calls
+ * are labelled by today's names ("Double"): sessions keep counts, so a call
+ * reads by whatever name it has now.
+ */
 export function summarizeHistory(
   history: readonly SessionRecord[],
   nowMs: number,
   rowCount = 10,
+  names: CallNameOptions = {},
 ): HistorySummary {
   let tosses = 0;
   let drops = 0;
@@ -260,7 +267,7 @@ export function summarizeHistory(
       const rate = (n - d) / n;
       return {
         call: Number(key),
-        label: callLabel(Number(key)),
+        label: statsLabelForCall(Number(key), names),
         times: n,
         drops: d,
         catchRate: rate,

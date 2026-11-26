@@ -4,8 +4,8 @@
  * them), so it follows the History filter when given the filtered list.
  */
 
-import { callLabel } from './calls';
 import { SessionRecord, formatSessionDate, sessionRowDetail } from './history';
+import { CallNameOptions, callLabelWithCount, statsLabelForCall } from './practice';
 
 /** How many of a call's most recent sessions the trend looks at. */
 export const TREND_SESSIONS = 10;
@@ -92,6 +92,7 @@ export function callTrend(
   history: readonly SessionRecord[],
   call: number,
   sessions = TREND_SESSIONS,
+  names: CallNameOptions = {},
 ): CallTrend | null {
   const key = String(call);
   const points: TrendPoint[] = [];
@@ -108,7 +109,7 @@ export function callTrend(
   const halves = trendHalves(points);
   const earlier = percent(halves.earlier);
   const later = percent(halves.later);
-  const label = callLabel(call);
+  const label = statsLabelForCall(call, names);
   return {
     call,
     label,
@@ -126,8 +127,9 @@ export function callTrends(
   history: readonly SessionRecord[],
   calls: readonly number[],
   sessions = TREND_SESSIONS,
+  names: CallNameOptions = {},
 ): CallTrend[] {
-  return calls.flatMap((call) => callTrend(history, call, sessions) ?? []);
+  return calls.flatMap((call) => callTrend(history, call, sessions, names) ?? []);
 }
 
 /** Sessions listed in a call's detail view before it says how many more there are. */
@@ -179,9 +181,10 @@ export function callDetail(
   call: number,
   nowMs: number,
   limit = CALL_DETAIL_SESSIONS,
+  names: CallNameOptions = {},
 ): CallDetail | null {
   const key = String(call);
-  const label = callLabel(call);
+  const label = callLabelWithCount(call, names);
   const rows: CallDetailRow[] = [];
   let sessions = 0;
   let tosses = 0;

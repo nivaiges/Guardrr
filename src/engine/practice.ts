@@ -156,6 +156,24 @@ export function displayLabelForCall(call: number, options: CallNameOptions = {})
   return callLabel(call).replace(' and', '&');
 }
 
+/**
+ * Label for stats and History: 5 → "5", 2.5 → "2 and". With rotation names
+ * on, a named call reads by its name ("Double"), the way the voice said it.
+ */
+export function statsLabelForCall(call: number, options: CallNameOptions = {}): string {
+  return rotationNameForCall(call, options) ?? callLabel(call);
+}
+
+/**
+ * The name with the count it's caught on, for headings where the count still
+ * matters (a session saved before the map changed): "Double (2 and)". Plain
+ * "2 and" for a call without a name.
+ */
+export function callLabelWithCount(call: number, options: CallNameOptions = {}): string {
+  const name = rotationNameForCall(call, options);
+  return name === null ? callLabel(call) : `${name} (${callLabel(call)})`;
+}
+
 function clickFor(subdivision: number, events: CountEvents, options: CueOptions): ClickKind | null {
   if (subdivision > 0) return options.andClicks ? 'and' : null;
   if ((options.accentDownbeat ?? true) && events.position.isDownbeat) return 'accent';

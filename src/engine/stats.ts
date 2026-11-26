@@ -7,8 +7,7 @@
  * time so tests don't need a clock.
  */
 
-import { callLabel } from './calls';
-import { PracticeCue, displayLabelForCall } from './practice';
+import { CallNameOptions, PracticeCue, displayLabelForCall, statsLabelForCall } from './practice';
 
 /** How many recent tosses the history keeps. */
 export const STATS_HISTORY_LIMIT = 50;
@@ -197,7 +196,10 @@ export function toggleDrop(stats: SessionStats): SessionStats {
 }
 
 /** Button text and screen-reader hint for Drop, for the current target. */
-export function dropButtonText(stats: SessionStats): {
+export function dropButtonText(
+  stats: SessionStats,
+  names: CallNameOptions = {},
+): {
   label: string;
   detail: string | null;
   hint: string;
@@ -206,10 +208,11 @@ export function dropButtonText(stats: SessionStats): {
   if (!target) return null;
   const label = target.dropped ? 'Undo drop' : 'Drop';
   const which = target.previous ? 'the previous toss' : 'the latest toss';
-  const detail = target.previous ? `toss ${target.toss} · ${callLabel(target.call)}` : null;
+  const call = statsLabelForCall(target.call, names);
+  const detail = target.previous ? `toss ${target.toss} · ${call}` : null;
   const hint = target.dropped
-    ? `Counts ${which} (${callLabel(target.call)}) as caught again`
-    : `Marks ${which} (${callLabel(target.call)}) as dropped`;
+    ? `Counts ${which} (${call}) as caught again`
+    : `Marks ${which} (${call}) as dropped`;
   return { label, detail, hint };
 }
 
@@ -252,14 +255,23 @@ export function formatDuration(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
 }
 
-export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSummary {
+/**
+ * Totals for the stats card. With rotation names on (`names`), named calls are
+ * labelled by name ("Double") in the tally and the latest calls.
+ */
+export function summarizeStats(
+  stats: SessionStats,
+  latestCount = 8,
+  names: CallNameOptions = {},
+): StatsSummary {
+  const label = (call: number) => statsLabelForCall(call, names);
   const durationMs = statsDurationMs(stats);
   const tally = Object.entries(stats.timesCalled)
     .map(([key, times]) => {
       const call = Number(key);
       return {
         call,
-        label: callLabel(call),
+        label: label(call),
         times,
         share: stats.tosses ? times / stats.tosses : 0,
         drops: stats.timesDropped[key] ?? 0,
@@ -281,7 +293,7 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
     latest: stats.recent
       .slice(-latestCount)
       .reverse()
-      .map((r) => (r.dropped ? `${callLabel(r.call)} ✗` : callLabel(r.call))),
+      .map((r) => (r.dropped ? `${label(r.call)} ✗` : label(r.call))),
   };
 }
 
@@ -290,17 +302,26 @@ export function summarizeStats(stats: SessionStats, latestCount = 8): StatsSumma
  * `max` tied calls "1, 2 +3"; "–" before the first toss. Screen readers get
  * the full list (`mostCalledSpoken`).
  */
-export function mostCalledLabel(mostCalled: readonly number[], max = 2): string {
+export function mostCalledLabel(
+  mostCalled: readonly number[],
+  max = 2,
+  names: CallNameOptions = {},
+): string {
   if (mostCalled.length === 0) return '–';
   const shown = mostCalled
     .slice(0, max)
-    .map((call) => displayLabelForCall(call))
+    .map((call) => displayLabelForCall(call, names))
     .join(', ');
   const more = mostCalled.length - max;
   return more > 0 ? `${shown} +${more}` : shown;
 }
 
 /** Every tied call for screen readers ("4, 4 and"); "none yet" before the first toss. */
-export function mostCalledSpoken(mostCalled: readonly number[]): string {
-  return mostCalled.length ? mostCalled.map(callLabel).join(', ') : 'none yet';
+export function mostCalledSpoken(
+  mostCalled: readonly number[],
+  names: CallNameOptions = {},
+): string {
+  return mostCalled.length
+    ? mostCalled.map((call) => statsLabelForCall(call, names)).join(', ')
+    : 'none yet';
 }
