@@ -1,13 +1,22 @@
 import { SessionRecord } from '../history';
 import {
   HISTORY_CSV_HEADER,
+  HISTORY_CSV_NAME_HEADER,
   callCountsCell,
   csvCell,
   csvDateTime,
+  csvNameLabel,
+  csvUsesNames,
   historyCsv,
+  historyCsvHeader,
   historyShareTitle,
   sessionCsvRow,
 } from '../historyExport';
+import { CallNameOptions } from '../practice';
+import { DEFAULT_ROTATION_MAP } from '../rotations';
+
+/** Single 2, double 2&, triple 3, quad 3&. */
+const ROTATIONS: CallNameOptions = { callNaming: 'rotations', rotationMap: DEFAULT_ROTATION_MAP };
 
 const AT = new Date(2026, 10, 8, 18, 5).getTime(); // Nov 8 2026, 6:05 PM local
 
@@ -117,5 +126,64 @@ describe('historyShareTitle', () => {
       'Guardrr history: Quads 155 (1 session)',
     );
     expect(historyShareTitle([record()], null)).toBe('Guardrr history (1 session)');
+  });
+});
+
+describe('rotation-name columns', () => {
+  it('are added only when calls are said by rotation with a map', () => {
+    expect(csvUsesNames()).toBe(false);
+    expect(csvUsesNames({ callNaming: 'counts', rotationMap: DEFAULT_ROTATION_MAP })).toBe(false);
+    expect(csvUsesNames({ callNaming: 'rotations' })).toBe(false);
+    expect(csvUsesNames(ROTATIONS)).toBe(true);
+    expect(historyCsvHeader()).toEqual([...HISTORY_CSV_HEADER]);
+    expect(historyCsvHeader(ROTATIONS)).toEqual([
+      ...HISTORY_CSV_HEADER,
+      ...HISTORY_CSV_NAME_HEADER,
+    ]);
+  });
+
+  it('label named calls by name and the rest by count', () => {
+    expect(csvNameLabel(3, ROTATIONS)).toBe('Triple');
+    expect(csvNameLabel(3.5, ROTATIONS)).toBe('Quad');
+    expect(csvNameLabel(4, ROTATIONS)).toBe('4');
+    expect(csvNameLabel(4.5, ROTATIONS)).toBe('4&');
+    expect(csvNameLabel(3, {})).toBe('3');
+  });
+
+  it('callCountsCell takes a label for each call', () => {
+    const byName = (call: number) => csvNameLabel(call, ROTATIONS);
+    expect(callCountsCell({ '4': 3, '3.5': 2, '3': 3 }, byName)).toBe('Triple: 3; Quad: 2; 4: 3');
+  });
+
+  it('repeat calls and drops by name after the unchanged count columns', () => {
+    const plain = sessionCsvRow(record());
+    expect(sessionCsvRow(record(), ROTATIONS)).toBe(`${plain},Triple: 3; Quad: 2; 4: 3,4: 2`);
+    expect(sessionCsvRow(record(), { callNaming: 'counts' })).toBe(plain);
+  });
+
+  it('keep one cell per header column, empty when nothing was dropped', () => {
+    const row = sessionCsvRow(record({ drops: 0, timesDropped: {} }), ROTATIONS);
+    expect(row.split(',')).toHaveLength(historyCsvHeader(ROTATIONS).length);
+    expect(row.endsWith(',Triple: 3; Quad: 2; 4: 3,')).toBe(true);
+  });
+
+  it("follow today's map, like History", () => {
+    const remapped: CallNameOptions = {
+      callNaming: 'rotations',
+      rotationMap: { single: 2, double: 3, triple: 4, quad: 5 },
+    };
+    expect(
+      sessionCsvRow(record(), remapped).endsWith(',Double: 3; 3&: 2; Triple: 3,Triple: 2'),
+    ).toBe(true);
+  });
+
+  it("appear in the whole export's header and every row", () => {
+    const lines = historyCsv([record(), record({ startedAt: AT - 60_000 })], ROTATIONS).split(
+      '\r\n',
+    );
+    expect(lines[0].endsWith(',Drops by call,Calls by name,Drops by name')).toBe(true);
+    expect(lines[1].endsWith(',4: 2,Triple: 3; Quad: 2; 4: 3,4: 2')).toBe(true);
+    expect(lines[2].split(',')).toHaveLength(13);
+    expect(historyCsv([], ROTATIONS)).toBe(historyCsvHeader(ROTATIONS).join(',') + '\r\n');
   });
 });
