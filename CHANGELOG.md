@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-11-27
+
+### Added
+
+- **Rotation names in the shared History CSV** (roadmap: "Rotation names in the History CSV
+  export"). With Settings → Calls → **Say calls as: Rotations**, History → **Share** adds two
+  columns at the end: **Calls by name** (`Triple: 3; Quad: 2; 4: 3`) and **Drops by name**
+  (`4: 2`). Calls without a name stay as counts (`4`, `4&`). With **Counts** the CSV is exactly
+  as before.
+- **Component tests** for `VoicePicker` (open/close, iOS and Android voice labels, pick with a
+  sample vs. pick-only while practicing, a saved voice the phone no longer lists, the empty
+  list), `AppearanceSettings` (theme chips, the follow-the-phone note for dark / light /
+  unknown, Normal / Big display) and `CountOffWordsField` (typing, cleanup on blur, where the
+  words land, too many words for the counts before the call, the 8-word cap).
+- Smoke test: with Rotations on, the downloaded CSV has the two name columns. 24 new unit and
+  component tests (715 total); 121 smoke checks.
+
+### Decisions
+
+- **Extra columns, not renamed ones.** The count columns (`Calls`, `Drops by call`) stay first
+  and unchanged so a coach's spreadsheet built on them keeps working; the name columns are only
+  added when calls are said by name, so a counts-only performer's CSV doesn't grow empty columns.
+- **Today's names, like History.** Sessions are stored as counts; the name columns use the map
+  you have now, the same labels the History card shows. The count columns next to them keep a
+  remap visible.
+
+### To test on your phone
+
+- Turn on **Say calls as: Rotations**, practice a few phrases, then History → Share into Notes
+  or a spreadsheet: do the two new columns line up under their headers? (Nothing here depends on
+  audio/TTS; verified in the web build's download.)
+- No visible UI changed today, so the screenshots are unchanged.
+
 ## 2026-11-26
 
 ### Added

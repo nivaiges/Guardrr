@@ -54,7 +54,8 @@ Below that you can fine-tune:
   once you've set the count each **Single / Double / Triple / Quad** is caught on at your tempo
   (default single 2, double 2&, triple 3, quad 3&); **Use these calls** drills just those. The
   screen still shows "Catch on 2&", and calls without a name are said as counts. The session
-  stats, History and the Drop button name calls the same way ("Triple ✗").
+  stats, History and the Drop button name calls the same way ("Triple ✗"), and History → Share
+  adds **Calls by name / Drops by name** columns to the CSV.
 - **Sound** — accent on count 1, an optional quiet click on the "and"s, a vibration on every
   release (count 1) you can feel even when the gym is loud, an optional lighter tap on every
   catch, and an optional **buzz with the call** — a double buzz ("look at the screen") or **Buzz
@@ -177,7 +178,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, calls spoken by rotation name, deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, the Big practice display, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, calls spoken by rotation name (and the name columns in the shared CSV), deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, the Big practice display, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on

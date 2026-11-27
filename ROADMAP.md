@@ -70,8 +70,8 @@
       custom preset (a quad's count changes with the tempo).
 - [x] History / stats name calls by rotation too ("Triple ✗", "Dropped most: Double") with
       "Say calls as: Rotations"; a call's detail keeps the count ("Double (2 and)").
-- [ ] Rotation names in the History CSV export (a "name" column) if a coach wants them; today the
-      CSV keeps counts only.
+- [x] Rotation names in the History CSV export — with "Say calls as: Rotations", Share adds
+      **Calls by name** / **Drops by name** columns after the unchanged count columns.
 - [x] Settings UI: hand-pick a non-contiguous set of calls (e.g. only 3, 5 and 7) — call chips in Settings → Calls.
 - [x] Apply phrase/call settings changes while practicing at the next phrase boundary instead of requiring Stop → Start (`LiveCueTimeline`; sounds and voice speed apply at once).
 - [ ] Settings UI: a real BPM slider if the stepper + tap tempo isn't enough (needs `@react-native-community/slider`, a native module).
@@ -80,8 +80,9 @@
       update / delete-undo / move flows.
 - [x] Component tests: SessionStatsCard (totals, tally, latest, call detail) and
       SessionHistoryCard (filters, share, trends, call detail, delete/undo, clear all).
-- [ ] Component tests for the rest: SettingsPanel, VoicePicker, AppearanceSettings,
-      CountOffWordsField; then App-level flows (Start/Stop with fake timers and mocked audio/speech).
+- [x] Component tests: VoicePicker, AppearanceSettings, CountOffWordsField.
+- [ ] Component tests for SettingsPanel; then App-level flows (Start/Stop with fake timers and
+      mocked audio/speech).
 - [ ] Accessibility: the Segmented and preset "radio" chips pass `selected` (plus `aria-checked`);
       check on device whether TalkBack reads them as "selected" or wants `checked` for radios.
 - [x] Display: a larger count for propping the phone up across the floor — Settings → Appearance →
