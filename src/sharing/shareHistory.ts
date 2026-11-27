@@ -1,6 +1,12 @@
 import { Platform, Share } from 'react-native';
 
-import { SessionRecord, csvDateTime, historyCsv, historyShareTitle } from '../engine';
+import {
+  CallNameOptions,
+  SessionRecord,
+  csvDateTime,
+  historyCsv,
+  historyShareTitle,
+} from '../engine';
 
 /** What happened when the performer tapped Share. */
 export type ShareOutcome = 'shared' | 'dismissed' | 'downloaded' | 'unavailable';
@@ -29,13 +35,15 @@ function download(csv: string, fileName: string): boolean {
  * Open the phone's share sheet with the history as CSV text (Messages,
  * Mail, Notes, Files…). The text is the CSV itself, so it pastes straight
  * into a spreadsheet. On the web without a share sheet, it downloads a .csv.
+ * With calls said by rotation (`names`), the CSV adds the name columns.
  */
 export async function shareHistory(
   history: readonly SessionRecord[],
   nowMs = Date.now(),
   filterLabel: string | null = null,
+  names: CallNameOptions = {},
 ): Promise<ShareOutcome> {
-  const csv = historyCsv(history);
+  const csv = historyCsv(history, names);
   const title = historyShareTitle(history, filterLabel);
   const canShareOnWeb =
     Platform.OS !== 'web' || (typeof navigator !== 'undefined' && 'share' in navigator);

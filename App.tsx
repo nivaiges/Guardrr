@@ -436,7 +436,9 @@ export default function App() {
               onClear={clearHistory}
               onRestore={restoreSessions}
               onShare={async (sessions, filterLabel) =>
-                shareOutcomeMessage(await shareHistory(sessions, Date.now(), filterLabel))
+                shareOutcomeMessage(
+                  await shareHistory(sessions, Date.now(), filterLabel, callNames),
+                )
               }
               filterKey={saved.historyFilter}
               onFilterChange={(historyFilter) => update((s) => ({ ...s, historyFilter }))}

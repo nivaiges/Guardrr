@@ -31,6 +31,21 @@ describe('shareHistory', () => {
     );
   });
 
+  it('adds the rotation-name columns when calls are said by rotation', async () => {
+    const share = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction, activityType: undefined });
+    const names = {
+      callNaming: 'rotations' as const,
+      rotationMap: { single: 2, double: 2.5, triple: 3, quad: 4 },
+    };
+    await shareHistory([session], NOW, null, names);
+    const message = share.mock.calls[0][0].message ?? '';
+    expect(message).toBe(historyCsv([session], names));
+    expect(message.split('\r\n')[0]).toContain(',Calls by name,Drops by name');
+    expect(message.split('\r\n')[1].endsWith(',4: 2,,Quad: 2,')).toBe(true);
+  });
+
   it('reports a dismissed sheet', async () => {
     jest
       .spyOn(Share, 'share')

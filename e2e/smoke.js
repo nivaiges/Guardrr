@@ -342,6 +342,17 @@ async function main() {
       .then(() => true)
       .catch(() => false);
     check('"Say calls as: Rotations" is saved', savedNaming);
+    const [namedDownload] = await Promise.all([
+      page.waitForEvent('download', { timeout: 5000 }),
+      page.getByTestId('history-share').click(),
+    ]);
+    const namedCsv = fs.readFileSync(await namedDownload.path(), 'utf8').split('\r\n');
+    check(
+      'with rotation names the shared CSV adds "Calls by name" / "Drops by name"',
+      namedCsv[0].endsWith(',Drops by call,Calls by name,Drops by name') &&
+        namedCsv[1].split(',').length === 13,
+      `${namedCsv[0]} | ${namedCsv[1]}`,
+    );
     await page.getByRole('radio', { name: /Say calls as counts/ }).click();
     await page.getByRole('switch', { name: 'Include "and" calls (e.g. "2 and")' }).click();
     await page.getByTestId('call-shortcut-all').click();
