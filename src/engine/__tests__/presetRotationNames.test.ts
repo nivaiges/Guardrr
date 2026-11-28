@@ -3,7 +3,9 @@ import {
   describeCustomPreset,
   describeToss,
   parseStoredCustomPresets,
+  presetUpdateButton,
   presetUpdateOffer,
+  savePresetHint,
   rotationMapToSave,
   rotationNamesDiffer,
   saveCustomPreset,
@@ -181,5 +183,30 @@ describe('storing presets with rotation names', () => {
       presets: [{ id: 'custom-1', name: 'Old', bpm: 120, toss: drill.toss }],
     });
     expect(parseStoredCustomPresets(old)[0].rotationMap).toBeUndefined();
+  });
+});
+
+describe('update button and save hint', () => {
+  it('words each kind of update', () => {
+    const [preset] = save(named());
+    expect(presetUpdateButton({ preset, kind: 'tempo' }, 150)).toEqual({
+      text: 'Save 150 BPM to “Rifle quads”',
+      label: 'Save 150 BPM to preset Rifle quads',
+    });
+    expect(presetUpdateButton({ preset, kind: 'names' }, 150)).toEqual({
+      text: 'Save rotation names to “Rifle quads”',
+      label: 'Save the rotation names to preset Rifle quads',
+    });
+    expect(presetUpdateButton({ preset, kind: 'settings' }, 150)).toEqual({
+      text: 'Update “Rifle quads”',
+      label: 'Update preset Rifle quads with these settings',
+    });
+  });
+
+  it('mentions rotation names in the save hint only when they will be kept', () => {
+    expect(savePresetHint(drill)).toBe('Saves the tempo, phrase and calls under a name');
+    expect(savePresetHint(named())).toBe(
+      'Saves the tempo, phrase, calls and rotation names under a name',
+    );
   });
 });

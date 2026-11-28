@@ -17,7 +17,9 @@ import {
   matchingAnyPreset,
   presetMoves,
   presetNameMessage,
+  presetUpdateButton,
   presetUpdateOffer,
+  savePresetHint,
   suggestPresetName,
 } from '../engine';
 
@@ -241,16 +243,10 @@ export function PresetPicker({
               testID="preset-update"
               onPress={update}
               accessibilityRole="button"
-              accessibilityLabel={
-                offer.kind === 'tempo'
-                  ? `Save ${settings.bpm} BPM to preset ${offer.preset.name}`
-                  : `Update preset ${offer.preset.name} with these settings`
-              }
+              accessibilityLabel={presetUpdateButton(offer, settings.bpm).label}
             >
               <Text style={styles.buttonText} numberOfLines={1}>
-                {offer.kind === 'tempo'
-                  ? `Save ${settings.bpm} BPM to “${offer.preset.name}”`
-                  : `Update “${offer.preset.name}”`}
+                {presetUpdateButton(offer, settings.bpm).text}
               </Text>
             </Pressable>
           ) : null}
@@ -261,7 +257,7 @@ export function PresetPicker({
               onPress={() => openForm({ mode: 'save' }, suggestPresetName(customPresets))}
               accessibilityRole="button"
               accessibilityLabel="Save as preset"
-              accessibilityHint="Saves the tempo, phrase and calls under a name"
+              accessibilityHint={savePresetHint(settings)}
             >
               <Text style={styles.buttonText}>{offer ? 'Save as new…' : 'Save as preset…'}</Text>
             </Pressable>

@@ -298,6 +298,32 @@ export function presetUpdateOffer(
   return last ? { preset: last, kind: 'settings' } : null;
 }
 
+/** The update button's text and screen-reader label for an offer, at this tempo. */
+export function presetUpdateButton(
+  offer: PresetUpdateOffer,
+  bpm: number,
+): { text: string; label: string } {
+  const { name } = offer.preset;
+  switch (offer.kind) {
+    case 'tempo':
+      return { text: `Save ${bpm} BPM to “${name}”`, label: `Save ${bpm} BPM to preset ${name}` };
+    case 'names':
+      return {
+        text: `Save rotation names to “${name}”`,
+        label: `Save the rotation names to preset ${name}`,
+      };
+    default:
+      return { text: `Update “${name}”`, label: `Update preset ${name} with these settings` };
+  }
+}
+
+/** What "Save as preset" keeps, for its screen-reader hint. */
+export function savePresetHint(settings: PracticeSettings): string {
+  return settings.cue.callNaming === 'rotations'
+    ? 'Saves the tempo, phrase, calls and rotation names under a name'
+    : 'Saves the tempo, phrase and calls under a name';
+}
+
 export interface DeletedPreset {
   preset: PracticePreset;
   /** Where it was, so Undo puts it back in the same place. */

@@ -4,9 +4,12 @@ import { Pressable, Text } from 'react-native';
 
 import {
   DEFAULT_PRACTICE_SETTINGS,
+  DEFAULT_ROTATION_MAP,
   PRACTICE_PRESETS,
   PracticePreset,
   PracticeSettings,
+  RotationMap,
+  applyPreset,
   deleteCustomPreset,
   moveCustomPreset,
   presetNameMessage,
@@ -46,7 +49,7 @@ function Harness({
       <PresetPicker
         settings={settings}
         customPresets={custom}
-        onApply={(p) => setSettings((s) => ({ ...s, bpm: p.bpm, toss: p.toss }))}
+        onApply={(p) => setSettings((s) => applyPreset(s, p))}
         onSave={(name) => {
           const result = saveCustomPreset(custom, settings, name, clock++);
           setCustom(result.presets);
@@ -72,6 +75,13 @@ function Harness({
       />
       {/* Stand-in for the tempo stepper elsewhere in Settings. */}
       <SettingsProbe settings={settings} onTempo={(bpm) => setSettings((s) => ({ ...s, bpm }))} />
+      {/* Stand-in for Settings → Calls → Say calls as / the rotation map. */}
+      <NamingProbe
+        settings={settings}
+        onChange={(callNaming, rotationMap) =>
+          setSettings((s) => ({ ...s, cue: { ...s.cue, callNaming, rotationMap } }))
+        }
+      />
     </>
   );
 }
@@ -87,6 +97,30 @@ function SettingsProbe({
     <Pressable testID="tempo-up" onPress={() => onTempo(settings.bpm + 4)}>
       <Text testID="probe">{`${settings.bpm} ${settings.toss.allowedTossCounts.join(',')}`}</Text>
     </Pressable>
+  );
+}
+
+const SLOW_QUADS: RotationMap = { single: 2, double: 3, triple: 3.5, quad: 4 };
+
+function NamingProbe({
+  settings,
+  onChange,
+}: {
+  settings: PracticeSettings;
+  onChange: (naming: 'counts' | 'rotations', map: RotationMap) => void;
+}) {
+  const { callNaming, rotationMap } = settings.cue;
+  return (
+    <>
+      <Pressable testID="say-counts" onPress={() => onChange('counts', rotationMap)} />
+      <Pressable testID="say-rotations" onPress={() => onChange('rotations', rotationMap)} />
+      <Pressable testID="slow-quads" onPress={() => onChange(callNaming, SLOW_QUADS)} />
+      <Pressable
+        testID="default-names"
+        onPress={() => onChange(callNaming, DEFAULT_ROTATION_MAP)}
+      />
+      <Text testID="naming">{`${callNaming} quad ${rotationMap.quad}`}</Text>
+    </>
   );
 }
 
@@ -193,5 +227,58 @@ describe('<PresetPicker>', () => {
     expect(screen.queryByTestId('preset-move-later')).toBeNull();
     await fireEvent.press(screen.getByTestId('preset-move-earlier'));
     expect(order()).toEqual(['Odds, your preset', 'Evens, your preset']);
+  });
+
+  describe('rotation names', () => {
+    it('saves the names with the preset and brings them back when applied', async () => {
+      await render(<Harness />);
+      await fireEvent.press(screen.getByTestId('say-rotations'));
+      await fireEvent.press(screen.getByTestId('slow-quads'));
+      expect(screen.getByRole('button', { name: 'Save as preset' })).toHaveProp(
+        'accessibilityHint',
+        'Saves the tempo, phrase, calls and rotation names under a name',
+      );
+      await saveAs('Rifle quads');
+      expect(screen.getByText(/said as rotations · 132 BPM to start/)).toBeOnTheScreen();
+
+      // Elsewhere: another preset, calls said as counts with the default map.
+      await fireEvent.press(chip('Quick 8'));
+      await fireEvent.press(screen.getByTestId('say-counts'));
+      await fireEvent.press(screen.getByTestId('default-names'));
+      expect(screen.getByTestId('naming')).toHaveTextContent('counts quad 3.5');
+
+      await fireEvent.press(chip('Rifle quads, your preset'));
+      expect(screen.getByTestId('naming')).toHaveTextContent('rotations quad 4');
+      expect(screen.getByTestId('probe')).toHaveTextContent('132 3,5,7');
+    });
+
+    it('offers to save changed names to the matching preset of your own', async () => {
+      await render(<Harness />);
+      await fireEvent.press(screen.getByTestId('say-rotations'));
+      await saveAs('Rifle quads');
+      expect(screen.queryByTestId('preset-update')).toBeNull();
+
+      await fireEvent.press(screen.getByTestId('slow-quads'));
+      const update = screen.getByRole('button', {
+        name: 'Save the rotation names to preset Rifle quads',
+      });
+      expect(update).toHaveTextContent('Save rotation names to “Rifle quads”');
+      await fireEvent.press(update);
+      expect(screen.queryByTestId('preset-update')).toBeNull();
+
+      // Saying calls as counts is personal: nothing to save.
+      await fireEvent.press(screen.getByTestId('say-counts'));
+      expect(screen.queryByTestId('preset-update')).toBeNull();
+    });
+
+    it('leaves how calls are said alone for a preset saved without names', async () => {
+      await render(<Harness />);
+      await saveAs('Odd ones');
+      expect(screen.getByText(/called 4 early · 132 BPM to start$/)).toBeOnTheScreen();
+      await fireEvent.press(chip('Quick 8'));
+      await fireEvent.press(screen.getByTestId('say-rotations'));
+      await fireEvent.press(chip('Odd ones, your preset'));
+      expect(screen.getByTestId('naming')).toHaveTextContent('rotations quad 3.5');
+    });
   });
 });
