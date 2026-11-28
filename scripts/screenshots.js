@@ -7,7 +7,8 @@
  * saving, updating and moving a preset of your own, Appearance forced
  * to Dark, the note after leaving the screen mid-practice, and the big
  * practice display (Settings → Appearance → Practice display: Big), and calls
- * said as rotation names (the setting, a named call, and the stats naming them).
+ * said as rotation names (the setting, a named call, the stats naming them, and
+ * a preset of your own that keeps the names).
  *
  * Usage: node scripts/screenshots.js <web export dir> [<output dir>]
  * (`npm run screenshots` builds for web and writes to docs/screenshots/.)
@@ -395,6 +396,16 @@ async function main() {
     await rotStats.locator('[data-testid^="stats-call-"]').first().click();
     await rot.page.waitForTimeout(300);
     await shot(rotStats, '38-rotation-stats');
+    // Save the named drill as a preset, then move the quad: Presets offers to save the names.
+    await rot.page.getByTestId('preset-save').click();
+    await rot.page.getByTestId('preset-name').fill('Rifle 155');
+    await rot.page.getByTestId('preset-save-confirm').click();
+    await rot.page.getByTestId('preset-delete').waitFor();
+    await rot.page.getByRole('button', { name: 'Quad later' }).click();
+    await rot.page.getByTestId('preset-update').waitFor();
+    await scrollTo(exact(rot.page, 'Presets'));
+    await rot.page.waitForTimeout(200);
+    await shot(rot.page, '39-preset-rotation-names');
     await rot.context.close();
   } catch (e) {
     errors.push(e instanceof Error ? e.message : String(e));

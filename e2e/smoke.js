@@ -353,6 +353,27 @@ async function main() {
         namedCsv[1].split(',').length === 13,
       `${namedCsv[0]} | ${namedCsv[1]}`,
     );
+    // 5c2. A preset saved with rotation names brings them back.
+    await page.getByTestId('preset-save').click();
+    await page.getByTestId('preset-name').fill('Named drill');
+    await page.getByTestId('preset-save-confirm').click();
+    check(
+      'a preset saved with rotation names says so',
+      await page
+        .getByText(/said as rotations · \d+ BPM to start$/)
+        .isVisible()
+        .catch(() => false),
+    );
+    await page.getByRole('radio', { name: /Say calls as counts/ }).click();
+    await page.getByRole('radio', { name: 'Quick 8', exact: true }).click();
+    await page.getByRole('radio', { name: 'Named drill, your preset' }).click();
+    check(
+      'applying it says calls as rotations again',
+      (await page
+        .getByRole('radio', { name: /Say calls as rotations/ })
+        .getAttribute('aria-checked')) === 'true',
+    );
+    await page.getByTestId('preset-delete').click();
     await page.getByRole('radio', { name: /Say calls as counts/ }).click();
     await page.getByRole('switch', { name: 'Include "and" calls (e.g. "2 and")' }).click();
     await page.getByTestId('call-shortcut-all').click();
