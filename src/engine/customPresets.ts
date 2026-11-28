@@ -2,7 +2,9 @@
  * The performer's own presets: "save current settings as…".
  *
  * A custom preset has the same shape as a built-in one (tempo + toss
- * settings; sound options stay personal), a name the performer typed and a
+ * settings; sound options stay personal), plus the rotation map when it is
+ * saved with calls said by name (a quad's count depends on the tempo), a
+ * name the performer typed and a
  * description generated from its settings, so it reads like the built-ins
  * on the settings screen. Saving is offered only when the settings don't
  * already match a preset, so the list never holds two copies of the same
@@ -14,6 +16,12 @@ import { TossSettings, validateTossSettings } from './announce';
 import { callLabel, isValidCall } from './calls';
 import { callSetSummary, callShortcutOf, clampBpm, isCallRange } from './editSettings';
 import { PRACTICE_PRESETS, PracticePreset, tossMatchesPreset } from './presets';
+import {
+  RotationMap,
+  isValidRotationMap,
+  parseStoredRotationMap,
+  sameRotationMap,
+} from './rotations';
 import { PracticeSettings } from './storedSettings';
 import { MAX_PHRASE_LENGTH, MIN_PHRASE_LENGTH } from './timing';
 
@@ -53,6 +61,33 @@ export function describeToss(toss: TossSettings): string {
     `called ${toss.leadCounts} early`,
     ...(toss.allowRepeats ? [] : ['no repeats']),
   ].join(' · ');
+}
+
+/** Added to a preset's description when it says calls by rotation name. */
+export const ROTATION_NAMES_DESCRIPTION = 'said as rotations';
+
+/** The description shown for a custom preset: its drill, and whether it names calls. */
+export function describeCustomPreset(toss: TossSettings, rotationMap?: RotationMap): string {
+  const drill = describeToss(toss);
+  return rotationMap ? `${drill} · ${ROTATION_NAMES_DESCRIPTION}` : drill;
+}
+
+/**
+ * The rotation map a preset saved from these settings keeps: the current map
+ * when calls are said as rotations, otherwise none.
+ */
+export function rotationMapToSave(settings: PracticeSettings): RotationMap | undefined {
+  return settings.cue.callNaming === 'rotations' ? { ...settings.cue.rotationMap } : undefined;
+}
+
+/**
+ * True when calls are said as rotations with a map the preset doesn't hold
+ * (a different map, or none). Saying calls as counts never counts as a
+ * change: that switch is personal, and the preset's names stay for later.
+ */
+export function rotationNamesDiffer(settings: PracticeSettings, preset: PracticePreset): boolean {
+  if (settings.cue.callNaming !== 'rotations') return false;
+  return !preset.rotationMap || !sameRotationMap(preset.rotationMap, settings.cue.rotationMap);
 }
 
 /** Trimmed, single-spaced and cut to MAX_PRESET_NAME_LENGTH. */
@@ -151,12 +186,14 @@ export function saveCustomPreset(
     ...settings.toss,
     allowedTossCounts: [...settings.toss.allowedTossCounts].sort((a, b) => a - b),
   };
+  const rotationMap = rotationMapToSave(settings);
   const saved: PracticePreset = {
     id: `${ID_PREFIX}${stamp}`,
     name: normalizePresetName(name),
-    description: describeToss(toss),
+    description: describeCustomPreset(toss, rotationMap),
     bpm: settings.bpm,
     toss,
+    ...(rotationMap ? { rotationMap } : {}),
   };
   return { presets: [...custom, saved], saved, problem: null };
 }
@@ -196,7 +233,8 @@ export function renameCustomPreset(
 
 /**
  * Overwrite a custom preset with the current tempo and toss settings (same
- * name, id and place). Refused when the settings already match a different
+ * name, id and place), and the rotation map when calls are said by name. A
+ * preset updated while calls are said as counts keeps the names it had. Refused when the settings already match a different
  * preset, so the list never holds two copies of one setup.
  */
 export function updateCustomPreset(
@@ -215,22 +253,26 @@ export function updateCustomPreset(
     ...settings.toss,
     allowedTossCounts: [...settings.toss.allowedTossCounts].sort((a, b) => a - b),
   };
+  const rotationMap = rotationMapToSave(settings) ?? custom[index].rotationMap;
   const changed: PracticePreset = {
     ...custom[index],
-    description: describeToss(toss),
+    description: describeCustomPreset(toss, rotationMap),
     bpm: clampBpm(settings.bpm),
     toss,
+    ...(rotationMap ? { rotationMap: { ...rotationMap } } : {}),
   };
   return { presets: custom.map((p, i) => (i === index ? changed : p)), changed, problem: null };
 }
 
-export type PresetUpdateKind = 'tempo' | 'settings';
+export type PresetUpdateKind = 'tempo' | 'names' | 'settings';
 
 export interface PresetUpdateOffer {
   preset: PracticePreset;
   /**
    * 'tempo': the settings still match the preset but the tempo moved
-   * ("Save 150 BPM to …"); 'settings': the settings were changed after the
+   * ("Save 150 BPM to …"); 'names': same settings and tempo, but calls are
+   * said as rotations with a different map ("Save rotation names to …");
+   * 'settings': the settings were changed after the
    * preset was applied and now match no preset ("Update … with these").
    */
   kind: PresetUpdateKind;
@@ -248,8 +290,9 @@ export function presetUpdateOffer(
 ): PresetUpdateOffer | null {
   const current = matchingAnyPreset(settings, custom);
   if (current) {
-    if (!isCustomPreset(current) || clampBpm(settings.bpm) === current.bpm) return null;
-    return { preset: current, kind: 'tempo' };
+    if (!isCustomPreset(current)) return null;
+    if (clampBpm(settings.bpm) !== current.bpm) return { preset: current, kind: 'tempo' };
+    return rotationNamesDiffer(settings, current) ? { preset: current, kind: 'names' } : null;
   }
   const last = custom.find((p) => p.id === lastCustomId);
   return last ? { preset: last, kind: 'settings' } : null;
@@ -320,7 +363,13 @@ export function moveCustomPreset(
 export function serializeCustomPresets(custom: readonly PracticePreset[]): string {
   return JSON.stringify({
     version: CUSTOM_PRESETS_VERSION,
-    presets: custom.map(({ id, name, bpm, toss }) => ({ id, name, bpm, toss })),
+    presets: custom.map(({ id, name, bpm, toss, rotationMap }) => ({
+      id,
+      name,
+      bpm,
+      toss,
+      ...(rotationMap ? { rotationMap } : {}),
+    })),
   });
 }
 
@@ -367,12 +416,17 @@ function parsePreset(raw: unknown): PracticePreset | null {
   } catch {
     return null;
   }
+  // A broken map only loses the names: the drill itself is still good.
+  const rotationMap = isValidRotationMap(raw.rotationMap)
+    ? parseStoredRotationMap(raw.rotationMap)
+    : undefined;
   return {
     id,
     name: normalizePresetName(name),
-    description: describeToss(toss),
+    description: describeCustomPreset(toss, rotationMap),
     bpm: clampBpm(bpm),
     toss,
+    ...(rotationMap ? { rotationMap } : {}),
   };
 }
 

@@ -6,9 +6,14 @@
  * Every preset is valid by construction (checked in the tests), and
  * `matchingPreset` tells the UI which preset, if any, the current settings
  * still equal — editing any field afterwards simply "un-selects" it.
+ *
+ * The one exception: a preset of your own saved with "Say calls as:
+ * Rotations" keeps its rotation map, because how many counts a quad takes
+ * changes with the tempo the preset sets (see rotations.ts).
  */
 
 import { TossSettings } from './announce';
+import { RotationMap } from './rotations';
 import { PracticeSettings, QUADS_TOSS_SETTINGS } from './storedSettings';
 
 export interface PracticePreset {
@@ -18,6 +23,12 @@ export interface PracticePreset {
   description: string;
   bpm: number;
   toss: TossSettings;
+  /**
+   * Custom presets saved with calls said as rotations: the counts each name
+   * is caught on at this tempo. Applying the preset says calls by name with
+   * this map. Absent: applying leaves how calls are said alone.
+   */
+  rotationMap?: RotationMap;
 }
 
 export const PRACTICE_PRESETS: readonly PracticePreset[] = [
@@ -94,12 +105,24 @@ export function presetById(id: string): PracticePreset | undefined {
   return PRACTICE_PRESETS.find((p) => p.id === id);
 }
 
-/** Settings with the preset applied; sound options are kept. */
+/**
+ * Settings with the preset applied; sound options are kept. A preset with a
+ * rotation map also turns on "Say calls as: Rotations" with that map.
+ */
 export function applyPreset(settings: PracticeSettings, preset: PracticePreset): PracticeSettings {
   return {
     ...settings,
     bpm: preset.bpm,
     toss: { ...preset.toss, allowedTossCounts: [...preset.toss.allowedTossCounts] },
+    ...(preset.rotationMap
+      ? {
+          cue: {
+            ...settings.cue,
+            callNaming: 'rotations' as const,
+            rotationMap: { ...preset.rotationMap },
+          },
+        }
+      : {}),
   };
 }
 

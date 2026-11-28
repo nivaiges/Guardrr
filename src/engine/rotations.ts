@@ -85,6 +85,11 @@ export function isValidRotationMap(map: unknown): map is RotationMap {
   return calls.every((call, i) => i === 0 || catchPositionOf(call) > catchPositionOf(calls[i - 1]));
 }
 
+/** True when both maps put every rotation on the same call. */
+export function sameRotationMap(a: RotationMap, b: RotationMap): boolean {
+  return ROTATIONS.every((r) => a[r] === b[r]);
+}
+
 /** A stored map, or the default when it's missing or invalid. Never throws. */
 export function parseStoredRotationMap(raw: unknown): RotationMap {
   if (!isValidRotationMap(raw)) return { ...DEFAULT_ROTATION_MAP };
