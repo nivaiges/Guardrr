@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-11-28
+
+### Added
+
+- **Custom presets keep the rotation names** (roadmap: "save the map with a custom preset").
+  How many counts a quad takes changes with the tempo, so a preset of your own saved while
+  Settings → Calls → **Say calls as: Rotations** is on now stores the name → count map with it:
+  - The preset's line ends **"· said as rotations"**, and the Save button's screen-reader hint
+    says the names are kept.
+  - Applying it turns **Rotations** back on with that map (other sound options untouched).
+  - With the preset selected, moving a name (e.g. Quad later) offers **Save rotation names to
+    "Rifle 155"**; changing the tempo still offers "Save N BPM to …" (and saves the names too).
+- Smoke test: save a named preset, switch to counts and Quick 8, apply it again → Rotations is
+  back (123 checks). New screenshot `39-preset-rotation-names` in the README gallery. 20 new unit
+  and component tests (735 total).
+
+### Decisions
+
+- **Only presets saved with Rotations carry names.** Applying a preset without a map leaves how
+  calls are said alone, so built-ins and older presets behave exactly as before.
+- **Saying calls as counts is personal.** Switching to Counts never offers to "update" a named
+  preset, and updating a named preset while on Counts keeps its names.
+- **Names don't make a drill new.** Two presets can't differ only by their names (the duplicate
+  check still compares tempo-free toss settings); move the names with "Save rotation names to …"
+  instead.
+- Stored presets stay `version: 1`: the map is an optional field, older presets read fine, and
+  a broken map drops only the names, not the preset.
+
+### To test on your phone
+
+- Turn on **Say calls as: Rotations**, set the quad where you catch it at your tempo, then
+  Presets → Save as preset…. Switch to Counts and another preset, tap yours: is the voice back
+  to "quad"? (Names are verified in the web build and smoke test; the spoken voice is not.)
+- With your preset selected, move the Quad and check the "Save rotation names to …" button.
+
 ## 2026-11-27
 
 ### Added

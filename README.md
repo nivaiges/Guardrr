@@ -41,6 +41,9 @@ or clear the whole history (it asks first); every delete can be undone right aft
 things up your own way and tap **Save as preset…** to keep it as a chip of your own (up to 12;
 select one to rename or delete it, with Undo). Tweak one of your presets and **Update "name"**
 writes the change back to it; change only the tempo and it offers **Save 150 BPM to "name"**.
+Saved while calls are said as rotations, a preset of your own also keeps the rotation names
+(a quad has a different count at 120 than at 155): applying it says calls by name again, and
+moving a name offers **Save rotation names to "name"**.
 
 Below that you can fine-tune:
 
@@ -133,9 +136,9 @@ practice screen is Chromium's fake camera; on the phone it's you.
 | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | ![Settings → Calls → Say calls as Rotations: Single 2, Double 2&, Triple 3, Quad 3&](docs/screenshots/35-rotation-names.png) | ![The call spoken as "triple": Next Triple, release in 4 counts](docs/screenshots/36-rotation-call.png) | ![A triple in the air: "Triple", catch on 3](docs/screenshots/37-rotation-in-air.png) |
 
-| Stats by rotation name                                                                                                                                      |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Last session named by rotation: Triple called most, Triple (3) — every session, Latest: Triple · Quad · Triple ✗](docs/screenshots/38-rotation-stats.png) |
+| Stats by rotation name                                                                                                                                      | A preset that keeps the names                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| ![Last session named by rotation: Triple called most, Triple (3) — every session, Latest: Triple · Quad · Triple ✗](docs/screenshots/38-rotation-stats.png) | ![Rifle 155, "said as rotations", offering Save rotation names after the quad moved](docs/screenshots/39-preset-rotation-names.png) |
 
 ## Tech
 
@@ -178,7 +181,7 @@ without a phone (`scripts/morning-check.sh`):
 3. Builds the **web** version and runs `e2e/smoke.js` in headless Chromium: presses Start and
    practices for ~7 seconds, checking the tempo and drift of the clicks, the count-in, when the
    call is spoken and when the release lands, Drop / Undo drop, Stop, that settings and the session history
-   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, calls spoken by rotation name (and the name columns in the shared CSV), deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, the Big practice display, and that nothing logs an error. Clicks and speech are recorded, not
+   survive a reload, that hand-picked calls (3, 5, 7) are the only ones spoken, the Odd / All call shortcuts, calls spoken by rotation name (the name columns in the shared CSV, and a preset that keeps the names), deleting, restoring and clearing History, that the phrase strip fits on one row, the dark theme, the Appearance override, the Big practice display, and that nothing logs an error. Clicks and speech are recorded, not
    played.
 
 It runs in two places: the **Morning check** GitHub workflow (summary, screenshots and logs on

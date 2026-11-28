@@ -66,8 +66,13 @@
 - [ ] Rotation names: check on device that "single", "double", "triple", "quad" are clear and
       quick enough at 155 BPM (two syllables vs. one for "four"), and whether "quad" needs to be
       said "quads" as some guards call it.
-- [ ] Rotation names: optionally "fives" / "sixes" for rifle and sabre, and save the map with a
-      custom preset (a quad's count changes with the tempo).
+- [x] Rotation names: save the map with a custom preset (a quad's count changes with the tempo) —
+      a preset saved with **Say calls as: Rotations** keeps the names and brings them back;
+      "Save rotation names to …" when the map moves.
+- [ ] Rotation names: optionally "fives" / "sixes" for rifle and sabre.
+- [ ] Presets with names: check on device whether applying a preset _without_ names should switch
+      back to counts (today it leaves how calls are said alone), and whether built-in presets
+      like Quads 155 should carry a suggested map.
 - [x] History / stats name calls by rotation too ("Triple ✗", "Dropped most: Double") with
       "Say calls as: Rotations"; a call's detail keeps the count ("Double (2 and)").
 - [x] Rotation names in the History CSV export — with "Say calls as: Rotations", Share adds
